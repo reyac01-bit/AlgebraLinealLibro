@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Determinante como Área y Volumen — Álgebra Lineal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#888;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;--col-u:#2980B9;--col-v:#E67E22;--col-w:#8E44AD;}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
+  .lab-header{background:linear-gradient(135deg,var(--navy) 0%,var(--gmitblue) 100%);color:#fff;padding:0.7rem 1.5rem;position:relative;overflow:hidden;}
+  .lab-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none;}
+  .lab-header-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:0.8rem;position:relative;z-index:1;}
+  .lab-icon{width:38px;height:38px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+  .lab-header h1{font-family:var(--font-display);font-size:clamp(0.9rem,2vw,1.25rem);font-weight:700;line-height:1.2;}
+  .lab-subtitle{font-size:0.72rem;opacity:0.75;}
+  .lab-badge{display:inline-block;background:var(--brick);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15em 0.5em;border-radius:3px;letter-spacing:0.05em;text-transform:uppercase;margin-right:0.35rem;vertical-align:middle;}
+  .main{max-width:1400px;margin:0 auto;padding:0.6rem 0.8rem 1.5rem;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+  .panel-head{padding:0.5rem 0.9rem;font-family:var(--font-display);font-size:0.85rem;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.4rem;background:var(--surface-alt);}
+  .panel-body{padding:0.7rem 0.9rem;}
+  .canvas-panel{margin-bottom:0.7rem;}
+  .canvas-wrap{position:relative;width:100%;height:clamp(320px,50vh,540px);background:#fff;overflow:hidden;}
+  .canvas-wrap canvas{position:absolute;inset:0;width:100%!important;height:100%!important;}
+  .info-strip{display:flex;flex-wrap:wrap;gap:0.25rem 1rem;padding:0.45rem 0.9rem;font-size:0.73rem;font-family:var(--font-mono);border-top:1px solid var(--border);background:var(--surface-alt);}
+  .info-item{display:flex;gap:0.2rem;align-items:center;}.il{color:var(--text-muted);}.iv{font-weight:700;color:var(--navy);}.iv.neg{color:var(--brick);}
+  .controls{display:grid;grid-template-columns:auto 1fr;gap:0.7rem;align-items:start;}
+  @media(max-width:900px){.controls{grid-template-columns:1fr;}}
+  /* Mode toggle */
+  .dim-toggle{display:flex;background:var(--gmitblue-pale);border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border);margin-bottom:0.6rem;}
+  .dim-toggle button{flex:1;padding:0.45rem 0;border:none;background:transparent;font-family:var(--font-body);font-size:0.82rem;font-weight:600;color:var(--text-secondary);cursor:pointer;transition:var(--transition);}
+  .dim-toggle button.active{background:var(--navy);color:#fff;}
+  /* Vector inputs */
+  .vec-input-row{display:flex;align-items:center;gap:0.4rem;margin-bottom:0.4rem;}
+  .vec-input-row .vlabel{font-family:var(--font-mono);font-weight:700;font-size:0.85rem;min-width:1.5rem;}
+  .vec-input-row input{width:52px;padding:0.3rem 0.2rem;border:1px solid var(--border);border-radius:4px;font-family:var(--font-mono);font-size:0.85rem;text-align:center;background:#fff;transition:var(--transition);}
+  .vec-input-row input:focus{outline:none;border-color:var(--gmitblue);box-shadow:0 0 0 3px rgba(90,138,168,0.15);}
+  .cdot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;margin-right:2px;}
+  .preset-scroll{display:flex;gap:0.3rem;flex-wrap:wrap;margin-bottom:0.5rem;}
+  .preset-pill{padding:0.25rem 0.55rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);cursor:pointer;transition:var(--transition);font-size:0.68rem;font-weight:600;white-space:nowrap;}
+  .preset-pill:hover{border-color:var(--navy);background:var(--gmitblue-pale);}
+  .preset-pill.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .formula-card{border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.5rem 0.7rem;margin-bottom:0.4rem;font-family:var(--font-mono);font-size:0.78rem;line-height:1.8;background:var(--surface-alt);}
+  .formula-card .flabel{font-weight:700;font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.1rem;}
+  .area-badge{display:inline-block;padding:0.3em 0.8em;border-radius:20px;font-weight:700;font-size:1rem;font-family:var(--font-mono);}
+  .area-badge.pos{background:rgba(34,139,34,0.12);color:var(--forest);}
+  .area-badge.neg{background:rgba(178,34,34,0.1);color:var(--brick);}
+  .area-badge.zero{background:rgba(0,0,0,0.06);color:var(--text-muted);}
+  .context-box{background:linear-gradient(135deg,var(--gmitblue-pale),rgba(90,138,168,0.04));border-left:3px solid var(--gmitblue);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:0.6rem 0.8rem;font-size:0.76rem;line-height:1.55;color:var(--text-secondary);margin-bottom:0.6rem;}
+  .context-box strong{color:var(--navy);}
+  .lab-footer{max-width:1400px;margin:0 auto;padding:0.5rem 1rem;text-align:center;font-size:0.68rem;color:var(--text-muted);}
+  @media(max-width:600px){.main{padding:0.4rem;}.canvas-wrap{height:260px;}.vec-input-row input{width:44px;}}
+</style>
+</head>
+<body>
+<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">📦</div><div><h1><span class="lab-badge">Cap 3</span>Determinante como Área y Volumen</h1><div class="lab-subtitle">Laboratorio Interactivo · Determinantes</div></div></div></header>
+<div class="main">
+  <div class="panel canvas-panel">
+    <div class="panel-head">📈 Visualización<span style="margin-left:auto;" id="areaDisplay"></span></div>
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="cv2d"></canvas>
+      <div id="container3d" style="display:none;width:100%;height:100%;"></div>
+    </div>
+    <div class="info-strip" id="infoBar"></div>
+  </div>
+  <div class="controls">
+    <div class="panel">
+      <div class="panel-head">🔢 Vectores</div>
+      <div class="panel-body">
+        <div class="dim-toggle">
+          <button id="btn2d" class="active" onclick="setMode(2)">2D — Área</button>
+          <button id="btn3d" onclick="setMode(3)">3D — Volumen</button>
+        </div>
+        <div class="context-box" id="ctxBox">Los vectores columna de la matriz forman un <strong>paralelogramo</strong>. El valor absoluto del determinante es su <strong>área</strong>.</div>
+        <div id="vecInputs"></div>
+        <div class="preset-scroll" id="presets"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">📊 Cálculos</div>
+      <div class="panel-body" id="calcBox"></div>
+    </div>
+  </div>
+</div>
+<footer class="lab-footer">Álgebra Lineal con Abordaje Tecnológico · Laboratorio 3.6 · Determinante como Área y Volumen</footer>
+
+<script>
+let mode=2;
+let U={x:2,y:-1,z:0},V={x:3,y:1,z:4},W_={x:4,y:2,z:5};
+let canvas2d,ctx,CW,CH,sc=50,ox2,oy2;
+let scene3,camera3,renderer3,arrows3=[],meshes3=[];
+let camTheta=Math.PI/4,camPhi=Math.PI/5,camR=14;
+let drag3=false,prev3={x:0,y:0};
+let dragging2d=null;
+
+const PRESETS_2D=[
+  {name:'Identidad',u:[1,0],v:[0,1]},
+  {name:'det=6',u:[3,1],v:[0,2]},
+  {name:'det=-5',u:[1,2],v:[3,1]},
+  {name:'det=0 (LD)',u:[2,4],v:[1,2]},
+  {name:'Rotación 45°',u:[0.71,0.71],v:[-0.71,0.71]},
+  {name:'Escalamiento',u:[3,0],v:[0,2]},
+  {name:'Cizallamiento',u:[1,0],v:[1,1]},
+];
+const PRESETS_3D=[
+  {name:'Libro: u=(2,-1,0), v=(3,1,4), w=(4,2,5)',u:[2,-1,0],v:[3,1,4],w:[4,2,5]},
+  {name:'Identidad 3×3',u:[1,0,0],v:[0,1,0],w:[0,0,1]},
+  {name:'Vol=0 (coplanares)',u:[1,0,0],v:[0,1,0],w:[1,1,0]},
+  {name:'Cubo unitario escalado',u:[2,0,0],v:[0,3,0],w:[0,0,4]},
+];
+
+window.addEventListener('DOMContentLoaded',()=>{
+  canvas2d=document.getElementById('cv2d');ctx=canvas2d.getContext('2d');
+  resize();buildInputs();buildPresets();loadPreset2D(1);initEvents();draw();
+});
+window.addEventListener('resize',()=>{resize();draw();});
+
+function resize(){
+  const w=document.getElementById('canvasWrap'),r=w.getBoundingClientRect();
+  CW=r.width;CH=r.height;
+  canvas2d.width=CW*devicePixelRatio;canvas2d.height=CH*devicePixelRatio;
+  canvas2d.style.width=CW+'px';canvas2d.style.height=CH+'px';
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  ox2=CW/2;oy2=CH/2;
+  if(renderer3){renderer3.setSize(CW,CH);camera3.aspect=CW/CH;camera3.updateProjectionMatrix();}
+}
+
+function setMode(m){
+  mode=m;
+  document.getElementById('btn2d').classList.toggle('active',m===2);
+  document.getElementById('btn3d').classList.toggle('active',m===3);
+  canvas2d.style.display=m===2?'block':'none';
+  document.getElementById('container3d').style.display=m===3?'block':'none';
+  document.getElementById('ctxBox').innerHTML=m===2
+    ?'Los vectores columna de la matriz forman un <strong>paralelogramo</strong>. El valor absoluto del determinante es su <strong>área</strong>.'
+    :'Tres vectores en ℝ³ forman un <strong>paralelepípedo</strong>. El volumen es <strong>|(u×v)·w|</strong>, que coincide con |det(A)| donde A tiene u,v,w como columnas.';
+  buildInputs();buildPresets();
+  if(m===3)init3D();
+  draw();
+}
+
+function buildInputs(){
+  const box=document.getElementById('vecInputs');
+  if(mode===2){
+    box.innerHTML=`
+      <div class="vec-input-row"><span class="cdot" style="background:var(--col-u)"></span><span class="vlabel" style="color:var(--col-u)">u</span><input id="ux" type="number" value="${U.x}" step="0.5" oninput="readInputs()"><input id="uy" type="number" value="${U.y}" step="0.5" oninput="readInputs()"></div>
+      <div class="vec-input-row"><span class="cdot" style="background:var(--col-v)"></span><span class="vlabel" style="color:var(--col-v)">v</span><input id="vx" type="number" value="${V.x}" step="0.5" oninput="readInputs()"><input id="vy" type="number" value="${V.y}" step="0.5" oninput="readInputs()"></div>`;
+  } else {
+    box.innerHTML=`
+      <div class="vec-input-row"><span class="cdot" style="background:var(--col-u)"></span><span class="vlabel" style="color:var(--col-u)">u</span><input id="ux" type="number" value="${U.x}" step="0.5" oninput="readInputs()"><input id="uy" type="number" value="${U.y}" step="0.5" oninput="readInputs()"><input id="uz" type="number" value="${U.z}" step="0.5" oninput="readInputs()"></div>
+      <div class="vec-input-row"><span class="cdot" style="background:var(--col-v)"></span><span class="vlabel" style="color:var(--col-v)">v</span><input id="vx" type="number" value="${V.x}" step="0.5" oninput="readInputs()"><input id="vy" type="number" value="${V.y}" step="0.5" oninput="readInputs()"><input id="vz" type="number" value="${V.z}" step="0.5" oninput="readInputs()"></div>
+      <div class="vec-input-row"><span class="cdot" style="background:var(--col-w)"></span><span class="vlabel" style="color:var(--col-w)">w</span><input id="wx" type="number" value="${W_.x}" step="0.5" oninput="readInputs()"><input id="wy" type="number" value="${W_.y}" step="0.5" oninput="readInputs()"><input id="wz" type="number" value="${W_.z}" step="0.5" oninput="readInputs()"></div>`;
+  }
+}
+
+function readInputs(){
+  const g=id=>(parseFloat(document.getElementById(id)?.value)||0);
+  U={x:g('ux'),y:g('uy'),z:g('uz')};V={x:g('vx'),y:g('vy'),z:g('vz')};W_={x:g('wx'),y:g('wy'),z:g('wz')};
+  draw();
+}
+
+function buildPresets(){
+  const box=document.getElementById('presets');box.innerHTML='';
+  const list=mode===2?PRESETS_2D:PRESETS_3D;
+  list.forEach((p,i)=>{const b=document.createElement('button');b.className='preset-pill';b.textContent=p.name;b.onclick=()=>{mode===2?loadPreset2D(i):loadPreset3D(i);};box.appendChild(b);});
+}
+
+function loadPreset2D(i){
+  const p=PRESETS_2D[i];U={x:p.u[0],y:p.u[1],z:0};V={x:p.v[0],y:p.v[1],z:0};
+  buildInputs();document.querySelectorAll('.preset-pill').forEach((b,j)=>b.classList.toggle('active',j===i));draw();
+}
+function loadPreset3D(i){
+  const p=PRESETS_3D[i];U={x:p.u[0],y:p.u[1],z:p.u[2]};V={x:p.v[0],y:p.v[1],z:p.v[2]};W_={x:p.w[0],y:p.w[1],z:p.w[2]};
+  buildInputs();document.querySelectorAll('.preset-pill').forEach((b,j)=>b.classList.toggle('active',j===i));draw();
+}
+
+function r2(x){return Math.round(x*100)/100;}
+function toS(x,y){return[ox2+x*sc,oy2-y*sc];}
+
+// ---- MATH ----
+function det2(){return U.x*V.y-U.y*V.x;}
+function cross3(){return{x:U.y*V.z-U.z*V.y, y:U.z*V.x-U.x*V.z, z:U.x*V.y-U.y*V.x};}
+function det3(){const c=cross3();return c.x*W_.x+c.y*W_.y+c.z*W_.z;}
+
+// ---- DRAW ----
+function draw(){if(mode===2)draw2D();else draw3D();updateCalc();}
+
+function draw2D(){
+  ctx.clearRect(0,0,CW,CH);
+  drawGrid2D();
+  drawParallelogram2D();
+  drawArrow2D(0,0,U.x,U.y,'#2980B9',2.5,'u');
+  drawArrow2D(0,0,V.x,V.y,'#E67E22',2.5,'v');
+  // Dots
+  [[U.x,U.y,'#2980B9'],[V.x,V.y,'#E67E22']].forEach(([x,y,c])=>{const[sx,sy]=toS(x,y);ctx.save();ctx.fillStyle=c;ctx.beginPath();ctx.arc(sx,sy,5,0,Math.PI*2);ctx.fill();ctx.restore();});
+  updateInfo2D();
+}
+
+function drawGrid2D(){
+  ctx.save();ctx.strokeStyle='rgba(0,0,0,0.04)';ctx.lineWidth=1;
+  const N=Math.ceil(Math.max(CW,CH)/sc/2)+2;
+  for(let i=-N;i<=N;i++){ctx.beginPath();ctx.moveTo(ox2+i*sc,0);ctx.lineTo(ox2+i*sc,CH);ctx.stroke();}
+  for(let j=-N;j<=N;j++){ctx.beginPath();ctx.moveTo(0,oy2+j*sc);ctx.lineTo(CW,oy2+j*sc);ctx.stroke();}
+  ctx.strokeStyle='rgba(0,0,0,0.15)';
+  ctx.beginPath();ctx.moveTo(0,oy2);ctx.lineTo(CW,oy2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ox2,0);ctx.lineTo(ox2,CH);ctx.stroke();
+  ctx.fillStyle='rgba(0,0,0,0.2)';ctx.font='500 9px "JetBrains Mono",monospace';ctx.textAlign='center';
+  for(let i=-N;i<=N;i++){if(!i)continue;ctx.fillText(i,ox2+i*sc,oy2+12);}
+  ctx.textAlign='right';for(let j=-N;j<=N;j++){if(!j)continue;ctx.fillText(j,ox2-4,oy2-j*sc+4);}
+  ctx.restore();
+}
+
+function drawParallelogram2D(){
+  const d=det2();
+  const[o]=toS(0,0),[ux,uy]=toS(U.x,U.y),[vx,vy]=toS(V.x,V.y),[sx,sy]=toS(U.x+V.x,U.y+V.y);
+  const alpha=Math.min(0.35,Math.abs(d)*0.04+0.05);
+  ctx.save();
+  if(Math.abs(d)<0.01) ctx.fillStyle=`rgba(0,0,0,${alpha})`;
+  else if(d>0) ctx.fillStyle=`rgba(34,139,34,${alpha})`;
+  else ctx.fillStyle=`rgba(178,34,34,${alpha})`;
+  ctx.strokeStyle=ctx.fillStyle.replace(String(alpha),'0.5');
+  ctx.lineWidth=1.5;
+  const[p0x,p0y]=toS(0,0);
+  ctx.beginPath();ctx.moveTo(p0x,p0y);ctx.lineTo(ux,uy);ctx.lineTo(sx,sy);ctx.lineTo(vx,vy);ctx.closePath();
+  ctx.fill();ctx.stroke();
+  // Area label in center
+  const cx=(0+U.x+V.x+(U.x+V.x))/4, cy=(0+U.y+V.y+(U.y+V.y))/4;
+  const[lcx,lcy]=toS(cx,cy);
+  ctx.fillStyle='rgba(0,0,0,0.55)';ctx.font='700 14px "Source Sans 3",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(`Área = ${r2(Math.abs(d))}`,lcx,lcy);
+  ctx.restore();
+}
+
+function drawArrow2D(fx,fy,tx,ty,color,width,label){
+  const[sx,sy]=toS(fx,fy),[ex,ey]=toS(tx,ty);
+  const dx=ex-sx,dy=ey-sy,len=Math.sqrt(dx*dx+dy*dy);if(len<2)return;
+  ctx.save();ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=width;ctx.lineJoin='round';ctx.lineCap='round';
+  const hl=Math.min(13,len*0.22),ang=Math.atan2(dy,dx);
+  ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex-hl*Math.cos(ang),ey-hl*Math.sin(ang));ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex-hl*Math.cos(ang-0.35),ey-hl*Math.sin(ang-0.35));ctx.lineTo(ex-hl*Math.cos(ang+0.35),ey-hl*Math.sin(ang+0.35));ctx.closePath();ctx.fill();
+  if(label){ctx.font='700 12px "Source Sans 3",sans-serif';ctx.fillText(label,ex+14*Math.cos(ang-0.5),ey+14*Math.sin(ang-0.5));}
+  ctx.restore();
+}
+
+function updateInfo2D(){
+  const d=det2();
+  const dc=d<0?'iv neg':'iv';
+  document.getElementById('areaDisplay').innerHTML=`<span class="area-badge ${Math.abs(d)<0.01?'zero':d>0?'pos':'neg'}">|det(A)| = ${r2(Math.abs(d))}</span>`;
+  document.getElementById('infoBar').innerHTML=`
+    <div class="info-item"><span class="il">u=</span><span class="iv" style="color:var(--col-u)">(${r2(U.x)},${r2(U.y)})</span></div>
+    <div class="info-item"><span class="il">v=</span><span class="iv" style="color:var(--col-v)">(${r2(V.x)},${r2(V.y)})</span></div>
+    <div class="info-item"><span class="il">det(A)=</span><span class="${dc}">${r2(d)}</span></div>
+    <div class="info-item"><span class="il">Área=</span><span class="iv">${r2(Math.abs(d))}</span></div>
+    <div class="info-item"><span class="il">Orientación:</span><span class="iv">${Math.abs(d)<0.01?'degenerado':d>0?'+ (antihoraria)':'− (horaria)'}</span></div>`;
+}
+
+// ---- 2D DRAG ----
+function initEvents(){
+  canvas2d.addEventListener('mousedown',e=>{if(mode!==2)return;const r=canvas2d.getBoundingClientRect();const mx=e.clientX-r.left,my=e.clientY-r.top;
+    [[U,'u'],[V,'v']].forEach(([vec,name])=>{const[sx,sy]=toS(vec.x,vec.y);if(Math.sqrt((mx-sx)**2+(my-sy)**2)<18)dragging2d=name;});});
+  canvas2d.addEventListener('mousemove',e=>{if(mode!==2)return;const r=canvas2d.getBoundingClientRect();const mx=e.clientX-r.left,my=e.clientY-r.top;
+    if(dragging2d){const wx=(mx-ox2)/sc,wy=(oy2-my)/sc;const s=v=>Math.round(v*4)/4;
+      if(dragging2d==='u'){U.x=s(wx);U.y=s(wy);}else{V.x=s(wx);V.y=s(wy);}buildInputs();draw();}});
+  canvas2d.addEventListener('mouseup',()=>{dragging2d=null;});
+  canvas2d.addEventListener('mouseleave',()=>{dragging2d=null;});
+  // Touch 2D
+  canvas2d.addEventListener('touchstart',e=>{if(mode!==2)return;const r=canvas2d.getBoundingClientRect();const t=e.touches[0];const mx=t.clientX-r.left,my=t.clientY-r.top;
+    [[U,'u'],[V,'v']].forEach(([vec,name])=>{const[sx,sy]=toS(vec.x,vec.y);if(Math.sqrt((mx-sx)**2+(my-sy)**2)<28){dragging2d=name;e.preventDefault();}});},{passive:false});
+  canvas2d.addEventListener('touchmove',e=>{if(!dragging2d)return;e.preventDefault();const r=canvas2d.getBoundingClientRect();const t=e.touches[0];const wx=(t.clientX-r.left-ox2)/sc,wy=(oy2-(t.clientY-r.top))/sc;const s=v=>Math.round(v*4)/4;
+    if(dragging2d==='u'){U.x=s(wx);U.y=s(wy);}else{V.x=s(wx);V.y=s(wy);}buildInputs();draw();},{passive:false});
+  canvas2d.addEventListener('touchend',()=>{dragging2d=null;});
+}
+
+// ---- CALC BOX ----
+function updateCalc(){
+  const box=document.getElementById('calcBox');
+  if(mode===2){
+    const d=det2();
+    box.innerHTML=`
+      <div class="formula-card"><div class="flabel">Matriz A = [u | v]</div>
+        <div>A = [${r2(U.x)}, ${r2(V.x)}; ${r2(U.y)}, ${r2(V.y)}]</div></div>
+      <div class="formula-card"><div class="flabel">Determinante 2×2</div>
+        <div>det(A) = (${r2(U.x)})(${r2(V.y)}) − (${r2(V.x)})(${r2(U.y)})</div>
+        <div style="padding-left:3rem;">= ${r2(U.x*V.y)} − ${r2(V.x*U.y)} = <strong>${r2(d)}</strong></div></div>
+      <div class="formula-card"><div class="flabel">Interpretación geométrica</div>
+        <div>Área del paralelogramo = |det(A)| = <strong>${r2(Math.abs(d))}</strong></div>
+        <div style="font-size:0.72rem;color:var(--text-muted);margin-top:0.2rem;">${Math.abs(d)<0.01?'Área = 0 → los vectores son linealmente dependientes (paralelos)':d>0?'det > 0 → orientación positiva (u→v antihorario)':'det < 0 → orientación negativa (u→v horario)'}</div></div>`;
+  } else {
+    const c=cross3();const d=det3();const normC=Math.sqrt(c.x**2+c.y**2+c.z**2);
+    box.innerHTML=`
+      <div class="formula-card"><div class="flabel">Paso 1: Producto cruz u × v</div>
+        <div>u × v = (${r2(c.x)}, ${r2(c.y)}, ${r2(c.z)})</div>
+        <div style="font-size:0.72rem;color:var(--text-muted);">‖u × v‖ = ${r2(normC)} (área de la base)</div></div>
+      <div class="formula-card"><div class="flabel">Paso 2: Producto triple (u×v)·w</div>
+        <div>(${r2(c.x)})(${r2(W_.x)}) + (${r2(c.y)})(${r2(W_.y)}) + (${r2(c.z)})(${r2(W_.z)})</div>
+        <div>= ${r2(c.x*W_.x)} + ${r2(c.y*W_.y)} + ${r2(c.z*W_.z)} = <strong>${r2(d)}</strong></div></div>
+      <div class="formula-card"><div class="flabel">Volumen del paralelepípedo</div>
+        <div>Vol(Q) = |(u × v) · w| = |${r2(d)}| = <strong>${r2(Math.abs(d))}</strong></div>
+        <div style="font-size:0.72rem;color:var(--text-muted);margin-top:0.2rem;">${Math.abs(d)<0.01?'Vol = 0 → los vectores son coplanares':'Equivale a |det(A)| donde A = [u | v | w]'}</div></div>`;
+  }
+}
+
+// ---- 3D (Three.js) ----
+function init3D(){
+  const c=document.getElementById('container3d');
+  if(renderer3){c.innerHTML='';}
+  scene3=new THREE.Scene();scene3.background=new THREE.Color(0xffffff);
+  camera3=new THREE.PerspectiveCamera(50,CW/CH,0.1,1000);updateCam3();
+  renderer3=new THREE.WebGLRenderer({antialias:true});renderer3.setSize(CW,CH);renderer3.setPixelRatio(devicePixelRatio);c.appendChild(renderer3.domElement);
+  scene3.add(new THREE.AmbientLight(0xffffff,0.7));const dl=new THREE.DirectionalLight(0xffffff,0.5);dl.position.set(5,10,7);scene3.add(dl);
+  // Grid + axes
+  const gh=new THREE.GridHelper(16,16,0xdddddd,0xeeeeee);gh.rotation.x=Math.PI/2;scene3.add(gh);
+  const al=7;[[al,0,0,0x888888],[0,al,0,0x888888],[0,0,al,0x888888]].forEach(([x,y,z,col])=>{const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),new THREE.Vector3(x,y,z)]);scene3.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:col})));});
+  ['x','y','z'].forEach((l,i)=>{const cv=document.createElement('canvas');cv.width=64;cv.height=64;const ct=cv.getContext('2d');ct.fillStyle='#555';ct.font='bold 44px sans-serif';ct.textAlign='center';ct.textBaseline='middle';ct.fillText(l,32,32);const t=new THREE.CanvasTexture(cv);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false}));s.scale.set(0.6,0.6,1);s.position.copy([new THREE.Vector3(al+0.4,0,0),new THREE.Vector3(0,al+0.4,0),new THREE.Vector3(0,0,al+0.4)][i]);scene3.add(s);});
+  // Mouse orbit
+  const el=renderer3.domElement;
+  el.addEventListener('mousedown',e=>{drag3=true;prev3={x:e.clientX,y:e.clientY};});
+  el.addEventListener('mousemove',e=>{if(!drag3)return;camTheta-=(e.clientX-prev3.x)*0.008;camPhi=Math.max(-1.4,Math.min(1.4,camPhi+(e.clientY-prev3.y)*0.008));prev3={x:e.clientX,y:e.clientY};updateCam3();renderer3.render(scene3,camera3);});
+  el.addEventListener('mouseup',()=>{drag3=false;});el.addEventListener('mouseleave',()=>{drag3=false;});
+  el.addEventListener('wheel',e=>{camR=Math.max(4,Math.min(30,camR+e.deltaY*0.01));updateCam3();renderer3.render(scene3,camera3);e.preventDefault();},{passive:false});
+  let t3=null;el.addEventListener('touchstart',e=>{if(e.touches.length===1)t3={x:e.touches[0].clientX,y:e.touches[0].clientY};},{passive:true});
+  el.addEventListener('touchmove',e=>{if(!t3||e.touches.length!==1)return;camTheta-=(e.touches[0].clientX-t3.x)*0.008;camPhi=Math.max(-1.4,Math.min(1.4,camPhi+(e.touches[0].clientY-t3.y)*0.008));t3={x:e.touches[0].clientX,y:e.touches[0].clientY};updateCam3();renderer3.render(scene3,camera3);e.preventDefault();},{passive:false});
+  el.addEventListener('touchend',()=>{t3=null;});
+  draw3D();
+}
+
+function updateCam3(){if(!camera3)return;camera3.position.set(camR*Math.cos(camPhi)*Math.cos(camTheta),camR*Math.cos(camPhi)*Math.sin(camTheta),camR*Math.sin(camPhi));camera3.up.set(0,0,1);camera3.lookAt(0,0,0);}
+
+function draw3D(){
+  if(!scene3)return;
+  arrows3.forEach(o=>scene3.remove(o));arrows3=[];
+  meshes3.forEach(o=>scene3.remove(o));meshes3=[];
+  const mkA=(vx,vy,vz,hex)=>{const d=new THREE.Vector3(vx,vy,vz);const l=d.length();if(l<0.001)return;d.normalize();const a=new THREE.ArrowHelper(d,new THREE.Vector3(0,0,0),l,hex,0.3,0.15);scene3.add(a);arrows3.push(a);};
+  mkA(U.x,U.y,U.z,0x2980B9);
+  mkA(V.x,V.y,V.z,0xE67E22);
+  mkA(W_.x,W_.y,W_.z,0x8E44AD);
+  // Parallelepiped
+  const verts=[
+    [0,0,0],[U.x,U.y,U.z],[V.x,V.y,V.z],[U.x+V.x,U.y+V.y,U.z+V.z],
+    [W_.x,W_.y,W_.z],[U.x+W_.x,U.y+W_.y,U.z+W_.z],[V.x+W_.x,V.y+W_.y,V.z+W_.z],[U.x+V.x+W_.x,U.y+V.y+W_.y,U.z+V.z+W_.z]
+  ];
+  const faces=[
+    [0,1,3,2],[4,5,7,6],[0,1,5,4],[2,3,7,6],[0,2,6,4],[1,3,7,5]
+  ];
+  const d=det3();
+  const faceColor=Math.abs(d)<0.01?0x999999:d>0?0x228B22:0xB22222;
+  faces.forEach(f=>{
+    const g=new THREE.BufferGeometry();
+    const v=new Float32Array([...verts[f[0]],...verts[f[1]],...verts[f[2]],...verts[f[0]],...verts[f[2]],...verts[f[3]]]);
+    g.setAttribute('position',new THREE.BufferAttribute(v,3));g.computeVertexNormals();
+    const m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({color:faceColor,transparent:true,opacity:0.12,side:THREE.DoubleSide}));
+    scene3.add(m);meshes3.push(m);
+    // Wireframe
+    const eg=new THREE.BufferGeometry().setFromPoints(f.map(i=>new THREE.Vector3(...verts[i])).concat([new THREE.Vector3(...verts[f[0]])]));
+    const el=new THREE.Line(eg,new THREE.LineBasicMaterial({color:faceColor,transparent:true,opacity:0.3}));
+    scene3.add(el);meshes3.push(el);
+  });
+  renderer3.render(scene3,camera3);
+  // Info
+  const c=cross3();const vol=Math.abs(d);
+  document.getElementById('areaDisplay').innerHTML=`<span class="area-badge ${Math.abs(d)<0.01?'zero':d>0?'pos':'neg'}">Vol = ${r2(vol)}</span>`;
+  document.getElementById('infoBar').innerHTML=`
+    <div class="info-item"><span class="il">u=</span><span class="iv" style="color:var(--col-u)">(${r2(U.x)},${r2(U.y)},${r2(U.z)})</span></div>
+    <div class="info-item"><span class="il">v=</span><span class="iv" style="color:var(--col-v)">(${r2(V.x)},${r2(V.y)},${r2(V.z)})</span></div>
+    <div class="info-item"><span class="il">w=</span><span class="iv" style="color:var(--col-w)">(${r2(W_.x)},${r2(W_.y)},${r2(W_.z)})</span></div>
+    <div class="info-item"><span class="il">u×v=</span><span class="iv">(${r2(c.x)},${r2(c.y)},${r2(c.z)})</span></div>
+    <div class="info-item"><span class="il">(u×v)·w=</span><span class="iv">${r2(d)}</span></div>
+    <div class="info-item"><span class="il">Vol=</span><span class="iv">${r2(vol)}</span></div>`;
+}
+</script>
+</body>
+</html>
