@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gram-Schmidt Paso a Paso — Álgebra Lineal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#888;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
+  .lab-header{background:linear-gradient(135deg,var(--navy) 0%,var(--gmitblue) 100%);color:#fff;padding:0.7rem 1.5rem;position:relative;overflow:hidden;}
+  .lab-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none;}
+  .lab-header-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:0.8rem;position:relative;z-index:1;}
+  .lab-icon{width:38px;height:38px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+  .lab-header h1{font-family:var(--font-display);font-size:clamp(0.9rem,2vw,1.25rem);font-weight:700;line-height:1.2;}
+  .lab-subtitle{font-size:0.72rem;opacity:0.75;}
+  .lab-badge{display:inline-block;background:var(--brick);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15em 0.5em;border-radius:3px;letter-spacing:0.05em;text-transform:uppercase;margin-right:0.35rem;vertical-align:middle;}
+  .main{max-width:1400px;margin:0 auto;padding:0.6rem 0.8rem 1.5rem;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+  .panel-head{padding:0.5rem 0.9rem;font-family:var(--font-display);font-size:0.85rem;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.4rem;background:var(--surface-alt);flex-wrap:wrap;}
+  .panel-body{padding:0.7rem 0.9rem;}
+  .canvas-panel{margin-bottom:0.7rem;}
+  .canvas-wrap{position:relative;width:100%;height:clamp(320px,48vh,520px);background:#fff;overflow:hidden;}
+  .canvas-wrap canvas,.canvas-wrap>div{position:absolute;inset:0;width:100%!important;height:100%!important;}
+  .info-strip{display:flex;flex-wrap:wrap;gap:0.2rem 0.8rem;padding:0.4rem 0.9rem;font-size:0.72rem;font-family:var(--font-mono);border-top:1px solid var(--border);background:var(--surface-alt);}
+  .info-item{display:flex;gap:0.2rem;align-items:center;}.il{color:var(--text-muted);}.iv{font-weight:700;color:var(--navy);}
+  .controls{display:grid;grid-template-columns:320px 1fr;gap:0.7rem;align-items:start;}
+  @media(max-width:900px){.controls{grid-template-columns:1fr;}}
+  .dim-toggle{display:flex;background:var(--gmitblue-pale);border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border);margin-bottom:0.5rem;}
+  .dim-toggle button{flex:1;padding:0.4rem 0;border:none;background:transparent;font-family:var(--font-body);font-size:0.8rem;font-weight:600;color:var(--text-secondary);cursor:pointer;transition:var(--transition);}
+  .dim-toggle button.active{background:var(--navy);color:#fff;}
+  .vec-input-row{display:flex;align-items:center;gap:0.35rem;margin-bottom:0.35rem;font-size:0.82rem;}
+  .vec-input-row .vlabel{font-family:var(--font-mono);font-weight:700;min-width:1.6rem;font-size:0.8rem;}
+  .vec-input-row input{width:50px;padding:0.3rem 0.15rem;border:1px solid var(--border);border-radius:4px;font-family:var(--font-mono);font-size:0.82rem;text-align:center;background:#fff;}
+  .vec-input-row input:focus{outline:none;border-color:var(--gmitblue);box-shadow:0 0 0 3px rgba(90,138,168,0.15);}
+  .vec-input-row .remove-btn{width:22px;height:22px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:4px;font-size:0.9rem;display:flex;align-items:center;justify-content:center;}
+  .vec-input-row .remove-btn:hover{background:rgba(178,34,34,0.1);color:var(--brick);}
+  .btn{display:inline-flex;align-items:center;gap:0.3rem;padding:0.4rem 0.7rem;border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.76rem;font-weight:600;cursor:pointer;transition:var(--transition);white-space:nowrap;}
+  .btn-primary{background:var(--forest);color:#fff;}.btn-primary:hover{background:var(--forest-light);}
+  .btn-accent{background:var(--brick);color:#fff;}.btn-accent:hover{background:var(--brick-light);}
+  .btn-navy{background:var(--navy);color:#fff;}.btn-navy:hover{background:var(--navy-light);}
+  .btn-secondary{background:var(--gmitblue-pale);color:var(--gmitblue);border:1px solid rgba(90,138,168,0.3);}
+  .btn-row{display:flex;gap:0.4rem;flex-wrap:wrap;}
+  .preset-scroll{display:flex;gap:0.25rem;flex-wrap:wrap;margin-bottom:0.5rem;}
+  .preset-pill{padding:0.2rem 0.5rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);cursor:pointer;transition:var(--transition);font-size:0.66rem;font-weight:600;white-space:nowrap;}
+  .preset-pill:hover{border-color:var(--navy);background:var(--gmitblue-pale);}
+  .preset-pill.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  /* Steps */
+  .step-card{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:0.5rem;animation:fadeIn 0.3s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .step-head{padding:0.4rem 0.7rem;font-size:0.76rem;font-weight:700;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.4rem;}
+  .step-head .snum{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:0.72rem;color:#fff;flex-shrink:0;}
+  .step-body{padding:0.5rem 0.7rem;font-family:var(--font-mono);font-size:0.74rem;line-height:1.8;}
+  .verify-box{border:1px solid var(--forest);border-radius:var(--radius-sm);background:rgba(34,139,34,0.04);padding:0.5rem 0.7rem;font-family:var(--font-mono);font-size:0.73rem;line-height:1.8;margin-top:0.5rem;}
+  .check{color:var(--forest);font-weight:700;}.fail{color:var(--brick);font-weight:700;}
+  .lab-footer{max-width:1400px;margin:0 auto;padding:0.5rem 1rem;text-align:center;font-size:0.68rem;color:var(--text-muted);}
+  @media(max-width:600px){.main{padding:0.4rem;}.canvas-wrap{height:250px;}.vec-input-row input{width:42px;}.controls{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">🔷</div><div><h1><span class="lab-badge">Cap 5</span>Gram-Schmidt Paso a Paso</h1><div class="lab-subtitle">Laboratorio Interactivo · Espacios Vectoriales</div></div></div></header>
+<div class="main">
+  <div class="panel canvas-panel">
+    <div class="panel-head">📈 Ortogonalización Progresiva</div>
+    <div class="canvas-wrap" id="canvasWrap"><canvas id="cv2d"></canvas><div id="c3d" style="display:none;"></div></div>
+    <div class="info-strip" id="infoBar"></div>
+  </div>
+  <div class="controls">
+    <div class="panel">
+      <div class="panel-head">🔢 Vectores de entrada</div>
+      <div class="panel-body">
+        <div class="dim-toggle"><button id="b2d" class="active" onclick="setDim(2)">ℝ² (2D)</button><button id="b3d" onclick="setDim(3)">ℝ³ (3D)</button></div>
+        <div id="vecInputs"></div>
+        <div class="btn-row" style="margin-bottom:0.5rem;">
+          <button class="btn btn-secondary" onclick="addVec()">+ Vector</button>
+          <button class="btn btn-primary" onclick="runGS()">▶ Gram-Schmidt</button>
+          <button class="btn btn-navy" onclick="animateGS()">🎬 Animar</button>
+        </div>
+        <div class="preset-scroll" id="presets"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">📊 Pasos del Proceso</div>
+      <div class="panel-body" id="stepsBox" style="max-height:50vh;overflow-y:auto;">
+        <div style="color:var(--text-muted);font-size:0.8rem;font-style:italic;">Presiona "Gram-Schmidt" para ejecutar el algoritmo.</div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="lab-footer">Álgebra Lineal con Abordaje Tecnológico · Laboratorio 5.6 · Gram-Schmidt</footer>
+
+<script>
+const VCOLORS=['#2980B9','#E67E22','#8E44AD','#16A085','#C0392B'];
+const UCOLORS=['#27AE60','#2ECC71','#1ABC9C','#3498DB','#2980B9'];
+let dim=2, vecs=[], result=null, animStep=-1, animT=-1;
+let canvas,ctx,CW,CH,sc=55,ox,oy;
+let scene3,camera3,renderer3,objs3=[];
+let camTh=Math.PI/4,camPh=Math.PI/5,camR=10,drag3=false,prev3={x:0,y:0};
+
+const PRESETS=[
+  {name:'ℝ²: (1,1),(0,1)',d:2,v:[[1,1],[0,1]]},
+  {name:'ℝ²: (3,1),(1,2)',d:2,v:[[3,1],[1,2]]},
+  {name:'ℝ²: (1,0),(1,1)',d:2,v:[[1,0],[1,1]]},
+  {name:'ℝ³: (1,1,0),(1,0,1),(0,1,1)',d:3,v:[[1,1,0],[1,0,1],[0,1,1]]},
+  {name:'ℝ³: (1,0,1),(1,1,0),(0,1,1)',d:3,v:[[1,0,1],[1,1,0],[0,1,1]]},
+  {name:'Libro: v₁=(1,1,0,3), v₂=(1,0,1,1)',d:2,v:[[1,1,0,3],[1,0,1,1]],dim4:true},
+];
+
+window.addEventListener('DOMContentLoaded',()=>{canvas=document.getElementById('cv2d');ctx=canvas.getContext('2d');resize();buildPresets();loadPreset(0);});
+window.addEventListener('resize',()=>{resize();draw();});
+
+function resize(){const w=document.getElementById('canvasWrap'),r=w.getBoundingClientRect();CW=r.width;CH=r.height;canvas.width=CW*devicePixelRatio;canvas.height=CH*devicePixelRatio;canvas.style.width=CW+'px';canvas.style.height=CH+'px';ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);ox=CW/2;oy=CH/2;if(renderer3){renderer3.setSize(CW,CH);camera3.aspect=CW/CH;camera3.updateProjectionMatrix();}}
+
+function setDim(d){dim=d;document.getElementById('b2d').classList.toggle('active',d===2);document.getElementById('b3d').classList.toggle('active',d===3);canvas.style.display=d===2?'block':'none';document.getElementById('c3d').style.display=d===3?'block':'none';vecs.forEach(v=>{if(d===3&&v.length<3)v.push(0);if(d===2&&v.length>2)v.splice(2);});buildInputs();if(d===3)init3D();result=null;draw();}
+
+function buildPresets(){const g=document.getElementById('presets');PRESETS.forEach((p,i)=>{const b=document.createElement('button');b.className='preset-pill';b.textContent=p.name;b.onclick=()=>loadPreset(i);g.appendChild(b);});}
+
+function loadPreset(i){const p=PRESETS[i];if(p.dim4){dim=2;document.getElementById('b2d').classList.add('active');document.getElementById('b3d').classList.remove('active');canvas.style.display='block';document.getElementById('c3d').style.display='none';}else{setDim(p.d);}vecs=p.v.map(v=>[...v]);buildInputs();result=null;document.getElementById('stepsBox').innerHTML='<div style="color:var(--text-muted);font-size:0.8rem;font-style:italic;">Presiona "Gram-Schmidt" para ejecutar.</div>';document.querySelectorAll('.preset-pill').forEach((b,j)=>b.classList.toggle('active',j===i));draw();}
+
+function buildInputs(){
+  const box=document.getElementById('vecInputs');
+  let html='';
+  vecs.forEach((v,i)=>{
+    html+=`<div class="vec-input-row"><span class="vlabel" style="color:${VCOLORS[i%5]}">v${sub(i+1)}</span>`;
+    v.forEach((c,j)=>{html+=`<input type="number" value="${c}" step="0.5" onchange="updVec(${i},${j},this.value)">`});
+    html+=`<button class="remove-btn" onclick="removeVec(${i})" title="Eliminar">✕</button></div>`;
+  });
+  box.innerHTML=html;
+}
+
+function updVec(i,j,val){vecs[i][j]=parseFloat(val)||0;result=null;draw();}
+function removeVec(i){if(vecs.length<=1)return;vecs.splice(i,1);buildInputs();result=null;draw();}
+function addVec(){const n=vecs.length>0?vecs[0].length:dim;const v=new Array(n).fill(0);v[Math.min(vecs.length,n-1)]=1;vecs.push(v);buildInputs();draw();}
+
+function sub(n){const s='₀₁₂₃₄₅₆₇₈₉';return(''+n).split('').map(c=>s[parseInt(c)]||c).join('');}
+function r2(x){return Math.round(x*1000)/1000;}
+function dot(a,b){let s=0;for(let i=0;i<a.length;i++)s+=a[i]*b[i];return s;}
+function norm(a){return Math.sqrt(dot(a,a));}
+function scale(a,k){return a.map(x=>x*k);}
+function sub2(a,b){return a.map((x,i)=>x-b[i]);}
+function toS(x,y){return[ox+x*sc,oy-y*sc];}
+
+// ---- GRAM-SCHMIDT ----
+function gramSchmidt(vectors){
+  const n=vectors.length;const steps=[];const U=[];const Unorm=[];
+  for(let r=0;r<n;r++){
+    let vr=[...vectors[r]];
+    const projections=[];
+    let vPrime=[...vr];
+    for(let i=0;i<r;i++){
+      const ui=Unorm[i];
+      const coef=dot(vr,ui);
+      const proj=scale(ui,coef);
+      projections.push({i,coef:r2(coef),proj:proj.map(r2)});
+      vPrime=sub2(vPrime,proj);
+    }
+    const nVp=norm(vPrime);
+    const ur=nVp>1e-10?scale(vPrime,1/nVp):vPrime;
+    U.push(vPrime);Unorm.push(ur);
+    steps.push({r,vr:vectors[r].map(r2),projections,vPrime:vPrime.map(r2),normVp:r2(nVp),ur:ur.map(r2),zero:nVp<1e-10});
+  }
+  return{steps,U,Unorm};
+}
+
+function runGS(){
+  if(vecs.length===0)return;
+  result=gramSchmidt(vecs);
+  animStep=-1;animT=-1;
+  displaySteps(result);
+  draw();
+}
+
+function animateGS(){
+  if(vecs.length===0)return;
+  result=gramSchmidt(vecs);
+  animStep=0;animT=0;
+  displaySteps(result);
+  const totalSteps=result.steps.length;
+  const stepDur=1200;
+  const start=performance.now();
+  function tick(now){
+    const elapsed=now-start;
+    const currentStep=Math.floor(elapsed/stepDur);
+    const stepT=(elapsed%stepDur)/stepDur;
+    if(currentStep>=totalSteps){animStep=-1;animT=-1;draw();return;}
+    animStep=currentStep;animT=stepT<0.5?2*stepT*stepT:(1-Math.pow(-2*stepT+2,2)/2);
+    draw();
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// ---- DISPLAY STEPS ----
+function displaySteps(res){
+  let html='';
+  res.steps.forEach((s,idx)=>{
+    const bg=s.zero?'var(--brick)':UCOLORS[idx%5];
+    html+=`<div class="step-card"><div class="step-head" style="background:${bg}11;"><span class="snum" style="background:${bg};">${idx+1}</span>
+      <span>Paso ${idx+1}: v${sub(idx+1)} → u${sub(idx+1)}</span></div><div class="step-body">`;
+    if(idx===0){
+      html+=`<div>‖v${sub(1)}‖ = ${s.normVp}</div>`;
+      html+=`<div><strong>u${sub(1)} = v${sub(1)} / ‖v${sub(1)}‖ = (${s.ur.join(', ')})</strong></div>`;
+    } else {
+      html+=`<div>v${sub(idx+1)}' = v${sub(idx+1)}`;
+      s.projections.forEach(p=>{html+=` - (v${sub(idx+1)}·u${sub(p.i+1)})u${sub(p.i+1)}`;});
+      html+=`</div>`;
+      s.projections.forEach(p=>{
+        html+=`<div style="padding-left:1rem;color:var(--text-secondary);">v${sub(idx+1)}·u${sub(p.i+1)} = ${p.coef} → proy = (${p.proj.join(', ')})</div>`;
+      });
+      html+=`<div style="margin-top:0.2rem;">v${sub(idx+1)}' = (${s.vPrime.join(', ')})</div>`;
+      html+=`<div>‖v${sub(idx+1)}'‖ = ${s.normVp}</div>`;
+      if(s.zero){
+        html+=`<div style="color:var(--brick);font-weight:700;">⚠ ‖v'‖ = 0 → v${sub(idx+1)} es combinación lineal de los anteriores</div>`;
+      } else {
+        html+=`<div><strong style="color:${UCOLORS[idx%5]};">u${sub(idx+1)} = v${sub(idx+1)}' / ‖v${sub(idx+1)}'‖ = (${s.ur.join(', ')})</strong></div>`;
+      }
+    }
+    html+=`</div></div>`;
+  });
+  // Verification
+  const U=res.Unorm.filter((_,i)=>!res.steps[i].zero);
+  if(U.length>0){
+    html+=`<div class="verify-box"><div style="font-weight:700;margin-bottom:0.2rem;">Verificación de ortogonalidad:</div>`;
+    for(let i=0;i<U.length;i++){
+      for(let j=i+1;j<U.length;j++){
+        const d=r2(dot(U[i],U[j]));
+        html+=`<div><span class="${Math.abs(d)<0.01?'check':'fail'}">${Math.abs(d)<0.01?'✓':'✗'}</span> u${sub(i+1)}·u${sub(j+1)} = ${d}</div>`;
+      }}
+    for(let i=0;i<U.length;i++){
+      const n=r2(norm(U[i]));
+      html+=`<div><span class="${Math.abs(n-1)<0.01?'check':'fail'}">${Math.abs(n-1)<0.01?'✓':'✗'}</span> ‖u${sub(i+1)}‖ = ${n}</div>`;
+    }
+    html+=`</div>`;
+  }
+  document.getElementById('stepsBox').innerHTML=html;
+}
+
+// ---- DRAWING 2D ----
+function draw(){
+  if(dim===2)draw2D();else draw3D();
+  updateInfo();
+}
+
+function draw2D(){
+  ctx.clearRect(0,0,CW,CH);
+  // Grid
+  ctx.save();ctx.strokeStyle='rgba(0,0,0,0.04)';ctx.lineWidth=1;
+  const N=Math.ceil(Math.max(CW,CH)/sc/2)+2;
+  for(let i=-N;i<=N;i++){ctx.beginPath();ctx.moveTo(ox+i*sc,0);ctx.lineTo(ox+i*sc,CH);ctx.stroke();}
+  for(let j=-N;j<=N;j++){ctx.beginPath();ctx.moveTo(0,oy+j*sc);ctx.lineTo(CW,oy+j*sc);ctx.stroke();}
+  ctx.strokeStyle='rgba(0,0,0,0.15)';
+  ctx.beginPath();ctx.moveTo(0,oy);ctx.lineTo(CW,oy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ox,0);ctx.lineTo(ox,CH);ctx.stroke();
+  ctx.restore();
+  // Original vectors (faded)
+  vecs.forEach((v,i)=>{if(v.length>=2)drawArrow2D(0,0,v[0],v[1],VCOLORS[i%5],1.5,[5,4],`v${sub(i+1)}`);});
+  // Result vectors
+  if(result){
+    const maxStep=animStep>=0?animStep:result.steps.length-1;
+    for(let i=0;i<=maxStep;i++){
+      const s=result.steps[i];if(s.zero)continue;
+      const u=result.Unorm[i];if(u.length<2)continue;
+      const t=(i===animStep&&animT>=0)?animT:1;
+      // Scale for visibility
+      const drawLen=2;
+      drawArrow2D(0,0,u[0]*drawLen*t,u[1]*drawLen*t,UCOLORS[i%5],2.5,null,`u${sub(i+1)}`);
+    }
+    // Show projection being subtracted for current anim step
+    if(animStep>0&&animT>=0){
+      const s=result.steps[animStep];
+      s.projections.forEach(p=>{
+        const proj=p.proj;if(proj.length<2)return;
+        ctx.save();ctx.strokeStyle='rgba(178,34,34,0.4)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+        const[sx,sy]=toS(0,0);const[ex,ey]=toS(proj[0]*animT,proj[1]*animT);
+        ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();ctx.restore();
+      });
+    }
+  }
+}
+
+function drawArrow2D(fx,fy,tx,ty,color,width,dash,label){
+  const[sx,sy]=toS(fx,fy),[ex,ey]=toS(tx,ty);const dx=ex-sx,dy=ey-sy,len=Math.sqrt(dx*dx+dy*dy);if(len<2)return;
+  ctx.save();ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=width;ctx.lineJoin='round';ctx.lineCap='round';
+  if(dash)ctx.setLineDash(dash);
+  const hl=Math.min(11,len*0.2),ang=Math.atan2(dy,dx);
+  ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex-hl*Math.cos(ang),ey-hl*Math.sin(ang));ctx.stroke();
+  ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex-hl*Math.cos(ang-0.35),ey-hl*Math.sin(ang-0.35));ctx.lineTo(ex-hl*Math.cos(ang+0.35),ey-hl*Math.sin(ang+0.35));ctx.closePath();ctx.fill();
+  if(label){ctx.font='600 11px "Source Sans 3",sans-serif';ctx.fillText(label,ex+12*Math.cos(ang-0.5),ey+12*Math.sin(ang-0.5));}
+  ctx.restore();
+}
+
+// ---- 3D ----
+function init3D(){
+  const c=document.getElementById('c3d');if(renderer3)c.innerHTML='';
+  scene3=new THREE.Scene();scene3.background=new THREE.Color(0xffffff);
+  camera3=new THREE.PerspectiveCamera(50,CW/CH,0.1,1000);updateCam3();
+  renderer3=new THREE.WebGLRenderer({antialias:true});renderer3.setSize(CW,CH);renderer3.setPixelRatio(devicePixelRatio);c.appendChild(renderer3.domElement);
+  scene3.add(new THREE.AmbientLight(0xffffff,0.7));const dl=new THREE.DirectionalLight(0xffffff,0.5);dl.position.set(5,10,7);scene3.add(dl);
+  const el=renderer3.domElement;
+  el.addEventListener('mousedown',e=>{drag3=true;prev3={x:e.clientX,y:e.clientY};});
+  el.addEventListener('mousemove',e=>{if(!drag3)return;camTh-=(e.clientX-prev3.x)*0.008;camPh=Math.max(-1.4,Math.min(1.4,camPh+(e.clientY-prev3.y)*0.008));prev3={x:e.clientX,y:e.clientY};updateCam3();renderer3.render(scene3,camera3);});
+  el.addEventListener('mouseup',()=>{drag3=false;});el.addEventListener('mouseleave',()=>{drag3=false;});
+  el.addEventListener('wheel',e=>{camR=Math.max(3,Math.min(25,camR+e.deltaY*0.01));updateCam3();renderer3.render(scene3,camera3);e.preventDefault();},{passive:false});
+  let t3=null;el.addEventListener('touchstart',e=>{if(e.touches.length===1)t3={x:e.touches[0].clientX,y:e.touches[0].clientY};},{passive:true});
+  el.addEventListener('touchmove',e=>{if(!t3||e.touches.length!==1)return;camTh-=(e.touches[0].clientX-t3.x)*0.008;camPh=Math.max(-1.4,Math.min(1.4,camPh+(e.touches[0].clientY-t3.y)*0.008));t3={x:e.touches[0].clientX,y:e.touches[0].clientY};updateCam3();renderer3.render(scene3,camera3);e.preventDefault();},{passive:false});
+  el.addEventListener('touchend',()=>{t3=null;});
+  draw3D();
+}
+function updateCam3(){if(!camera3)return;camera3.position.set(camR*Math.cos(camPh)*Math.cos(camTh),camR*Math.cos(camPh)*Math.sin(camTh),camR*Math.sin(camPh));camera3.up.set(0,0,1);camera3.lookAt(0,0,0);}
+
+function draw3D(){
+  if(!scene3){init3D();return;}
+  objs3.forEach(o=>scene3.remove(o));objs3=[];
+  // Grid+axes
+  const gh=new THREE.GridHelper(10,10,0xdddddd,0xf0f0f0);gh.rotation.x=Math.PI/2;objs3.push(gh);scene3.add(gh);
+  [5,0,0,0,5,0,0,0,5].forEach((_,i)=>{if(i%3!==0)return;const j=i/3;const p=[0,0,0];p[j]=5;const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),new THREE.Vector3(...p)]);const l=new THREE.Line(g,new THREE.LineBasicMaterial({color:0xaaaaaa}));objs3.push(l);scene3.add(l);});
+  const mkA=(v,hex)=>{if(v.length<3)return;const d=new THREE.Vector3(v[0],v[1],v[2]);const l=d.length();if(l<0.01)return;d.normalize();const a=new THREE.ArrowHelper(d,new THREE.Vector3(0,0,0),l,hex,0.25,0.12);objs3.push(a);scene3.add(a);};
+  // Original (faded)
+  vecs.forEach((v,i)=>{if(v.length>=3)mkA(v,parseInt(VCOLORS[i%5].replace('#',''),16));});
+  // Result
+  if(result){
+    const maxS=animStep>=0?animStep:result.steps.length-1;
+    for(let i=0;i<=maxS;i++){
+      const s=result.steps[i];if(s.zero)continue;
+      const u=result.Unorm[i];if(u.length<3)continue;
+      const t=(i===animStep&&animT>=0)?animT:1;
+      const drawLen=2.5;
+      mkA([u[0]*drawLen*t,u[1]*drawLen*t,u[2]*drawLen*t],parseInt(UCOLORS[i%5].replace('#',''),16));
+    }
+  }
+  renderer3.render(scene3,camera3);
+}
+
+function updateInfo(){
+  let html='';
+  vecs.forEach((v,i)=>{html+=`<div class="info-item"><span class="il" style="color:${VCOLORS[i%5]}">v${sub(i+1)}=</span><span class="iv">(${v.map(r2).join(',')})</span></div>`;});
+  if(result){
+    result.Unorm.forEach((u,i)=>{
+      if(result.steps[i].zero)return;
+      html+=`<div class="info-item"><span class="il" style="color:${UCOLORS[i%5]}">u${sub(i+1)}=</span><span class="iv">(${u.map(r2).join(',')})</span></div>`;
+    });
+  }
+  document.getElementById('infoBar').innerHTML=html;
+}
+</script>
+</body>
+</html>
