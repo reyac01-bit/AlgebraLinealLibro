@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Determinantes por Cofactores — Álgebra Lineal</title>
+<style>
+  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#888;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;--plus:#228B22;--minus:#B22222;}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
+  .lab-header{background:linear-gradient(135deg,var(--navy) 0%,var(--gmitblue) 100%);color:#fff;padding:0.7rem 1.5rem;position:relative;overflow:hidden;}
+  .lab-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none;}
+  .lab-header-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:0.8rem;position:relative;z-index:1;}
+  .lab-icon{width:38px;height:38px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+  .lab-header h1{font-family:var(--font-display);font-size:clamp(0.9rem,2vw,1.25rem);font-weight:700;line-height:1.2;}
+  .lab-subtitle{font-size:0.72rem;opacity:0.75;}
+  .lab-badge{display:inline-block;background:var(--brick);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15em 0.5em;border-radius:3px;letter-spacing:0.05em;text-transform:uppercase;margin-right:0.35rem;vertical-align:middle;}
+  .main{max-width:1100px;margin:0 auto;padding:0.6rem 0.8rem 1.5rem;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:0.7rem;}
+  .panel-head{padding:0.5rem 0.9rem;font-family:var(--font-display);font-size:0.85rem;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.4rem;background:var(--surface-alt);flex-wrap:wrap;}
+  .panel-body{padding:0.7rem 0.9rem;}
+  .context-box{background:linear-gradient(135deg,var(--gmitblue-pale),rgba(90,138,168,0.04));border-left:3px solid var(--gmitblue);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:0.5rem 0.7rem;font-size:0.74rem;line-height:1.5;color:var(--text-secondary);margin-bottom:0.5rem;}.context-box strong{color:var(--navy);}
+  .size-row{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;font-size:0.8rem;}
+  .size-row label{font-weight:600;color:var(--text-secondary);}
+  .size-row select{padding:0.25rem 0.4rem;border:1px solid var(--border);border-radius:4px;font-family:var(--font-mono);font-size:0.82rem;background:#fff;}
+  .preset-scroll{display:flex;gap:0.25rem;flex-wrap:wrap;margin-bottom:0.5rem;}
+  .preset-pill{padding:0.22rem 0.5rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);cursor:pointer;transition:var(--transition);font-size:0.67rem;font-weight:600;white-space:nowrap;}
+  .preset-pill:hover{border-color:var(--navy);background:var(--gmitblue-pale);}
+  .preset-pill.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .mat-wrap{display:inline-flex;align-items:stretch;}
+  .mat-bk{display:flex;flex-direction:column;justify-content:center;user-select:none;}
+  .mat-bk.left{border-left:2.5px solid var(--navy);border-top:2.5px solid var(--navy);border-bottom:2.5px solid var(--navy);border-radius:4px 0 0 4px;width:7px;}
+  .mat-bk.right{border-right:2.5px solid var(--navy);border-top:2.5px solid var(--navy);border-bottom:2.5px solid var(--navy);border-radius:0 4px 4px 0;width:7px;}
+  .mat-grid{display:grid;gap:3px;padding:4px 3px;}
+  .mat-grid input{width:52px;padding:0.3rem 0.15rem;border:1px solid var(--border);border-radius:3px;font-family:var(--font-mono);font-size:0.85rem;text-align:center;background:#fff;transition:var(--transition);}
+  .mat-grid input:focus{outline:none;border-color:var(--gmitblue);box-shadow:0 0 0 2px rgba(90,138,168,0.15);}
+  .mat-grid input.hl-entry{background:rgba(255,140,0,0.15);border-color:rgba(255,140,0,0.4);font-weight:700;}
+  .mat-grid input.hl-dead{opacity:0.25;}
+  .btn{display:inline-flex;align-items:center;gap:0.3rem;padding:0.4rem 0.75rem;border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.78rem;font-weight:600;cursor:pointer;transition:var(--transition);white-space:nowrap;}
+  .btn-primary{background:var(--forest);color:#fff;}.btn-primary:hover{background:#2eb82e;}
+  .btn-accent{background:var(--brick);color:#fff;}
+  .btn-row{display:flex;gap:0.4rem;flex-wrap:wrap;}
+  /* Result */
+  .det-result{font-family:var(--font-mono);font-size:1.3rem;font-weight:700;color:var(--navy);text-align:center;padding:0.6rem;border:2px solid var(--navy);border-radius:var(--radius);background:rgba(0,0,128,0.04);margin-bottom:0.7rem;}
+  /* Expansion steps */
+  .exp-container{font-family:var(--font-mono);font-size:0.78rem;line-height:1.9;}
+  .exp-term{display:inline-flex;align-items:center;gap:0.2rem;padding:0.2rem 0.5rem;border-radius:var(--radius-sm);margin:0.15rem 0.1rem;cursor:pointer;transition:var(--transition);border:1px solid transparent;}
+  .exp-term:hover{background:var(--gmitblue-pale);border-color:var(--gmitblue);}
+  .exp-term.active{background:rgba(255,140,0,0.1);border-color:rgba(255,140,0,0.4);}
+  .exp-sign{font-weight:700;font-size:0.9rem;min-width:1rem;text-align:center;}
+  .exp-sign.plus{color:var(--plus);}.exp-sign.minus{color:var(--minus);}
+  .exp-coef{font-weight:700;color:var(--navy);}
+  .exp-det{color:var(--text-secondary);}
+  .exp-val{font-weight:700;color:var(--gmitblue);}
+  /* Submatrix detail */
+  .sub-detail{border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.5rem 0.7rem;margin-top:0.4rem;background:var(--surface-alt);animation:fadeIn 0.2s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+  .sub-detail .sd-title{font-weight:700;font-size:0.75rem;color:var(--text-muted);margin-bottom:0.2rem;}
+  .mini-mat{display:inline-grid;gap:1px 4px;padding:2px;font-size:0.78rem;border:1px solid var(--border);border-radius:3px;background:#fff;vertical-align:middle;}
+  .mini-mat .mc{text-align:center;padding:1px 3px;min-width:28px;}
+  /* Checkerboard sign pattern */
+  .sign-grid{display:inline-grid;gap:1px;padding:3px;font-size:0.72rem;margin-top:0.3rem;}
+  .sign-grid .sc{text-align:center;padding:2px 5px;border-radius:2px;font-weight:700;}
+  .sign-grid .sc.plus{background:rgba(34,139,34,0.1);color:var(--plus);}.sign-grid .sc.minus{background:rgba(178,34,34,0.08);color:var(--minus);}
+  .lab-footer{max-width:1100px;margin:0 auto;padding:0.5rem 1rem;text-align:center;font-size:0.68rem;color:var(--text-muted);}
+  @media(max-width:600px){.main{padding:0.4rem;}.mat-grid input{width:42px;font-size:0.78rem;}}
+</style>
+</head>
+<body>
+<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">📐</div><div><h1><span class="lab-badge">Cap 3</span>Calculadora de Determinantes por Cofactores</h1><div class="lab-subtitle">Laboratorio Interactivo · Determinantes</div></div></div></header>
+<div class="main">
+  <div class="panel">
+    <div class="panel-head">📝 Matriz A</div>
+    <div class="panel-body">
+      <div class="context-box">
+        Ingresa una matriz cuadrada de hasta <strong>5×5</strong>. Elige la fila o columna para
+        expandir y observa la <strong>expansión por cofactores</strong> paso a paso, con el patrón de signos
+        (+/−), las submatrices A<sub>ij</sub>, y el cálculo recursivo hasta llegar a determinantes 2×2.
+      </div>
+      <div class="preset-scroll" id="presets"></div>
+      <div class="size-row">
+        <label>Orden n:</label>
+        <select id="selN" onchange="rebuild()"><option>2</option><option selected>3</option><option>4</option><option>5</option></select>
+        <label style="margin-left:0.8rem;">Expandir por:</label>
+        <select id="selExpand" onchange="compute()"><option value="r0">Fila 1</option><option value="r1">Fila 2</option><option value="r2">Fila 3</option></select>
+      </div>
+      <div style="overflow-x:auto;" id="matWrap"></div>
+      <div class="btn-row" style="margin-top:0.5rem;">
+        <button class="btn btn-primary" onclick="compute()">▶ Calcular det(A)</button>
+        <button class="btn btn-accent" onclick="clearMat()">Limpiar</button>
+      </div>
+    </div>
+  </div>
+  <div class="panel" id="resultPanel" style="display:none;">
+    <div class="panel-head">📊 Expansión por Cofactores</div>
+    <div class="panel-body">
+      <div id="detResult" class="det-result"></div>
+      <div id="signPattern"></div>
+      <div id="expSteps" class="exp-container"></div>
+      <div id="subDetail"></div>
+    </div>
+  </div>
+</div>
+<footer class="lab-footer">Álgebra Lineal con Abordaje Tecnológico · Laboratorio 3.1 · Determinantes por Cofactores</footer>
+
+<script>
+let N=3, activeTermIdx=-1;
+
+const PRESETS=[
+  {name:'Libro: [8,0,-3;4,7,0;0,5,2]',n:3,d:[[8,0,-3],[4,7,0],[0,5,2]]},
+  {name:'Libro: [3,0,5;2,1,4;7,9,11]',n:3,d:[[3,0,5],[2,1,4],[7,9,11]]},
+  {name:'Libro 4×4: [2,1,5,7;0,8,9,3;0,4,0,5;7,10,-2,-3]',n:4,d:[[2,1,5,7],[0,8,9,3],[0,4,0,5],[7,10,-2,-3]]},
+  {name:'Identidad 3×3',n:3,d:[[1,0,0],[0,1,0],[0,0,1]]},
+  {name:'Triangular sup.',n:3,d:[[2,3,1],[0,4,-1],[0,0,5]]},
+  {name:'det=0 (singular)',n:3,d:[[1,2,3],[4,5,6],[7,8,9]]},
+  {name:'2×2: [3,7;1,4]',n:2,d:[[3,7],[1,4]]},
+  {name:'5×5 ejemplo',n:5,d:[[1,0,2,0,1],[3,1,0,1,0],[0,2,1,0,3],[1,0,0,1,2],[0,1,3,2,0]]},
+];
+
+window.addEventListener('DOMContentLoaded',()=>{buildPresets();rebuild();loadPreset(0);});
+
+function buildPresets(){const g=document.getElementById('presets');PRESETS.forEach((p,i)=>{const b=document.createElement('button');b.className='preset-pill';b.textContent=p.name;b.onclick=()=>loadPreset(i);g.appendChild(b);});}
+
+function loadPreset(i){const p=PRESETS[i];document.getElementById('selN').value=p.n;N=p.n;rebuild();for(let r=0;r<p.n;r++)for(let c=0;c<p.n;c++){const el=document.getElementById(`m_${r}_${c}`);if(el)el.value=p.d[r][c];}document.querySelectorAll('.preset-pill').forEach((b,j)=>b.classList.toggle('active',j===i));compute();}
+
+function rebuild(){
+  N=parseInt(document.getElementById('selN').value);
+  // Rebuild expand selector
+  const sel=document.getElementById('selExpand');sel.innerHTML='';
+  for(let i=0;i<N;i++){const o=document.createElement('option');o.value='r'+i;o.textContent=`Fila ${i+1}`;sel.appendChild(o);}
+  for(let j=0;j<N;j++){const o=document.createElement('option');o.value='c'+j;o.textContent=`Columna ${j+1}`;sel.appendChild(o);}
+  // Rebuild matrix
+  const w=document.getElementById('matWrap');
+  let html=`<div class="mat-wrap"><div class="mat-bk left"></div><div class="mat-grid" style="grid-template-columns:repeat(${N},1fr);">`;
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++)html+=`<input type="number" id="m_${i}_${j}" value="0" step="any" onfocus="this.select()">`;
+  html+=`</div><div class="mat-bk right"></div></div>`;
+  w.innerHTML=html;
+  document.getElementById('resultPanel').style.display='none';
+}
+
+function clearMat(){for(let i=0;i<N;i++)for(let j=0;j<N;j++)document.getElementById(`m_${i}_${j}`).value=0;document.getElementById('resultPanel').style.display='none';}
+
+function readMat(){const M=[];for(let i=0;i<N;i++){const r=[];for(let j=0;j<N;j++)r.push(parseFloat(document.getElementById(`m_${i}_${j}`).value)||0);M.push(r);}return M;}
+
+function r2(x){return Math.round(x*1000)/1000;}
+
+// ---- DETERMINANT (recursive with steps) ----
+function det(M){
+  const n=M.length;
+  if(n===1)return M[0][0];
+  if(n===2)return M[0][0]*M[1][1]-M[0][1]*M[1][0];
+  let sum=0;
+  for(let j=0;j<n;j++){
+    const sign=((j%2===0)?1:-1);
+    const sub=subMatrix(M,0,j);
+    sum+=sign*M[0][j]*det(sub);
+  }
+  return sum;
+}
+
+function subMatrix(M,row,col){
+  return M.filter((_,i)=>i!==row).map(r=>r.filter((_,j)=>j!==col));
+}
+
+// ---- COMPUTE ----
+function compute(){
+  const M=readMat();
+  const sel=document.getElementById('selExpand').value;
+  const byRow=sel[0]==='r';
+  const idx=parseInt(sel.substring(1));
+  const result=det(M);
+
+  document.getElementById('resultPanel').style.display='';
+  document.getElementById('detResult').textContent=`det(A) = ${r2(result)}`;
+
+  // Sign pattern
+  showSignPattern();
+
+  // Expansion
+  const terms=[];
+  if(byRow){
+    for(let j=0;j<N;j++){
+      const sign=((idx+j)%2===0)?1:-1;
+      const entry=M[idx][j];
+      const sub=subMatrix(M,idx,j);
+      const subDet=det(sub);
+      terms.push({sign,entry,subDet,product:sign*entry*subDet,row:idx,col:j,sub,signChar:(sign===1?'+':'-')});
+    }
+  } else {
+    for(let i=0;i<N;i++){
+      const sign=((i+idx)%2===0)?1:-1;
+      const entry=M[i][idx];
+      const sub=subMatrix(M,i,idx);
+      const subDet=det(sub);
+      terms.push({sign,entry,subDet,product:sign*entry*subDet,row:i,col:idx,sub,signChar:(sign===1?'+':'-')});
+    }
+  }
+
+  showExpansion(terms,byRow,idx);
+  activeTermIdx=-1;
+  clearHighlights();
+}
+
+function showSignPattern(){
+  let html=`<div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:0.3rem;">Patrón de signos (−1)<sup>i+j</sup>:</div>`;
+  html+=`<div class="sign-grid" style="grid-template-columns:repeat(${N},1fr);">`;
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++){
+    const s=((i+j)%2===0)?'+':'-';
+    html+=`<span class="sc ${s==='+'?'plus':'minus'}">${s}</span>`;
+  }
+  html+=`</div>`;
+  document.getElementById('signPattern').innerHTML=html;
+}
+
+function showExpansion(terms,byRow,idx){
+  const label=byRow?`fila ${idx+1}`:`columna ${idx+1}`;
+  let html=`<div style="font-size:0.75rem;color:var(--text-muted);margin:0.5rem 0 0.3rem;">Desarrollo por <strong>${label}</strong>:</div>`;
+  html+=`<div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.1rem;">`;
+  html+=`<span style="font-weight:700;color:var(--navy);margin-right:0.3rem;">det(A) =</span>`;
+  terms.forEach((t,k)=>{
+    const signStr=k===0?(t.sign===1?'':'-'):(t.sign===1?' + ':' - ');
+    const absEntry=Math.abs(t.entry);
+    const entryStr=r2(absEntry);
+    // For 2x2 sub, show value directly
+    const detStr=N<=2?'':` · det(A${sub2(t.row+1)}${sub2(t.col+1)})`;
+    const valStr=N<=2?` = ${r2(t.product)}`:``;
+    html+=`<span class="exp-term" data-idx="${k}" onmouseenter="highlightTerm(${k},${t.row},${t.col})" onmouseleave="clearHighlights()" onclick="showSubDetail(${k})">`;
+    html+=`<span class="exp-sign ${t.sign===1?'plus':'minus'}">${signStr}</span>`;
+    if(k===0&&t.sign===-1) html+=`<span class="exp-coef">${entryStr}</span>`;
+    else html+=`<span class="exp-coef">${entryStr}</span>`;
+    html+=`<span class="exp-det">${detStr}</span>`;
+    html+=`</span>`;
+  });
+  html+=`</div>`;
+
+  // Numerical evaluation
+  html+=`<div style="margin-top:0.5rem;font-size:0.76rem;">`;
+  html+=`<span style="color:var(--text-muted);">= </span>`;
+  const numParts=terms.map((t,k)=>{
+    const signStr=k===0?(t.sign===1?'':'-'):(t.sign===1?' + ':' - ');
+    const absE=Math.abs(t.entry);
+    if(Math.abs(t.entry)<0.001) return `${signStr}0`;
+    if(N<=2) return `${signStr}${r2(Math.abs(t.product))}`;
+    return `${signStr}${r2(absE)}·(${r2(t.subDet)})`;
+  });
+  html+=numParts.join('');
+  html+=`</div>`;
+
+  // Products
+  if(N>2){
+    html+=`<div style="font-size:0.76rem;color:var(--text-muted);">= `;
+    html+=terms.map((t,k)=>{
+      const signStr=k===0?(t.product>=0?'':'-'):(t.product>=0?' + ':' - ');
+      return `${signStr}${r2(Math.abs(t.product))}`;
+    }).join('');
+    html+=`</div>`;
+  }
+
+  html+=`<div style="font-size:0.85rem;font-weight:700;color:var(--navy);margin-top:0.3rem;">= ${r2(terms.reduce((s,t)=>s+t.product,0))}</div>`;
+
+  document.getElementById('expSteps').innerHTML=html;
+  document.getElementById('subDetail').innerHTML='';
+}
+
+function sub2(n){const s='₀₁₂₃₄₅₆₇₈₉';return(''+n).split('').map(c=>s[parseInt(c)]||c).join('');}
+
+// ---- SUBMATRIX DETAIL ----
+function showSubDetail(k){
+  activeTermIdx=k;
+  document.querySelectorAll('.exp-term').forEach((el,i)=>el.classList.toggle('active',i===k));
+  // Get term data by recalculating
+  const M=readMat();
+  const sel=document.getElementById('selExpand').value;
+  const byRow=sel[0]==='r';const idx=parseInt(sel.substring(1));
+  let row,col;
+  if(byRow){row=idx;col=k;}else{row=k;col=idx;}
+  const sign=((row+col)%2===0)?1:-1;
+  const entry=M[row][col];
+  const sub=subMatrix(M,row,col);
+  const subDet=det(sub);
+
+  let html=`<div class="sub-detail">`;
+  html+=`<div class="sd-title">Cofactor C${sub2(row+1)}${sub2(col+1)} — eliminar fila ${row+1} y columna ${col+1}</div>`;
+  html+=`<div style="font-family:var(--font-mono);font-size:0.76rem;line-height:1.8;">`;
+  html+=`<div>(−1)<sup>${row+1}+${col+1}</sup> = (−1)<sup>${row+col+2}</sup> = <span class="exp-sign ${sign===1?'plus':'minus'}" style="font-size:0.85rem;">${sign===1?'+1':'-1'}</span></div>`;
+  html+=`<div>a${sub2(row+1)}${sub2(col+1)} = <strong>${r2(entry)}</strong></div>`;
+  html+=`<div style="margin:0.3rem 0;">A${sub2(row+1)}${sub2(col+1)} = ${renderMiniMatrix(sub)}</div>`;
+  // If sub is 2x2, show explicit
+  if(sub.length===2){
+    html+=`<div>det(A${sub2(row+1)}${sub2(col+1)}) = (${r2(sub[0][0])})(${r2(sub[1][1])}) - (${r2(sub[0][1])})(${r2(sub[1][0])}) = ${r2(sub[0][0]*sub[1][1])} - ${r2(sub[0][1]*sub[1][0])} = <strong>${r2(subDet)}</strong></div>`;
+  } else if(sub.length===3){
+    html+=`<div>det(A${sub2(row+1)}${sub2(col+1)}) = <strong>${r2(subDet)}</strong> <span style="color:var(--text-muted);font-size:0.7rem;">(expandido recursivamente)</span></div>`;
+  } else {
+    html+=`<div>det(A${sub2(row+1)}${sub2(col+1)}) = <strong>${r2(subDet)}</strong></div>`;
+  }
+  html+=`<div style="margin-top:0.2rem;border-top:1px dashed var(--border);padding-top:0.2rem;">Contribución: ${sign===1?'+':'-'}${r2(Math.abs(entry))} × ${r2(Math.abs(subDet))} = <strong style="color:var(--navy);">${r2(sign*entry*subDet)}</strong></div>`;
+  html+=`</div></div>`;
+  document.getElementById('subDetail').innerHTML=html;
+
+  highlightTerm(k,row,col);
+}
+
+function renderMiniMatrix(M){
+  const n=M.length;
+  let html=`<div class="mini-mat" style="grid-template-columns:repeat(${n},1fr);display:inline-grid;">`;
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++) html+=`<span class="mc">${r2(M[i][j])}</span>`;
+  html+=`</div>`;
+  return html;
+}
+
+// ---- HIGHLIGHTING ----
+function highlightTerm(k,row,col){
+  clearHighlights();
+  // Highlight the entry and dim the eliminated row/col
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++){
+    const el=document.getElementById(`m_${i}_${j}`);
+    if(!el)continue;
+    if(i===row&&j===col) el.classList.add('hl-entry');
+    else if(i===row||j===col) el.classList.add('hl-dead');
+  }
+}
+
+function clearHighlights(){
+  document.querySelectorAll('.hl-entry,.hl-dead').forEach(el=>{el.classList.remove('hl-entry','hl-dead');});
+  if(activeTermIdx<0) document.querySelectorAll('.exp-term').forEach(el=>el.classList.remove('active'));
+}
+
+</script>
+</body>
+</html>
