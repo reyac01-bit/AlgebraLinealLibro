@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Explorador de Cónicas — Álgebra Lineal</title>
+<style>
+  :root{--brick:#B22222;--brick-light:#D4443E;--navy:#000080;--navy-light:#1a1aad;--forest:#228B22;--forest-light:#2eb82e;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#888;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
+  .lab-header{background:linear-gradient(135deg,var(--navy) 0%,var(--gmitblue) 100%);color:#fff;padding:0.7rem 1.5rem;position:relative;overflow:hidden;}
+  .lab-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none;}
+  .lab-header-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:0.8rem;position:relative;z-index:1;}
+  .lab-icon{width:38px;height:38px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+  .lab-header h1{font-family:var(--font-display);font-size:clamp(0.9rem,2vw,1.25rem);font-weight:700;line-height:1.2;}
+  .lab-subtitle{font-size:0.72rem;opacity:0.75;}
+  .lab-badge{display:inline-block;background:var(--brick);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15em 0.5em;border-radius:3px;letter-spacing:0.05em;text-transform:uppercase;margin-right:0.35rem;vertical-align:middle;}
+  .main{max-width:1400px;margin:0 auto;padding:0.6rem 0.8rem 1.5rem;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+  .panel-head{padding:0.5rem 0.9rem;font-family:var(--font-display);font-size:0.85rem;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.4rem;background:var(--surface-alt);}
+  .panel-body{padding:0.7rem 0.9rem;}
+  /* Canvas top */
+  .canvas-panel{margin-bottom:0.7rem;}
+  .canvas-wrap{position:relative;width:100%;height:clamp(320px,50vh,560px);background:#fff;overflow:hidden;}
+  .canvas-wrap canvas{position:absolute;inset:0;width:100%!important;height:100%!important;}
+  /* Equation display */
+  .eq-bar{padding:0.5rem 0.9rem;border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:0.85rem;text-align:center;background:var(--surface-alt);color:var(--navy);font-weight:600;line-height:1.5;overflow-x:auto;white-space:nowrap;}
+  /* Info strip */
+  .info-strip{display:flex;flex-wrap:wrap;gap:0.25rem 1rem;padding:0.45rem 0.9rem;font-size:0.73rem;font-family:var(--font-mono);border-top:1px solid var(--border);background:var(--surface-alt);}
+  .info-item{display:flex;gap:0.2rem;align-items:center;}.il{color:var(--text-muted);}.iv{font-weight:700;color:var(--navy);}.iv.neg{color:var(--brick);}
+  /* Controls */
+  .controls{display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;align-items:start;}
+  @media(max-width:800px){.controls{grid-template-columns:1fr;}}
+  /* Sliders */
+  .slider-group{display:grid;grid-template-columns:auto 1fr auto;gap:0 0.5rem;align-items:center;margin-bottom:0.4rem;}
+  .slider-group label{font-family:var(--font-mono);font-size:0.8rem;font-weight:700;min-width:1.5rem;text-align:right;}
+  .slider-group input[type="range"]{width:100%;accent-color:var(--navy);height:4px;}
+  .slider-group .sv{font-family:var(--font-mono);font-size:0.78rem;font-weight:600;color:var(--navy);min-width:2.8rem;text-align:left;}
+  .slider-section-title{font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin:0.5rem 0 0.25rem;padding-bottom:0.15rem;border-bottom:1px solid var(--border);}
+  /* Presets */
+  .preset-scroll{display:flex;gap:0.3rem;flex-wrap:wrap;margin-bottom:0.5rem;}
+  .preset-pill{padding:0.25rem 0.6rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);cursor:pointer;transition:var(--transition);font-size:0.7rem;font-weight:600;white-space:nowrap;}
+  .preset-pill:hover{border-color:var(--navy);background:var(--gmitblue-pale);}
+  .preset-pill.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  /* Checkboxes */
+  .checks{display:flex;flex-wrap:wrap;gap:0.15rem 0.8rem;font-size:0.73rem;margin-top:0.4rem;}
+  .checks label{display:flex;align-items:center;gap:0.25rem;cursor:pointer;user-select:none;white-space:nowrap;}
+  .checks input[type="checkbox"]{accent-color:var(--navy);width:13px;height:13px;}
+  /* Classification badge */
+  .class-badge{display:inline-block;padding:0.2em 0.7em;border-radius:20px;font-weight:700;font-size:0.82rem;letter-spacing:0.02em;}
+  .class-badge.elipse{background:rgba(34,139,34,0.12);color:var(--forest);}
+  .class-badge.hiperbola{background:rgba(178,34,34,0.12);color:var(--brick);}
+  .class-badge.parabola{background:rgba(90,138,168,0.15);color:var(--gmitblue);}
+  .class-badge.degenerada{background:rgba(0,0,0,0.08);color:var(--text-muted);}
+  .btn{display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.7rem;border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.75rem;font-weight:600;cursor:pointer;transition:var(--transition);}
+  .btn-accent{background:var(--brick);color:#fff;}.btn-accent:hover{background:var(--brick-light);}
+  .lab-footer{max-width:1400px;margin:0 auto;padding:0.5rem 1rem;text-align:center;font-size:0.68rem;color:var(--text-muted);}
+  @media(max-width:600px){.lab-header{padding:0.5rem 0.7rem;}.main{padding:0.4rem;}.canvas-wrap{height:260px;}}
+</style>
+</head>
+<body>
+<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">🔵</div><div><h1><span class="lab-badge">Cap 8</span>Explorador Interactivo de Secciones Cónicas</h1><div class="lab-subtitle">Laboratorio Interactivo · Ecuaciones Cuadráticas y Secciones Cónicas</div></div></div></header>
+<div class="main">
+  <div class="panel canvas-panel">
+    <div class="eq-bar" id="eqBar">ax² + bxy + cy² + dx + ey + f = 0</div>
+    <div class="panel-head">📈 Gráfico de la Cónica <span style="margin-left:auto;" id="classBadge"></span><span style="margin-left:0.5rem;font-family:var(--font-mono);font-size:0.68rem;color:var(--text-muted);" id="coordDisp"></span></div>
+    <div class="canvas-wrap" id="canvasWrap"><canvas id="cv"></canvas></div>
+    <div class="info-strip" id="infoBar"></div>
+  </div>
+  <div class="controls">
+    <!-- Sliders -->
+    <div class="panel">
+      <div class="panel-head">🎚️ Coeficientes</div>
+      <div class="panel-body">
+        <div class="slider-section-title">Términos cuadráticos</div>
+        <div class="slider-group"><label>a</label><input type="range" id="sa" min="-5" max="5" step="0.1" value="1" oninput="upd()"><span class="sv" id="va">1.0</span></div>
+        <div class="slider-group"><label>b</label><input type="range" id="sb" min="-5" max="5" step="0.1" value="0" oninput="upd()"><span class="sv" id="vb">0.0</span></div>
+        <div class="slider-group"><label>c</label><input type="range" id="sc" min="-5" max="5" step="0.1" value="1" oninput="upd()"><span class="sv" id="vc">1.0</span></div>
+        <div class="slider-section-title">Términos lineales y constante</div>
+        <div class="slider-group"><label>d</label><input type="range" id="sd" min="-10" max="10" step="0.1" value="0" oninput="upd()"><span class="sv" id="vd">0.0</span></div>
+        <div class="slider-group"><label>e</label><input type="range" id="se" min="-10" max="10" step="0.1" value="0" oninput="upd()"><span class="sv" id="ve">0.0</span></div>
+        <div class="slider-group"><label>f</label><input type="range" id="sf" min="-10" max="10" step="0.1" value="-4" oninput="upd()"><span class="sv" id="vf">-4.0</span></div>
+        <button class="btn btn-accent" onclick="resetSliders()" style="margin-top:0.3rem;">↺ Reiniciar</button>
+      </div>
+    </div>
+    <!-- Presets + Info -->
+    <div>
+      <div class="panel" style="margin-bottom:0.7rem;">
+        <div class="panel-head">📚 Ejemplos del Libro</div>
+        <div class="panel-body">
+          <div class="preset-scroll" id="presets"></div>
+          <div class="checks">
+            <label><input type="checkbox" id="chkAxes" checked onchange="draw()"> Ejes originales</label>
+            <label><input type="checkbox" id="chkRotAxes" checked onchange="draw()"> Ejes rotados (eigenvectores)</label>
+            <label><input type="checkbox" id="chkEigenDir" checked onchange="draw()"> Direcciones propias</label>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">📊 Análisis Matricial</div>
+        <div class="panel-body" id="analysisBox" style="font-size:0.78rem;line-height:1.8;font-family:var(--font-mono);"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="lab-footer">Álgebra Lineal con Abordaje Tecnológico · Laboratorio 8.4 · Explorador de Cónicas</footer>
+
+<script>
+let canvas,ctx,W,H,sc=40,ox,oy;
+const PRESETS=[
+  {name:'Círculo x²+y²=4',v:[1,0,1,0,0,-4]},
+  {name:'Elipse x²/4+y²=1',v:[0.25,0,1,0,0,-1]},
+  {name:'Hipérbola x²−y²=1',v:[1,0,-1,0,0,-1]},
+  {name:'Parábola y=x²',v:[1,0,0,0,-1,0]},
+  {name:'Libro: 5x²−2xy+5y²=4',v:[5,-2,5,0,0,-4]},
+  {name:'Libro: x²+2xy+y²=0',v:[1,2,1,0,0,0]},
+  {name:'Elipse rotada 2x²+xy+2y²=4',v:[2,1,2,0,0,-4]},
+  {name:'Hipérbola rotada xy=1',v:[0,2,0,0,0,-2]},
+  {name:'Parábola rotada x²+2xy+y²−x+y=0',v:[1,2,1,-1,1,0]},
+  {name:'Rectas cruzadas x²−y²=0',v:[1,0,-1,0,0,0]},
+];
+
+window.addEventListener('DOMContentLoaded',()=>{canvas=document.getElementById('cv');ctx=canvas.getContext('2d');buildPresets();resize();upd();initEvents();});
+window.addEventListener('resize',()=>{if(canvas){resize();draw();}});
+
+function resize(){const w=document.getElementById('canvasWrap');const r=w.getBoundingClientRect();W=r.width;H=r.height;canvas.width=W*devicePixelRatio;canvas.height=H*devicePixelRatio;canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);ox=W/2;oy=H/2;}
+
+function buildPresets(){const g=document.getElementById('presets');PRESETS.forEach((p,i)=>{const b=document.createElement('button');b.className='preset-pill';b.textContent=p.name;b.onclick=()=>loadPreset(i);g.appendChild(b);});}
+
+function loadPreset(i){const v=PRESETS[i].v;['sa','sb','sc','sd','se','sf'].forEach((id,j)=>document.getElementById(id).value=v[j]);document.querySelectorAll('.preset-pill').forEach((b,j)=>b.classList.toggle('active',j===i));upd();}
+
+function resetSliders(){[['sa',1],['sb',0],['sc',1],['sd',0],['se',0],['sf',-4]].forEach(([id,v])=>document.getElementById(id).value=v);document.querySelectorAll('.preset-pill').forEach(b=>b.classList.remove('active'));upd();}
+
+function gv(id){return parseFloat(document.getElementById(id).value);}
+function r2(x){return Math.round(x*100)/100;}
+
+function upd(){
+  const ids=['sa','sb','sc','sd','se','sf'];
+  const labs=['va','vb','vc','vd','ve','vf'];
+  ids.forEach((id,i)=>{document.getElementById(labs[i]).textContent=gv(id).toFixed(1);});
+  draw();
+}
+
+function getCoeffs(){return{a:gv('sa'),b:gv('sb'),c:gv('sc'),d:gv('sd'),e:gv('se'),f:gv('sf')};}
+
+// Evaluate F(x,y)
+function F(x,y,co){return co.a*x*x+co.b*x*y+co.c*y*y+co.d*x+co.e*y+co.f;}
+
+// Classification
+function classify(co){
+  const disc=co.b*co.b-4*co.a*co.c;
+  if(Math.abs(disc)<1e-9) return {type:'Parábola',cls:'parabola',disc};
+  if(disc<0) return {type:'Elipse',cls:'elipse',disc};
+  return {type:'Hipérbola',cls:'hiperbola',disc};
+}
+
+// Eigenvalues of A = [[a, b/2],[b/2, c]]
+function eigenAnalysis(co){
+  const a=co.a, bh=co.b/2, c=co.c;
+  const tr=a+c, det=a*c-bh*bh;
+  const disc2=tr*tr-4*det;
+  if(disc2<0) return {l1:NaN,l2:NaN,v1:[1,0],v2:[0,1],theta:0};
+  const sq=Math.sqrt(Math.max(0,disc2));
+  const l1=(tr+sq)/2, l2=(tr-sq)/2;
+  // Eigenvectors
+  let v1,v2;
+  if(Math.abs(bh)>1e-10){
+    v1=[l1-c,bh]; v2=[l2-c,bh];
+  } else if(Math.abs(a-c)>1e-10){
+    v1=[1,0]; v2=[0,1];
+  } else {
+    v1=[1,0]; v2=[0,1];
+  }
+  // Normalize
+  const n1=Math.sqrt(v1[0]*v1[0]+v1[1]*v1[1]);
+  const n2=Math.sqrt(v2[0]*v2[0]+v2[1]*v2[1]);
+  if(n1>1e-10){v1=[v1[0]/n1,v1[1]/n1];}
+  if(n2>1e-10){v2=[v2[0]/n2,v2[1]/n2];}
+  const theta=Math.atan2(v1[1],v1[0]);
+  return {l1,l2,v1,v2,theta,det,tr};
+}
+
+function toS(x,y){return[ox+x*sc,oy-y*sc];}
+
+// ---- DRAWING ----
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const co=getCoeffs();
+  const cl=classify(co);
+  const eig=eigenAnalysis(co);
+  drawGrid();
+  drawRotatedAxes(eig);
+  drawConic(co);
+  drawEigenDirections(eig);
+  updateEqBar(co);
+  updateClassBadge(cl);
+  updateInfo(co,cl,eig);
+  updateAnalysis(co,cl,eig);
+}
+
+function drawGrid(){
+  if(!document.getElementById('chkAxes').checked)return;
+  ctx.save();
+  ctx.strokeStyle='rgba(0,0,0,0.045)';ctx.lineWidth=1;
+  const N=Math.ceil(Math.max(W,H)/sc/2)+2;
+  for(let i=-N;i<=N;i++){const x=ox+i*sc;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let j=-N;j<=N;j++){const y=oy+j*sc;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  ctx.strokeStyle='rgba(0,0,0,0.18)';
+  ctx.beginPath();ctx.moveTo(0,oy);ctx.lineTo(W,oy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ox,0);ctx.lineTo(ox,H);ctx.stroke();
+  ctx.fillStyle='rgba(0,0,0,0.22)';ctx.font='500 9px "JetBrains Mono",monospace';ctx.textAlign='center';
+  for(let i=-N;i<=N;i++){if(i===0)continue;ctx.fillText(i,ox+i*sc,oy+12);}
+  ctx.textAlign='right';
+  for(let j=-N;j<=N;j++){if(j===0)continue;ctx.fillText(j,ox-4,oy-j*sc+4);}
+  ctx.restore();
+}
+
+function drawRotatedAxes(eig){
+  if(!document.getElementById('chkRotAxes').checked||isNaN(eig.theta))return;
+  ctx.save();
+  const len=Math.max(W,H);
+  const v1=eig.v1, v2=eig.v2;
+  ctx.strokeStyle='rgba(34,139,34,0.3)';ctx.lineWidth=1.5;ctx.setLineDash([6,4]);
+  // Axis 1
+  ctx.beginPath();
+  ctx.moveTo(ox-v1[0]*len,oy+v1[1]*len);
+  ctx.lineTo(ox+v1[0]*len,oy-v1[1]*len);
+  ctx.stroke();
+  // Axis 2
+  ctx.strokeStyle='rgba(178,34,34,0.3)';
+  ctx.beginPath();
+  ctx.moveTo(ox-v2[0]*len,oy+v2[1]*len);
+  ctx.lineTo(ox+v2[0]*len,oy-v2[1]*len);
+  ctx.stroke();
+  // Labels
+  ctx.setLineDash([]);
+  ctx.font='700 12px "Source Sans 3",sans-serif';
+  const off=5*sc;
+  ctx.fillStyle='rgba(34,139,34,0.6)';
+  ctx.fillText('u',ox+v1[0]*off+8,oy-v1[1]*off);
+  ctx.fillStyle='rgba(178,34,34,0.6)';
+  ctx.fillText('v',ox+v2[0]*off+8,oy-v2[1]*off);
+  ctx.restore();
+}
+
+function drawEigenDirections(eig){
+  if(!document.getElementById('chkEigenDir').checked||isNaN(eig.l1))return;
+  ctx.save();
+  const drawVec=(vx,vy,color)=>{
+    const[sx,sy]=toS(0,0),[ex,ey]=toS(vx*2,vy*2);
+    const dx=ex-sx,dy=ey-sy,len=Math.sqrt(dx*dx+dy*dy);
+    if(len<3)return;
+    const ang=Math.atan2(dy,dx),hl=10;
+    ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex-hl*Math.cos(ang),ey-hl*Math.sin(ang));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex-hl*Math.cos(ang-0.35),ey-hl*Math.sin(ang-0.35));ctx.lineTo(ex-hl*Math.cos(ang+0.35),ey-hl*Math.sin(ang+0.35));ctx.closePath();ctx.fill();
+  };
+  drawVec(eig.v1[0],eig.v1[1],'rgba(34,139,34,0.7)');
+  drawVec(eig.v2[0],eig.v2[1],'rgba(178,34,34,0.7)');
+  ctx.restore();
+}
+
+function drawConic(co){
+  // Marching squares implicit curve rendering
+  const step=2; // pixels
+  ctx.save();
+  ctx.strokeStyle=var_navy();
+  ctx.lineWidth=2.5;
+  ctx.lineCap='round';
+
+  // Sample grid
+  const cols=Math.ceil(W/step)+1, rows=Math.ceil(H/step)+1;
+  const vals=new Float32Array(cols*rows);
+  for(let j=0;j<rows;j++){
+    for(let i=0;i<cols;i++){
+      const px=i*step, py=j*step;
+      const wx=(px-ox)/sc, wy=(oy-py)/sc;
+      vals[j*cols+i]=F(wx,wy,co);
+    }
+  }
+
+  // Draw contour at F=0
+  ctx.beginPath();
+  for(let j=0;j<rows-1;j++){
+    for(let i=0;i<cols-1;i++){
+      const idx=j*cols+i;
+      const v00=vals[idx],v10=vals[idx+1],v01=vals[idx+cols],v11=vals[idx+cols+1];
+      marchCell(i*step,j*step,step,v00,v10,v01,v11);
+    }
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+function marchCell(px,py,s,v00,v10,v01,v11){
+  // Simple marching squares: draw line segments where sign changes
+  const config=(v00>0?8:0)|(v10>0?4:0)|(v11>0?2:0)|(v01>0?1:0);
+  if(config===0||config===15)return;
+  const lerp=(va,vb)=>{const t=va/(va-vb);return Math.max(0,Math.min(1,t));};
+  const top=lerp(v00,v10)*s+px;
+  const right=lerp(v10,v11)*s+py;
+  const bottom=lerp(v01,v11)*s+px;
+  const left=lerp(v00,v01)*s+py;
+
+  const segments={
+    1:[[px,left,bottom,py+s]],
+    2:[[bottom,py+s,px+s,right]],
+    3:[[px,left,px+s,right]],
+    4:[[px+s,right,top,py]],
+    5:[[px,left,top,py],[bottom,py+s,px+s,right]],
+    6:[[bottom,py+s,top,py]],
+    7:[[px,left,top,py]],
+    8:[[top,py,px,left]],
+    9:[[top,py,bottom,py+s]],
+    10:[[px,left,bottom,py+s],[top,py,px+s,right]],
+    11:[[top,py,px+s,right]],
+    12:[[px+s,right,px,left]],
+    13:[[px+s,right,bottom,py+s]],
+    14:[[bottom,py+s,px,left]],
+  };
+  const segs=segments[config];
+  if(!segs)return;
+  for(const[x1,y1,x2,y2]of segs){
+    ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
+  }
+}
+
+function var_navy(){return'#000080';}
+
+// ---- EQUATION DISPLAY ----
+function updateEqBar(co){
+  const parts=[];
+  const fmt=(v,name)=>{
+    if(Math.abs(v)<0.01)return null;
+    const sign=v>0?(parts.length?'+':''):'-';
+    const av=Math.abs(v);
+    const coef=Math.abs(av-1)<0.01?'':r2(av);
+    return `${sign} ${coef}${name}`;
+  };
+  const r=fmt(co.a,'x²');if(r)parts.push(r);
+  const rb=fmt(co.b,'xy');if(rb)parts.push(rb);
+  const rc=fmt(co.c,'y²');if(rc)parts.push(rc);
+  const rd=fmt(co.d,'x');if(rd)parts.push(rd);
+  const re=fmt(co.e,'y');if(re)parts.push(re);
+  if(Math.abs(co.f)>=0.01){
+    const sign=co.f>0?(parts.length?'+ ':''): '- ';
+    parts.push(sign+r2(Math.abs(co.f)));
+  }
+  if(parts.length===0)parts.push('0');
+  document.getElementById('eqBar').textContent=parts.join(' ')+' = 0';
+}
+
+function updateClassBadge(cl){
+  document.getElementById('classBadge').innerHTML=`<span class="class-badge ${cl.cls}">${cl.type}</span>`;
+}
+
+function updateInfo(co,cl,eig){
+  const disc=co.b*co.b-4*co.a*co.c;
+  const detA=co.a*co.c-(co.b/2)*(co.b/2);
+  const trA=co.a+co.c;
+  const theta=isNaN(eig.theta)?0:eig.theta*180/Math.PI;
+  const dc=disc>0?'iv neg':'iv';
+  document.getElementById('infoBar').innerHTML=`
+    <div class="info-item"><span class="il">b²−4ac=</span><span class="${dc}">${r2(disc)}</span></div>
+    <div class="info-item"><span class="il">det(A)=</span><span class="iv">${r2(detA)}</span></div>
+    <div class="info-item"><span class="il">tr(A)=</span><span class="iv">${r2(trA)}</span></div>
+    <div class="info-item"><span class="il">λ₁=</span><span class="iv">${isNaN(eig.l1)?'—':r2(eig.l1)}</span></div>
+    <div class="info-item"><span class="il">λ₂=</span><span class="iv">${isNaN(eig.l2)?'—':r2(eig.l2)}</span></div>
+    <div class="info-item"><span class="il">θ=</span><span class="iv">${r2(theta)}°</span></div>
+  `;
+}
+
+function updateAnalysis(co,cl,eig){
+  const bh=co.b/2;
+  const thetaDeg=isNaN(eig.theta)?0:r2(eig.theta*180/Math.PI);
+  let tanInfo='';
+  if(Math.abs(co.a-co.c)>0.01&&Math.abs(co.b)>0.01){
+    tanInfo=`tan(2θ) = b/(a−c) = ${r2(co.b)}/${r2(co.a-co.c)} = ${r2(co.b/(co.a-co.c))}`;
+  } else if(Math.abs(co.a-co.c)<0.01&&Math.abs(co.b)>0.01){
+    tanInfo='a = c → θ = 45°';
+  }
+  let html=`
+    <div style="margin-bottom:0.3rem;"><strong>Matriz A:</strong></div>
+    <div style="font-size:0.82rem;margin-bottom:0.4rem;">
+      A = [${r2(co.a)}, ${r2(bh)}; ${r2(bh)}, ${r2(co.c)}]
+    </div>
+    <div><strong>Valores propios:</strong> λ₁ = ${isNaN(eig.l1)?'—':r2(eig.l1)}, λ₂ = ${isNaN(eig.l2)?'—':r2(eig.l2)}</div>
+    <div><strong>Eigenvector 1:</strong> <span style="color:var(--forest);">(${isNaN(eig.v1[0])?'—':r2(eig.v1[0])}, ${isNaN(eig.v1[1])?'—':r2(eig.v1[1])})</span></div>
+    <div><strong>Eigenvector 2:</strong> <span style="color:var(--brick);">(${isNaN(eig.v2[0])?'—':r2(eig.v2[0])}, ${isNaN(eig.v2[1])?'—':r2(eig.v2[1])})</span></div>
+    <div><strong>Ángulo rotación:</strong> θ = ${thetaDeg}°</div>`;
+  if(tanInfo) html+=`<div style="color:var(--text-muted);font-size:0.72rem;margin-top:0.2rem;">${tanInfo}</div>`;
+
+  // Classification rule
+  const disc=co.b*co.b-4*co.a*co.c;
+  html+=`<div style="margin-top:0.4rem;border-top:1px solid var(--border);padding-top:0.3rem;">`;
+  html+=`<strong>Clasificación:</strong> b²−4ac = ${r2(disc)}`;
+  if(disc<0) html+=` < 0 → <span style="color:var(--forest);font-weight:700;">Elipse</span>`;
+  else if(disc>0) html+=` > 0 → <span style="color:var(--brick);font-weight:700;">Hipérbola</span>`;
+  else html+=` = 0 → <span style="color:var(--gmitblue);font-weight:700;">Parábola</span>`;
+  html+=`</div>`;
+
+  document.getElementById('analysisBox').innerHTML=html;
+}
+
+// ---- MOUSE ----
+function initEvents(){
+  canvas.addEventListener('mousemove',e=>{
+    const r=canvas.getBoundingClientRect();
+    const wx=(e.clientX-r.left-ox)/sc,wy=(oy-(e.clientY-r.top))/sc;
+    document.getElementById('coordDisp').textContent=`(${wx.toFixed(1)}, ${wy.toFixed(1)})`;
+  });
+}
+</script>
+</body>
+</html>
