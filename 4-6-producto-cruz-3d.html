@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Producto Cruz 3D — Álgebra Lineal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#888;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;--col-u:#2980B9;--col-v:#E67E22;--col-cross:#228B22;}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
+  .lab-header{background:linear-gradient(135deg,var(--navy) 0%,var(--gmitblue) 100%);color:#fff;padding:0.7rem 1.5rem;position:relative;overflow:hidden;}
+  .lab-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none;}
+  .lab-header-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:0.8rem;position:relative;z-index:1;}
+  .lab-icon{width:38px;height:38px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+  .lab-header h1{font-family:var(--font-display);font-size:clamp(0.9rem,2vw,1.25rem);font-weight:700;line-height:1.2;}
+  .lab-subtitle{font-size:0.72rem;opacity:0.75;}
+  .lab-badge{display:inline-block;background:var(--brick);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15em 0.5em;border-radius:3px;letter-spacing:0.05em;text-transform:uppercase;margin-right:0.35rem;vertical-align:middle;}
+  .main{max-width:1400px;margin:0 auto;padding:0.6rem 0.8rem 1.5rem;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+  .panel-head{padding:0.5rem 0.9rem;font-family:var(--font-display);font-size:0.85rem;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.4rem;background:var(--surface-alt);flex-wrap:wrap;}
+  .panel-body{padding:0.7rem 0.9rem;}
+  .canvas-panel{margin-bottom:0.7rem;}
+  .canvas-wrap{position:relative;width:100%;height:clamp(340px,52vh,580px);background:#fff;overflow:hidden;}
+  .canvas-wrap>div{position:absolute;inset:0;width:100%!important;height:100%!important;}
+  .info-strip{display:flex;flex-wrap:wrap;gap:0.25rem 1rem;padding:0.45rem 0.9rem;font-size:0.73rem;font-family:var(--font-mono);border-top:1px solid var(--border);background:var(--surface-alt);}
+  .info-item{display:flex;gap:0.2rem;align-items:center;}.il{color:var(--text-muted);}.iv{font-weight:700;color:var(--navy);}
+  .controls{display:grid;grid-template-columns:auto 1fr;gap:0.7rem;align-items:start;}
+  @media(max-width:900px){.controls{grid-template-columns:1fr;}}
+  .vec-input-row{display:flex;align-items:center;gap:0.4rem;margin-bottom:0.45rem;}
+  .vec-input-row .vlabel{font-family:var(--font-mono);font-weight:700;font-size:0.85rem;min-width:1.5rem;}
+  .vec-input-row input{width:56px;padding:0.35rem 0.2rem;border:1px solid var(--border);border-radius:4px;font-family:var(--font-mono);font-size:0.88rem;text-align:center;background:#fff;transition:var(--transition);}
+  .vec-input-row input:focus{outline:none;border-color:var(--gmitblue);box-shadow:0 0 0 3px rgba(90,138,168,0.15);}
+  .vec-input-row input:disabled{background:var(--surface-alt);color:var(--forest);font-weight:700;border-color:var(--forest);opacity:0.9;}
+  .cdot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;margin-right:2px;}
+  .preset-scroll{display:flex;gap:0.3rem;flex-wrap:wrap;margin-bottom:0.6rem;}
+  .preset-pill{padding:0.25rem 0.55rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);cursor:pointer;transition:var(--transition);font-size:0.68rem;font-weight:600;white-space:nowrap;}
+  .preset-pill:hover{border-color:var(--navy);background:var(--gmitblue-pale);}
+  .preset-pill.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .formula-card{border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.5rem 0.7rem;margin-bottom:0.4rem;font-family:var(--font-mono);font-size:0.76rem;line-height:1.8;background:var(--surface-alt);}
+  .formula-card .flabel{font-weight:700;font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.1rem;}
+  .swap-btn{background:var(--gmitblue-pale);color:var(--gmitblue);border:1px solid rgba(90,138,168,0.3);padding:0.3rem 0.6rem;border-radius:var(--radius-sm);font-size:0.72rem;font-weight:600;cursor:pointer;transition:var(--transition);}
+  .swap-btn:hover{background:rgba(90,138,168,0.2);}
+  .verify-box{border:1px solid var(--forest);border-radius:var(--radius-sm);background:rgba(34,139,34,0.05);padding:0.5rem 0.7rem;font-family:var(--font-mono);font-size:0.75rem;line-height:1.8;}
+  .verify-box .check{color:var(--forest);font-weight:700;}
+  .verify-box .fail{color:var(--brick);font-weight:700;}
+  .context-box{background:linear-gradient(135deg,var(--gmitblue-pale),rgba(90,138,168,0.04));border-left:3px solid var(--gmitblue);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:0.55rem 0.75rem;font-size:0.74rem;line-height:1.5;color:var(--text-secondary);margin-bottom:0.6rem;}
+  .context-box strong{color:var(--navy);}
+  .checks{display:flex;flex-wrap:wrap;gap:0.15rem 0.8rem;font-size:0.73rem;margin-top:0.4rem;}
+  .checks label{display:flex;align-items:center;gap:0.25rem;cursor:pointer;user-select:none;white-space:nowrap;}
+  .checks input[type="checkbox"]{accent-color:var(--navy);width:13px;height:13px;}
+  .lab-footer{max-width:1400px;margin:0 auto;padding:0.5rem 1rem;text-align:center;font-size:0.68rem;color:var(--text-muted);}
+  @media(max-width:600px){.main{padding:0.4rem;}.canvas-wrap{height:280px;}.vec-input-row input{width:44px;}}
+</style>
+</head>
+<body>
+<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">✖️</div><div><h1><span class="lab-badge">Cap 4</span>Calculadora de Producto Cruz en ℝ³</h1><div class="lab-subtitle">Laboratorio Interactivo · Geometría Vectorial</div></div></div></header>
+<div class="main">
+  <div class="panel canvas-panel">
+    <div class="panel-head">📈 Visualización 3D — u × v es perpendicular a u y a v
+      <span style="margin-left:auto;font-size:0.68rem;color:var(--text-muted);font-family:var(--font-mono);">Arrastra para rotar · Scroll para zoom</span>
+    </div>
+    <div class="canvas-wrap" id="canvasWrap"><div id="container3d"></div></div>
+    <div class="info-strip" id="infoBar"></div>
+  </div>
+  <div class="controls">
+    <div class="panel">
+      <div class="panel-head">🔢 Vectores</div>
+      <div class="panel-body">
+        <div class="context-box">
+          Ingresa los vectores <span class="cdot" style="background:var(--col-u)"></span><strong style="color:var(--col-u)">u</strong> y
+          <span class="cdot" style="background:var(--col-v)"></span><strong style="color:var(--col-v)">v</strong> en ℝ³.
+          El resultado <span class="cdot" style="background:var(--col-cross)"></span><strong style="color:var(--col-cross)">u × v</strong>
+          es perpendicular a ambos.
+        </div>
+        <div class="vec-input-row"><span class="cdot" style="background:var(--col-u)"></span><span class="vlabel" style="color:var(--col-u)">u</span>
+          <input id="ux" type="number" value="2" step="0.5" oninput="compute()">
+          <input id="uy" type="number" value="-1" step="0.5" oninput="compute()">
+          <input id="uz" type="number" value="0" step="0.5" oninput="compute()">
+        </div>
+        <div class="vec-input-row"><span class="cdot" style="background:var(--col-v)"></span><span class="vlabel" style="color:var(--col-v)">v</span>
+          <input id="vx" type="number" value="3" step="0.5" oninput="compute()">
+          <input id="vy" type="number" value="1" step="0.5" oninput="compute()">
+          <input id="vz" type="number" value="4" step="0.5" oninput="compute()">
+        </div>
+        <div class="vec-input-row" style="opacity:0.85;"><span class="cdot" style="background:var(--col-cross)"></span><span class="vlabel" style="color:var(--col-cross)">u×v</span>
+          <input id="cx" type="number" disabled>
+          <input id="cy" type="number" disabled>
+          <input id="cz" type="number" disabled>
+        </div>
+        <div style="display:flex;gap:0.4rem;margin-top:0.4rem;flex-wrap:wrap;">
+          <button class="swap-btn" onclick="swapUV()">⇄ Intercambiar u ↔ v</button>
+        </div>
+        <div class="preset-scroll" style="margin-top:0.5rem;" id="presets"></div>
+        <div class="checks">
+          <label><input type="checkbox" id="chkPlane" checked onchange="render3D()"> Paralelogramo</label>
+          <label><input type="checkbox" id="chkPerp" checked onchange="render3D()"> Ángulos rectos</label>
+          <label><input type="checkbox" id="chkGrid" checked onchange="render3D()"> Ejes y grilla</label>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel" style="margin-bottom:0.7rem;">
+        <div class="panel-head">📊 Cálculo Paso a Paso</div>
+        <div class="panel-body" id="calcBox"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">✅ Verificaciones</div>
+        <div class="panel-body" id="verifyBox"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="lab-footer">Álgebra Lineal con Abordaje Tecnológico · Laboratorio 4.6 · Producto Cruz en ℝ³</footer>
+
+<script>
+let scene,camera,renderer,arrows=[],extras=[];
+let CW,CH,camTheta=Math.PI/4,camPhi=Math.PI/5,camR=12;
+let drag=false,prev={x:0,y:0};
+
+const PRESETS=[
+  {name:'Libro: u=(2,-1,0), v=(3,1,4)',u:[2,-1,0],v:[3,1,4]},
+  {name:'Canónicos: i × j = k',u:[1,0,0],v:[0,1,0]},
+  {name:'Canónicos: j × k = i',u:[0,1,0],v:[0,0,1]},
+  {name:'Canónicos: k × i = j',u:[0,0,1],v:[1,0,0]},
+  {name:'Paralelos (u×v = 0)',u:[1,2,3],v:[2,4,6]},
+  {name:'u=(1,0,0), v=(1,1,0)',u:[1,0,0],v:[1,1,0]},
+  {name:'u=(1,2,3), v=(4,5,6)',u:[1,2,3],v:[4,5,6]},
+  {name:'u=(0,3,-2), v=(1,0,4)',u:[0,3,-2],v:[1,0,4]},
+];
+
+window.addEventListener('DOMContentLoaded',()=>{init3D();buildPresets();compute();});
+window.addEventListener('resize',()=>{resize3D();render3D();});
+
+function gv(id){return parseFloat(document.getElementById(id)?.value)||0;}
+function r2(x){return Math.round(x*100)/100;}
+
+function buildPresets(){
+  const g=document.getElementById('presets');
+  PRESETS.forEach((p,i)=>{const b=document.createElement('button');b.className='preset-pill';b.textContent=p.name;b.onclick=()=>loadPreset(i);g.appendChild(b);});
+}
+
+function loadPreset(i){
+  const p=PRESETS[i];
+  document.getElementById('ux').value=p.u[0];document.getElementById('uy').value=p.u[1];document.getElementById('uz').value=p.u[2];
+  document.getElementById('vx').value=p.v[0];document.getElementById('vy').value=p.v[1];document.getElementById('vz').value=p.v[2];
+  document.querySelectorAll('.preset-pill').forEach((b,j)=>b.classList.toggle('active',j===i));
+  compute();
+}
+
+function swapUV(){
+  const u=[gv('ux'),gv('uy'),gv('uz')],v=[gv('vx'),gv('vy'),gv('vz')];
+  document.getElementById('ux').value=v[0];document.getElementById('uy').value=v[1];document.getElementById('uz').value=v[2];
+  document.getElementById('vx').value=u[0];document.getElementById('vy').value=u[1];document.getElementById('vz').value=u[2];
+  compute();
+}
+
+// ---- MATH ----
+function crossProduct(u,v){
+  return[u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0]];
+}
+function dot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
+function norm(a){return Math.sqrt(dot(a,a));}
+
+function compute(){
+  const u=[gv('ux'),gv('uy'),gv('uz')];
+  const v=[gv('vx'),gv('vy'),gv('vz')];
+  const c=crossProduct(u,v);
+  document.getElementById('cx').value=r2(c[0]);
+  document.getElementById('cy').value=r2(c[1]);
+  document.getElementById('cz').value=r2(c[2]);
+  updateCalc(u,v,c);
+  updateVerify(u,v,c);
+  updateInfo(u,v,c);
+  render3D();
+}
+
+function updateCalc(u,v,c){
+  const nc=norm(c);
+  const nu=norm(u),nv=norm(v);
+  const d=dot(u,v);
+  const angle=(nu>0.001&&nv>0.001)?Math.acos(Math.max(-1,Math.min(1,d/(nu*nv))))*180/Math.PI:0;
+  // Subdeterminants
+  const ci=u[1]*v[2]-u[2]*v[1];
+  const cj=u[0]*v[2]-u[2]*v[0];
+  const ck=u[0]*v[1]-u[1]*v[0];
+
+  document.getElementById('calcBox').innerHTML=`
+    <div class="formula-card">
+      <div class="flabel">Determinante 3×3 (expansión por fila 1)</div>
+      <div style="text-align:center;margin:0.3rem 0;">
+        <table style="display:inline-table;border-collapse:collapse;font-family:var(--font-mono);font-size:0.8rem;">
+          <tr><td style="padding:2px 8px;color:var(--text-muted);">i</td><td style="padding:2px 8px;color:var(--text-muted);">j</td><td style="padding:2px 8px;color:var(--text-muted);">k</td></tr>
+          <tr style="color:var(--col-u);"><td style="padding:2px 8px;">${u[0]}</td><td style="padding:2px 8px;">${u[1]}</td><td style="padding:2px 8px;">${u[2]}</td></tr>
+          <tr style="color:var(--col-v);"><td style="padding:2px 8px;">${v[0]}</td><td style="padding:2px 8px;">${v[1]}</td><td style="padding:2px 8px;">${v[2]}</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="formula-card">
+      <div class="flabel">Componente i</div>
+      <div>i · [(${u[1]})(${v[2]}) - (${u[2]})(${v[1]})] = i · [${r2(u[1]*v[2])} - ${r2(u[2]*v[1])}] = <strong style="color:var(--col-cross)">${r2(ci)}</strong> i</div>
+    </div>
+    <div class="formula-card">
+      <div class="flabel">Componente j (signo negativo)</div>
+      <div>-j · [(${u[0]})(${v[2]}) - (${u[2]})(${v[0]})] = -j · [${r2(u[0]*v[2])} - ${r2(u[2]*v[0])}] = <strong style="color:var(--col-cross)">${r2(-cj)}</strong> j</div>
+    </div>
+    <div class="formula-card">
+      <div class="flabel">Componente k</div>
+      <div>k · [(${u[0]})(${v[1]}) - (${u[1]})(${v[0]})] = k · [${r2(u[0]*v[1])} - ${r2(u[1]*v[0])}] = <strong style="color:var(--col-cross)">${r2(ck)}</strong> k</div>
+    </div>
+    <div class="formula-card">
+      <div class="flabel">Resultado</div>
+      <div><strong style="color:var(--col-cross);">u × v = (${r2(c[0])}, ${r2(c[1])}, ${r2(c[2])})</strong></div>
+      <div style="margin-top:0.2rem;">‖u × v‖ = ${r2(nc)}</div>
+      <div>Área del paralelogramo = ‖u × v‖ = <strong>${r2(nc)}</strong></div>
+      <div style="color:var(--text-muted);font-size:0.7rem;">Ángulo entre u y v: ${r2(angle)}°</div>
+    </div>
+  `;
+}
+
+function updateVerify(u,v,c){
+  const dotUC=dot(u,c);
+  const dotVC=dot(v,c);
+  const vu=crossProduct(v,u);
+  const negC=[-c[0],-c[1],-c[2]];
+  const antiOk=Math.abs(vu[0]-negC[0])<0.01&&Math.abs(vu[1]-negC[1])<0.01&&Math.abs(vu[2]-negC[2])<0.01;
+  const nc=norm(c);
+  const nu=norm(u),nv=norm(v),duv=dot(u,v);
+  const lagrange=nu*nu*nv*nv-duv*duv;
+  const lagOk=Math.abs(nc*nc-lagrange)<0.1;
+
+  document.getElementById('verifyBox').innerHTML=`
+    <div class="verify-box">
+      <div><span class="${Math.abs(dotUC)<0.01?'check':'fail'}">${Math.abs(dotUC)<0.01?'✓':'✗'}</span> (u × v) · u = ${r2(dotUC)} ${Math.abs(dotUC)<0.01?'= 0 → ⊥ a u':''}</div>
+      <div><span class="${Math.abs(dotVC)<0.01?'check':'fail'}">${Math.abs(dotVC)<0.01?'✓':'✗'}</span> (u × v) · v = ${r2(dotVC)} ${Math.abs(dotVC)<0.01?'= 0 → ⊥ a v':''}</div>
+      <div><span class="${antiOk?'check':'fail'}">${antiOk?'✓':'✗'}</span> v × u = (${r2(vu[0])}, ${r2(vu[1])}, ${r2(vu[2])}) = -(u × v) <span style="color:var(--text-muted);font-size:0.7rem;">(antisimetría)</span></div>
+      <div><span class="${lagOk?'check':'fail'}">${lagOk?'✓':'✗'}</span> ‖u×v‖² = ${r2(nc*nc)} ≈ ‖u‖²‖v‖² - (u·v)² = ${r2(lagrange)} <span style="color:var(--text-muted);font-size:0.7rem;">(Lagrange)</span></div>
+      ${nc<0.01?'<div style="margin-top:0.3rem;color:var(--brick);font-weight:600;">⚠ u × v = 0 → u y v son paralelos (o alguno es cero)</div>':''}
+    </div>
+  `;
+}
+
+function updateInfo(u,v,c){
+  const nc=norm(c),nu=norm(u),nv=norm(v);
+  document.getElementById('infoBar').innerHTML=`
+    <div class="info-item"><span class="cdot" style="background:var(--col-u)"></span><span class="il">u=</span><span class="iv" style="color:var(--col-u)">(${u[0]},${u[1]},${u[2]})</span></div>
+    <div class="info-item"><span class="cdot" style="background:var(--col-v)"></span><span class="il">v=</span><span class="iv" style="color:var(--col-v)">(${v[0]},${v[1]},${v[2]})</span></div>
+    <div class="info-item"><span class="cdot" style="background:var(--col-cross)"></span><span class="il">u×v=</span><span class="iv" style="color:var(--col-cross)">(${r2(c[0])},${r2(c[1])},${r2(c[2])})</span></div>
+    <div class="info-item"><span class="il">‖u‖=</span><span class="iv">${r2(nu)}</span></div>
+    <div class="info-item"><span class="il">‖v‖=</span><span class="iv">${r2(nv)}</span></div>
+    <div class="info-item"><span class="il">‖u×v‖=</span><span class="iv">${r2(nc)}</span></div>
+    <div class="info-item"><span class="il">Área=</span><span class="iv" style="color:var(--col-cross)">${r2(nc)}</span></div>
+  `;
+}
+
+// ---- THREE.JS ----
+function init3D(){
+  const c=document.getElementById('container3d');
+  scene=new THREE.Scene();scene.background=new THREE.Color(0xffffff);
+  const r=document.getElementById('canvasWrap').getBoundingClientRect();
+  CW=r.width;CH=r.height;
+  camera=new THREE.PerspectiveCamera(50,CW/CH,0.1,1000);updateCam();
+  renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(CW,CH);renderer.setPixelRatio(devicePixelRatio);c.appendChild(renderer.domElement);
+  scene.add(new THREE.AmbientLight(0xffffff,0.7));
+  const dl=new THREE.DirectionalLight(0xffffff,0.5);dl.position.set(5,10,7);scene.add(dl);
+  // Mouse orbit
+  const el=renderer.domElement;
+  el.addEventListener('mousedown',e=>{drag=true;prev={x:e.clientX,y:e.clientY};});
+  el.addEventListener('mousemove',e=>{if(!drag)return;camTheta-=(e.clientX-prev.x)*0.008;camPhi=Math.max(-1.4,Math.min(1.4,camPhi+(e.clientY-prev.y)*0.008));prev={x:e.clientX,y:e.clientY};updateCam();renderer.render(scene,camera);});
+  el.addEventListener('mouseup',()=>{drag=false;});el.addEventListener('mouseleave',()=>{drag=false;});
+  el.addEventListener('wheel',e=>{camR=Math.max(4,Math.min(30,camR+e.deltaY*0.01));updateCam();renderer.render(scene,camera);e.preventDefault();},{passive:false});
+  let t3=null;
+  el.addEventListener('touchstart',e=>{if(e.touches.length===1)t3={x:e.touches[0].clientX,y:e.touches[0].clientY};},{passive:true});
+  el.addEventListener('touchmove',e=>{if(!t3||e.touches.length!==1)return;camTheta-=(e.touches[0].clientX-t3.x)*0.008;camPhi=Math.max(-1.4,Math.min(1.4,camPhi+(e.touches[0].clientY-t3.y)*0.008));t3={x:e.touches[0].clientX,y:e.touches[0].clientY};updateCam();renderer.render(scene,camera);e.preventDefault();},{passive:false});
+  el.addEventListener('touchend',()=>{t3=null;});
+  render3D();
+}
+
+function resize3D(){
+  const r=document.getElementById('canvasWrap').getBoundingClientRect();CW=r.width;CH=r.height;
+  if(renderer){renderer.setSize(CW,CH);camera.aspect=CW/CH;camera.updateProjectionMatrix();}
+}
+
+function updateCam(){camera.position.set(camR*Math.cos(camPhi)*Math.cos(camTheta),camR*Math.cos(camPhi)*Math.sin(camTheta),camR*Math.sin(camPhi));camera.up.set(0,0,1);camera.lookAt(0,0,0);}
+
+function render3D(){
+  if(!scene)return;
+  // Clear old
+  arrows.forEach(o=>scene.remove(o));arrows=[];
+  extras.forEach(o=>scene.remove(o));extras=[];
+
+  const u=[gv('ux'),gv('uy'),gv('uz')];
+  const v=[gv('vx'),gv('vy'),gv('vz')];
+  const c=crossProduct(u,v);
+
+  // Grid + axes
+  if(document.getElementById('chkGrid').checked){
+    const gh=new THREE.GridHelper(14,14,0xdddddd,0xf0f0f0);gh.rotation.x=Math.PI/2;extras.push(gh);scene.add(gh);
+    const al=6;
+    [[al,0,0,0xaaaaaa],[0,al,0,0xaaaaaa],[0,0,al,0xaaaaaa]].forEach(([x,y,z,col])=>{
+      const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),new THREE.Vector3(x,y,z)]);
+      const l=new THREE.Line(g,new THREE.LineBasicMaterial({color:col}));extras.push(l);scene.add(l);
+    });
+    ['x','y','z'].forEach((lb,i)=>{
+      const cv=document.createElement('canvas');cv.width=64;cv.height=64;const ct=cv.getContext('2d');ct.fillStyle='#888';ct.font='bold 42px sans-serif';ct.textAlign='center';ct.textBaseline='middle';ct.fillText(lb,32,32);
+      const tex=new THREE.CanvasTexture(cv);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,depthTest:false}));sp.scale.set(0.5,0.5,1);
+      sp.position.copy([new THREE.Vector3(6.4,0,0),new THREE.Vector3(0,6.4,0),new THREE.Vector3(0,0,6.4)][i]);extras.push(sp);scene.add(sp);
+    });
+  }
+
+  // Arrows
+  const mkArrow=(vx,vy,vz,hex,lw)=>{const d=new THREE.Vector3(vx,vy,vz);const l=d.length();if(l<0.001)return;d.normalize();const a=new THREE.ArrowHelper(d,new THREE.Vector3(0,0,0),l,hex,0.3,0.15);scene.add(a);arrows.push(a);};
+  mkArrow(u[0],u[1],u[2],0x2980B9);
+  mkArrow(v[0],v[1],v[2],0xE67E22);
+  mkArrow(c[0],c[1],c[2],0x228B22);
+
+  // Labels
+  const mkLabel=(text,pos,color)=>{
+    const cv=document.createElement('canvas');cv.width=128;cv.height=64;const ct=cv.getContext('2d');ct.fillStyle=color;ct.font='bold 36px sans-serif';ct.textAlign='center';ct.textBaseline='middle';ct.fillText(text,64,32);
+    const tex=new THREE.CanvasTexture(cv);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,depthTest:false}));sp.scale.set(0.8,0.4,1);sp.position.set(pos[0],pos[1],pos[2]);extras.push(sp);scene.add(sp);
+  };
+  const nu=norm(u),nv=norm(v),nc=norm(c);
+  if(nu>0.1)mkLabel('u',[u[0]*1.15,u[1]*1.15,u[2]*1.15],'#2980B9');
+  if(nv>0.1)mkLabel('v',[v[0]*1.15,v[1]*1.15,v[2]*1.15],'#E67E22');
+  if(nc>0.1)mkLabel('u\u00D7v',[c[0]*1.12,c[1]*1.12,c[2]*1.12],'#228B22');
+
+  // Parallelogram
+  if(document.getElementById('chkPlane').checked){
+    const g=new THREE.BufferGeometry();
+    const verts=new Float32Array([0,0,0, u[0],u[1],u[2], u[0]+v[0],u[1]+v[1],u[2]+v[2], 0,0,0, u[0]+v[0],u[1]+v[1],u[2]+v[2], v[0],v[1],v[2]]);
+    g.setAttribute('position',new THREE.BufferAttribute(verts,3));g.computeVertexNormals();
+    const m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({color:0x5A8AA8,transparent:true,opacity:0.15,side:THREE.DoubleSide}));
+    extras.push(m);scene.add(m);
+    // Wireframe edges
+    const eg=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),new THREE.Vector3(u[0],u[1],u[2]),new THREE.Vector3(u[0]+v[0],u[1]+v[1],u[2]+v[2]),new THREE.Vector3(v[0],v[1],v[2]),new THREE.Vector3(0,0,0)]);
+    const el=new THREE.Line(eg,new THREE.LineBasicMaterial({color:0x5A8AA8,transparent:true,opacity:0.4}));extras.push(el);scene.add(el);
+  }
+
+  // Right angle indicators
+  if(document.getElementById('chkPerp').checked&&nc>0.1){
+    // Small arc at origin between u×v and u
+    const drawArc=(a,b,color)=>{
+      const na=norm(a),nb=norm(b);if(na<0.01||nb<0.01)return;
+      const an=[a[0]/na,a[1]/na,a[2]/na];
+      const bn=[b[0]/nb,b[1]/nb,b[2]/nb];
+      const r=0.6;const pts=[];
+      for(let t=0;t<=10;t++){
+        const f=t/10;
+        const m=[an[0]*(1-f)+bn[0]*f, an[1]*(1-f)+bn[1]*f, an[2]*(1-f)+bn[2]*f];
+        const nm=Math.sqrt(m[0]**2+m[1]**2+m[2]**2);
+        if(nm>0.001)pts.push(new THREE.Vector3(m[0]/nm*r, m[1]/nm*r, m[2]/nm*r));
+      }
+      if(pts.length>1){const g=new THREE.BufferGeometry().setFromPoints(pts);const l=new THREE.Line(g,new THREE.LineBasicMaterial({color}));extras.push(l);scene.add(l);}
+    };
+    drawArc(c,u,0x228B22);
+    drawArc(c,v,0x228B22);
+  }
+
+  renderer.render(scene,camera);
+}
+</script>
+</body>
+</html>
