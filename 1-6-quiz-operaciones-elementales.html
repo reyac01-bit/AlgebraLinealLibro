@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz: Operaciones Elementales de Fila — Álgebra Lineal</title>
+<style>
+  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#888;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;--correct:#228B22;--wrong:#B22222;}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
+  .lab-header{background:linear-gradient(135deg,var(--navy) 0%,var(--gmitblue) 100%);color:#fff;padding:0.7rem 1.5rem;position:relative;overflow:hidden;}
+  .lab-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none;}
+  .lab-header-inner{max-width:800px;margin:0 auto;display:flex;align-items:center;gap:0.8rem;position:relative;z-index:1;}
+  .lab-icon{width:38px;height:38px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+  .lab-header h1{font-family:var(--font-display);font-size:clamp(0.9rem,2vw,1.25rem);font-weight:700;line-height:1.2;}
+  .lab-subtitle{font-size:0.72rem;opacity:0.75;}
+  .lab-badge{display:inline-block;background:var(--brick);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15em 0.5em;border-radius:3px;letter-spacing:0.05em;text-transform:uppercase;margin-right:0.35rem;vertical-align:middle;}
+  .main{max-width:800px;margin:0 auto;padding:0.6rem 0.8rem 1.5rem;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:0.7rem;}
+  .panel-head{padding:0.5rem 0.9rem;font-family:var(--font-display);font-size:0.85rem;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.4rem;background:var(--surface-alt);flex-wrap:wrap;}
+  .panel-body{padding:0.7rem 0.9rem;}
+  /* Score bar */
+  .score-bar{display:flex;align-items:center;gap:1rem;padding:0.5rem 0.9rem;border-bottom:1px solid var(--border);background:var(--surface-alt);font-family:var(--font-mono);font-size:0.78rem;flex-wrap:wrap;}
+  .score-item{display:flex;align-items:center;gap:0.3rem;}
+  .score-item .slab{font-weight:700;}.score-item.correct .slab{color:var(--correct);}.score-item.wrong .slab{color:var(--wrong);}
+  .progress-bar{flex:1;min-width:100px;height:6px;background:rgba(0,0,0,0.06);border-radius:3px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--forest);border-radius:3px;transition:width 0.4s ease;}
+  /* Question */
+  .q-counter{font-family:var(--font-mono);font-size:0.72rem;color:var(--text-muted);}
+  .q-text{font-size:0.92rem;font-weight:600;margin:0.5rem 0;line-height:1.5;}
+  .q-matrix-area{display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap;justify-content:center;margin:0.7rem 0;font-family:var(--font-mono);font-size:0.85rem;}
+  .q-op{font-weight:700;color:var(--navy);font-size:0.9rem;white-space:nowrap;}
+  .q-arrow{font-size:1.2rem;color:var(--text-muted);}
+  /* Mini matrix */
+  .mmat{display:inline-flex;align-items:stretch;vertical-align:middle;}
+  .mmat-bk{display:flex;flex-direction:column;justify-content:center;}
+  .mmat-bk.left{border-left:2.5px solid var(--navy);border-top:2.5px solid var(--navy);border-bottom:2.5px solid var(--navy);border-radius:4px 0 0 4px;width:6px;}
+  .mmat-bk.right{border-right:2.5px solid var(--navy);border-top:2.5px solid var(--navy);border-bottom:2.5px solid var(--navy);border-radius:0 4px 4px 0;width:6px;}
+  .mmat-grid{display:inline-grid;gap:2px 6px;padding:4px 4px;}
+  .mmat-cell{text-align:center;min-width:26px;padding:1px 2px;border-radius:2px;}
+  .mmat-cell.hl{background:rgba(90,138,168,0.15);font-weight:700;}
+  .mmat-cell.changed{background:rgba(34,139,34,0.12);color:var(--forest);font-weight:700;}
+  /* Options */
+  .options{display:flex;flex-direction:column;gap:0.4rem;margin:0.6rem 0;}
+  .opt-btn{display:flex;align-items:flex-start;gap:0.5rem;padding:0.55rem 0.8rem;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;transition:var(--transition);font-family:var(--font-body);font-size:0.84rem;text-align:left;line-height:1.4;}
+  .opt-btn:hover:not(.disabled){border-color:var(--gmitblue);background:var(--gmitblue-pale);}
+  .opt-btn .opt-key{width:24px;height:24px;border-radius:50%;background:var(--surface-alt);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:0.72rem;font-weight:700;flex-shrink:0;transition:var(--transition);}
+  .opt-btn.selected{border-color:var(--navy);background:rgba(0,0,128,0.04);}
+  .opt-btn.selected .opt-key{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .opt-btn.correct{border-color:var(--correct);background:rgba(34,139,34,0.06);}
+  .opt-btn.correct .opt-key{background:var(--correct);color:#fff;border-color:var(--correct);}
+  .opt-btn.wrong{border-color:var(--wrong);background:rgba(178,34,34,0.04);}
+  .opt-btn.wrong .opt-key{background:var(--wrong);color:#fff;border-color:var(--wrong);}
+  .opt-btn.disabled{cursor:default;opacity:0.7;}
+  .opt-btn.disabled.correct{opacity:1;}.opt-btn.disabled.wrong{opacity:0.6;}
+  /* Feedback */
+  .feedback{border-radius:var(--radius-sm);padding:0.5rem 0.7rem;font-size:0.8rem;line-height:1.5;margin:0.5rem 0;display:none;}
+  .feedback.correct{display:block;background:rgba(34,139,34,0.08);border:1px solid rgba(34,139,34,0.2);color:var(--correct);}
+  .feedback.wrong{display:block;background:rgba(178,34,34,0.06);border:1px solid rgba(178,34,34,0.15);color:var(--wrong);}
+  .feedback strong{font-weight:700;}
+  /* Buttons */
+  .btn{display:inline-flex;align-items:center;gap:0.3rem;padding:0.45rem 0.85rem;border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.82rem;font-weight:600;cursor:pointer;transition:var(--transition);white-space:nowrap;}
+  .btn-primary{background:var(--navy);color:#fff;}.btn-primary:hover{background:#0000a0;}
+  .btn-accent{background:var(--forest);color:#fff;}
+  .btn-row{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.5rem;}
+  /* Final */
+  .final-box{text-align:center;padding:1.5rem 1rem;}
+  .final-score{font-family:var(--font-display);font-size:2rem;font-weight:700;color:var(--navy);margin:0.5rem 0;}
+  .final-msg{font-size:1rem;color:var(--text-secondary);margin-bottom:1rem;}
+  .star{font-size:1.6rem;margin:0 0.1rem;}
+  .lab-footer{max-width:800px;margin:0 auto;padding:0.5rem 1rem;text-align:center;font-size:0.68rem;color:var(--text-muted);}
+  @media(max-width:600px){.main{padding:0.4rem;}}
+</style>
+</head>
+<body>
+<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">📝</div><div><h1><span class="lab-badge">Cap 1</span>Quiz: Operaciones Elementales de Fila</h1><div class="lab-subtitle">Quiz Interactivo · Sistemas de Ecuaciones Lineales</div></div></div></header>
+<div class="main">
+  <div class="panel" id="quizPanel">
+    <div class="score-bar">
+      <span class="score-item"><span style="color:var(--text-muted);">Pregunta</span> <span class="slab" id="qNum">1</span>/<span id="qTotal">10</span></span>
+      <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%;"></div></div>
+      <span class="score-item correct">✓ <span class="slab" id="scoreOk">0</span></span>
+      <span class="score-item wrong">✗ <span class="slab" id="scoreWrong">0</span></span>
+    </div>
+    <div class="panel-body" id="qBody"></div>
+  </div>
+</div>
+<footer class="lab-footer">Álgebra Lineal con Abordaje Tecnológico · Quiz 1.6 · Operaciones Elementales de Fila</footer>
+
+<script>
+const TOTAL=10;
+let current=0,scoreOk=0,scoreWrong=0,answered=false,questions=[];
+
+// ---- RANDOM HELPERS ----
+function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function pick(arr){return arr[ri(0,arr.length-1)];}
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=ri(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;}
+function r2(x){return Math.round(x*100)/100;}
+function fmtN(x){return Number.isInteger(x)?''+x:r2(x).toString();}
+
+// ---- MATRIX HELPERS ----
+function randMat(rows,cols){const M=[];for(let i=0;i<rows;i++){const r=[];for(let j=0;j<cols;j++)r.push(ri(-5,5));M.push(r);}return M;}
+function cloneM(M){return M.map(r=>[...r]);}
+function swapRows(M,i,j){const N=cloneM(M);[N[i],N[j]]=[N[j],N[i]];return N;}
+function scaleRow(M,i,k){const N=cloneM(M);N[i]=N[i].map(v=>v*k);return N;}
+function addRows(M,target,src,k){const N=cloneM(M);N[target]=N[target].map((v,j)=>v+k*M[src][j]);return N;}
+
+function renderMat(M,hlRows,changedRows){
+  const rows=M.length,cols=M[0].length;
+  let h=`<div class="mmat"><div class="mmat-bk left"></div><div class="mmat-grid" style="grid-template-columns:repeat(${cols},1fr);">`;
+  for(let i=0;i<rows;i++)for(let j=0;j<cols;j++){
+    let cls='mmat-cell';
+    if(changedRows&&changedRows.includes(i))cls+=' changed';
+    else if(hlRows&&hlRows.includes(i))cls+=' hl';
+    h+=`<span class="${cls}">${fmtN(M[i][j])}</span>`;
+  }
+  h+=`</div><div class="mmat-bk right"></div></div>`;
+  return h;
+}
+
+// ---- QUESTION GENERATORS ----
+function genIdentifyOp(){
+  // Show before/after, ask which operation was applied
+  const n=ri(2,3),cols=ri(3,4);
+  const A=randMat(n,cols);
+  const opType=ri(0,2);
+  let B,opStr,correctAnswer,explanation;
+  if(opType===0){
+    const r1=ri(0,n-1);let r2x=ri(0,n-1);while(r2x===r1)r2x=ri(0,n-1);
+    B=swapRows(A,r1,r2x);
+    correctAnswer=`f${r1+1} ↔ f${r2x+1}`;
+    explanation=`Se intercambiaron la fila ${r1+1} y la fila ${r2x+1}.`;
+  } else if(opType===1){
+    const r=ri(0,n-1);const k=pick([-3,-2,-1,2,3,1/2,1/3]);
+    B=scaleRow(A,r,k);
+    correctAnswer=`f${r+1} → ${fmtN(k)}·f${r+1}`;
+    explanation=`Se multiplicó la fila ${r+1} por ${fmtN(k)}.`;
+  } else {
+    const target=ri(0,n-1);let src=ri(0,n-1);while(src===target)src=ri(0,n-1);
+    const k=pick([-3,-2,-1,1,2,3]);
+    B=addRows(A,target,src,k);
+    correctAnswer=`f${target+1} → ${fmtN(k)}·f${src+1} + f${target+1}`;
+    explanation=`Se sumó ${fmtN(k)} veces la fila ${src+1} a la fila ${target+1}.`;
+  }
+  // Generate wrong options
+  const wrongs=new Set();
+  while(wrongs.size<3){
+    const wt=ri(0,2);let w='';
+    if(wt===0){const a=ri(1,n),b=ri(1,n);if(a!==b)w=`f${a} ↔ f${b}`;}
+    else if(wt===1){const r=ri(1,n),k=pick([-3,-2,2,3]);w=`f${r} → ${fmtN(k)}·f${r}`;}
+    else{const t=ri(1,n),s=ri(1,n),k=pick([-3,-2,-1,1,2,3]);if(t!==s)w=`f${t} → ${fmtN(k)}·f${s} + f${t}`;}
+    if(w&&w!==correctAnswer)wrongs.add(w);
+  }
+  const options=shuffle([correctAnswer,...wrongs]);
+  return{
+    type:'identify',
+    text:'¿Qué operación elemental transforma la primera matriz en la segunda?',
+    matA:A,matB:B,
+    options,correct:options.indexOf(correctAnswer),
+    explanation
+  };
+}
+
+function genApplyOp(){
+  // Give matrix and operation, ask for resulting matrix
+  const n=ri(2,3),cols=ri(3,4);
+  const A=randMat(n,cols);
+  const opType=ri(0,2);
+  let B,opStr;
+  if(opType===0){
+    const r1=ri(0,n-1);let r2x=ri(0,n-1);while(r2x===r1)r2x=ri(0,n-1);
+    B=swapRows(A,r1,r2x);opStr=`f${r1+1} ↔ f${r2x+1}`;
+  } else if(opType===1){
+    const r=ri(0,n-1);const k=pick([-2,-1,2,3]);
+    B=scaleRow(A,r,k);opStr=`f${r+1} → ${fmtN(k)}·f${r+1}`;
+  } else {
+    const target=ri(0,n-1);let src=ri(0,n-1);while(src===target)src=ri(0,n-1);
+    const k=pick([-2,-1,1,2]);
+    B=addRows(A,target,src,k);opStr=`f${target+1} → ${fmtN(k)}·f${src+1} + f${target+1}`;
+  }
+  // Generate wrong results by applying different ops
+  const wrongMats=[];
+  for(let w=0;w<3;w++){
+    const wt=ri(0,2);let wm;
+    if(wt===0){const a=ri(0,n-1),b=(a+1)%n;wm=swapRows(A,a,b);}
+    else if(wt===1){const r=ri(0,n-1),k=pick([-2,2,3]);wm=scaleRow(A,r,k);}
+    else{const t=ri(0,n-1),s=(t+1)%n,k=pick([-1,1,2]);wm=addRows(A,t,s,k);}
+    if(JSON.stringify(wm)!==JSON.stringify(B))wrongMats.push(wm);
+  }
+  while(wrongMats.length<3){
+    const wm=cloneM(A);wm[0][0]+=ri(1,3);wrongMats.push(wm);
+  }
+  const allMats=[B,...wrongMats.slice(0,3)];
+  const order=shuffle([0,1,2,3]);
+  const correctIdx=order.indexOf(0);
+  return{
+    type:'apply',
+    text:`Aplica la operación <strong>${opStr}</strong> a la siguiente matriz:`,
+    matA:A,opStr,
+    options:order.map(i=>renderMat(allMats[i])),
+    correct:correctIdx,
+    explanation:`El resultado correcto de aplicar ${opStr} es la matriz mostrada.`
+  };
+}
+
+function genClassifyOp(){
+  // Name an operation, ask its type
+  const types=['Intercambiar dos filas','Multiplicar una fila por k ≠ 0','Sumar a una fila k veces otra fila'];
+  const opType=ri(0,2);
+  const n=3;let opStr;
+  if(opType===0){opStr=`f${ri(1,n)} ↔ f${ri(1,n)}`;}
+  else if(opType===1){opStr=`f${ri(1,n)} → ${pick([-3,-2,2,3,5])}·f${ri(1,n)}`;}
+  else{const t=ri(1,n),s=ri(1,n);opStr=`f${t} → ${pick([-2,-1,2,3])}·f${s!==t?s:((s%n)+1)} + f${t}`;}
+  const correctAnswer=types[opType];
+  const options=shuffle(types);
+  return{
+    type:'classify',
+    text:`¿Qué tipo de operación elemental es <strong>${opStr}</strong>?`,
+    options,correct:options.indexOf(correctAnswer),
+    explanation:`"${opStr}" corresponde a: ${correctAnswer}.`
+  };
+}
+
+function genEchelonCheck(){
+  // Show a matrix, ask if it's echelon or not
+  const isEchelon=ri(0,1);
+  let M,reason;
+  if(isEchelon){
+    const type=ri(0,2);
+    if(type===0)M=[[1,ri(-3,3),ri(-3,3)],[0,1,ri(-3,3)],[0,0,0]];
+    else if(type===1)M=[[1,0,ri(-3,3)],[0,0,1],[0,0,0]];
+    else M=[[1,ri(-3,3)],[0,1]];
+    reason='Cumple las tres condiciones: pivotes son 1, están escalonados, y las filas nulas están al final.';
+  } else {
+    const type=ri(0,2);
+    if(type===0){M=[[1,2,3],[0,0,0],[0,1,4]];reason='La fila nula NO está debajo de las filas no nulas (condición 3).';}
+    else if(type===1){M=[[1,2,3],[0,2,4],[0,0,1]];reason='El primer elemento no nulo de la fila 2 es 2, no un 1 (condición 1).';}
+    else{M=[[0,1,3],[1,2,4],[0,0,0]];reason='El pivote de la fila 2 no está a la derecha del pivote de la fila 1 (condición 2).';}
+  }
+  const correctAnswer=isEchelon?'Sí, es escalonada':'No, no es escalonada';
+  const options=['Sí, es escalonada','No, no es escalonada'];
+  return{
+    type:'echelon',
+    text:'¿Es la siguiente matriz una <strong>matriz escalonada</strong>?',
+    matA:M,
+    options,correct:options.indexOf(correctAnswer),
+    explanation:reason
+  };
+}
+
+// ---- BUILD QUIZ ----
+function buildQuiz(){
+  questions=[];
+  // Mix of question types
+  const generators=[genIdentifyOp,genApplyOp,genClassifyOp,genEchelonCheck];
+  // Ensure good mix: at least 3 identify, 3 apply, 2 classify, 2 echelon
+  const plan=[0,0,0,1,1,1,2,2,3,3];
+  shuffle(plan).forEach(t=>questions.push(generators[t]()));
+  current=0;scoreOk=0;scoreWrong=0;answered=false;
+  showQuestion();
+}
+
+function showQuestion(){
+  if(current>=TOTAL){showFinal();return;}
+  const q=questions[current];answered=false;
+  document.getElementById('qNum').textContent=current+1;
+  document.getElementById('qTotal').textContent=TOTAL;
+  document.getElementById('scoreOk').textContent=scoreOk;
+  document.getElementById('scoreWrong').textContent=scoreWrong;
+  document.getElementById('progFill').style.width=((current/TOTAL)*100)+'%';
+
+  let html=`<div class="q-counter">Pregunta ${current+1} de ${TOTAL}</div>`;
+  html+=`<div class="q-text">${q.text}</div>`;
+
+  // Show matrices if present
+  if(q.matA){
+    html+=`<div class="q-matrix-area">`;
+    html+=renderMat(q.matA);
+    if(q.matB){html+=`<span class="q-arrow">→</span>`;html+=renderMat(q.matB);}
+    if(q.opStr&&q.type==='apply'){html+=`<div style="width:100%;text-align:center;"><span class="q-op">${q.opStr}</span></div>`;}
+    html+=`</div>`;
+  }
+
+  // Options
+  html+=`<div class="options" id="opts">`;
+  const keys='ABCD';
+  q.options.forEach((opt,i)=>{
+    html+=`<button class="opt-btn" data-idx="${i}" onclick="answer(${i})"><span class="opt-key">${keys[i]}</span><span>${opt}</span></button>`;
+  });
+  html+=`</div>`;
+  html+=`<div class="feedback" id="fb"></div>`;
+  html+=`<div class="btn-row" id="btnRow" style="display:none;"><button class="btn btn-primary" onclick="nextQ()">Siguiente →</button></div>`;
+
+  document.getElementById('qBody').innerHTML=html;
+}
+
+function answer(idx){
+  if(answered)return;answered=true;
+  const q=questions[current];
+  const isCorrect=idx===q.correct;
+  if(isCorrect)scoreOk++;else scoreWrong++;
+
+  // Style options
+  document.querySelectorAll('.opt-btn').forEach((btn,i)=>{
+    btn.classList.add('disabled');
+    if(i===q.correct)btn.classList.add('correct');
+    if(i===idx&&!isCorrect)btn.classList.add('wrong');
+  });
+
+  // Feedback
+  const fb=document.getElementById('fb');
+  fb.className=`feedback ${isCorrect?'correct':'wrong'}`;
+  fb.innerHTML=isCorrect
+    ?`<strong>¡Correcto!</strong> ${q.explanation}`
+    :`<strong>Incorrecto.</strong> ${q.explanation}`;
+
+  document.getElementById('scoreOk').textContent=scoreOk;
+  document.getElementById('scoreWrong').textContent=scoreWrong;
+  document.getElementById('btnRow').style.display='flex';
+}
+
+function nextQ(){current++;showQuestion();}
+
+function showFinal(){
+  const pct=Math.round((scoreOk/TOTAL)*100);
+  const stars=pct>=90?'⭐⭐⭐':pct>=70?'⭐⭐':pct>=50?'⭐':'';
+  let msg='';
+  if(pct>=90)msg='¡Excelente! Dominas las operaciones elementales de fila.';
+  else if(pct>=70)msg='¡Muy bien! Buen manejo del tema con algunos detalles por pulir.';
+  else if(pct>=50)msg='Aprobado. Te recomiendo repasar los tipos de operaciones.';
+  else msg='Necesitas practicar más. Revisa la Definición 1.5 del libro.';
+
+  document.getElementById('progFill').style.width='100%';
+  document.getElementById('qBody').innerHTML=`
+    <div class="final-box">
+      <div style="font-size:0.9rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;">Resultado Final</div>
+      <div class="final-score">${scoreOk} / ${TOTAL}</div>
+      <div style="margin:0.3rem 0;">${stars?'<span class="star">'+stars.split('').map(s=>'⭐').join('')+'</span>':''}</div>
+      <div class="final-msg">${msg}</div>
+      <div style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text-secondary);margin-bottom:1rem;">
+        ✓ Correctas: ${scoreOk} &nbsp;|&nbsp; ✗ Incorrectas: ${scoreWrong} &nbsp;|&nbsp; Porcentaje: ${pct}%
+      </div>
+      <button class="btn btn-accent" onclick="buildQuiz()" style="font-size:0.9rem;padding:0.6rem 1.5rem;">🔄 Reintentar con nuevas preguntas</button>
+    </div>`;
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown',e=>{
+  if(!answered){
+    const idx='abcd'.indexOf(e.key.toLowerCase());
+    if(idx>=0&&idx<(questions[current]?.options.length||0))answer(idx);
+    if(e.key>='1'&&e.key<='4'){const i=parseInt(e.key)-1;if(i<(questions[current]?.options.length||0))answer(i);}
+  } else {
+    if(e.key==='Enter'||e.key===' '||e.key==='ArrowRight')nextQ();
+  }
+});
+
+window.addEventListener('DOMContentLoaded',buildQuiz);
+</script>
+</body>
+</html>
