@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regla de Cramer Paso a Paso — Álgebra Lineal</title>
+<style>
+  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#888;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
+  .lab-header{background:linear-gradient(135deg,var(--navy) 0%,var(--gmitblue) 100%);color:#fff;padding:0.7rem 1.5rem;position:relative;overflow:hidden;}
+  .lab-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none;}
+  .lab-header-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:0.8rem;position:relative;z-index:1;}
+  .lab-icon{width:38px;height:38px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+  .lab-header h1{font-family:var(--font-display);font-size:clamp(0.9rem,2vw,1.25rem);font-weight:700;line-height:1.2;}
+  .lab-subtitle{font-size:0.72rem;opacity:0.75;}
+  .lab-badge{display:inline-block;background:var(--brick);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15em 0.5em;border-radius:3px;letter-spacing:0.05em;text-transform:uppercase;margin-right:0.35rem;vertical-align:middle;}
+  .main{max-width:1100px;margin:0 auto;padding:0.6rem 0.8rem 1.5rem;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:0.7rem;}
+  .panel-head{padding:0.5rem 0.9rem;font-family:var(--font-display);font-size:0.85rem;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.4rem;background:var(--surface-alt);flex-wrap:wrap;}
+  .panel-body{padding:0.7rem 0.9rem;}
+  .context-box{background:linear-gradient(135deg,var(--gmitblue-pale),rgba(90,138,168,0.04));border-left:3px solid var(--gmitblue);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:0.5rem 0.7rem;font-size:0.74rem;line-height:1.5;color:var(--text-secondary);margin-bottom:0.5rem;}.context-box strong{color:var(--navy);}
+  .size-row{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;font-size:0.8rem;}
+  .size-row label{font-weight:600;color:var(--text-secondary);}
+  .size-row select{padding:0.25rem 0.4rem;border:1px solid var(--border);border-radius:4px;font-family:var(--font-mono);font-size:0.82rem;background:#fff;}
+  .preset-scroll{display:flex;gap:0.25rem;flex-wrap:wrap;margin-bottom:0.5rem;}
+  .preset-pill{padding:0.22rem 0.5rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);cursor:pointer;transition:var(--transition);font-size:0.67rem;font-weight:600;white-space:nowrap;}
+  .preset-pill:hover{border-color:var(--navy);background:var(--gmitblue-pale);}
+  .preset-pill.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  /* Augmented matrix [A|B] input */
+  .aug-wrap{display:inline-flex;align-items:stretch;margin:0.3rem 0;}
+  .aug-bk{display:flex;flex-direction:column;justify-content:center;user-select:none;}
+  .aug-bk.left{border-left:2.5px solid var(--navy);border-top:2.5px solid var(--navy);border-bottom:2.5px solid var(--navy);border-radius:4px 0 0 4px;width:7px;}
+  .aug-bk.right{border-right:2.5px solid var(--navy);border-top:2.5px solid var(--navy);border-bottom:2.5px solid var(--navy);border-radius:0 4px 4px 0;width:7px;}
+  .aug-sep{width:2px;background:var(--brick);align-self:stretch;margin:3px 3px;border-radius:1px;}
+  .aug-grid{display:grid;gap:3px;padding:4px 3px;}
+  .aug-grid input{width:52px;padding:0.3rem 0.15rem;border:1px solid var(--border);border-radius:3px;font-family:var(--font-mono);font-size:0.85rem;text-align:center;background:#fff;transition:var(--transition);}
+  .aug-grid input:focus{outline:none;border-color:var(--gmitblue);box-shadow:0 0 0 2px rgba(90,138,168,0.15);}
+  .aug-grid input.b-col{background:rgba(200,50,80,0.06);border-color:rgba(200,50,80,0.2);}
+  .btn{display:inline-flex;align-items:center;gap:0.3rem;padding:0.4rem 0.75rem;border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.78rem;font-weight:600;cursor:pointer;transition:var(--transition);white-space:nowrap;}
+  .btn-primary{background:var(--forest);color:#fff;}.btn-primary:hover{background:#2eb82e;}
+  .btn-accent{background:var(--brick);color:#fff;}
+  .btn-row{display:flex;gap:0.4rem;flex-wrap:wrap;}
+  /* Steps */
+  .step-card{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:0.6rem;animation:stepIn 0.3s ease;}
+  @keyframes stepIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .step-head{display:flex;align-items:center;gap:0.5rem;padding:0.45rem 0.75rem;border-bottom:1px solid var(--border);font-size:0.8rem;}
+  .step-head .snum{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;font-size:0.72rem;color:#fff;flex-shrink:0;}
+  .step-body{padding:0.55rem 0.75rem;font-family:var(--font-mono);font-size:0.77rem;line-height:1.9;overflow-x:auto;}
+  /* Mini matrices in steps */
+  .smat{display:inline-flex;align-items:stretch;vertical-align:middle;margin:0 0.15rem;}
+  .smat-bk{display:flex;flex-direction:column;justify-content:center;user-select:none;}
+  .smat-bk.left{border-left:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);border-radius:3px 0 0 3px;width:5px;}
+  .smat-bk.right{border-right:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);border-radius:0 3px 3px 0;width:5px;}
+  .smat-grid{display:inline-grid;gap:1px 4px;padding:3px 2px;}
+  .smat-cell{font-family:var(--font-mono);font-size:0.78rem;text-align:center;padding:1px 3px;min-width:30px;border-radius:2px;}
+  .smat-cell.sub-col{background:rgba(200,50,80,0.12);color:var(--brick);font-weight:700;}
+  /* Result */
+  .result-box{border:2px solid var(--forest);border-radius:var(--radius);background:rgba(34,139,34,0.04);padding:0.6rem 0.8rem;margin-top:0.5rem;}
+  .result-box.fail{border-color:var(--brick);background:rgba(178,34,34,0.04);}
+  .result-title{font-family:var(--font-display);font-size:0.95rem;font-weight:700;margin-bottom:0.25rem;}
+  .result-title.ok{color:var(--forest);}.result-title.fail{color:var(--brick);}
+  .sol-line{font-family:var(--font-mono);font-size:0.85rem;line-height:2;}
+  .sol-var{font-weight:700;color:var(--navy);}
+  .sol-frac{font-weight:700;color:var(--forest);}
+  .lab-footer{max-width:1100px;margin:0 auto;padding:0.5rem 1rem;text-align:center;font-size:0.68rem;color:var(--text-muted);}
+  @media(max-width:600px){.main{padding:0.4rem;}.aug-grid input{width:42px;font-size:0.78rem;}}
+</style>
+</head>
+<body>
+<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">📏</div><div><h1><span class="lab-badge">Cap 3</span>Regla de Cramer Paso a Paso</h1><div class="lab-subtitle">Laboratorio Interactivo · Determinantes</div></div></div></header>
+<div class="main">
+  <div class="panel">
+    <div class="panel-head">📝 Sistema AX = B</div>
+    <div class="panel-body">
+      <div class="context-box">
+        Ingresa la <strong>matriz aumentada (A | B)</strong> del sistema.
+        La Regla de Cramer calcula cada variable sustituyendo la columna
+        correspondiente de A por el vector B:
+        <strong>x_j = det(A_j : B) / det(A)</strong>.
+        Solo funciona si det(A) ≠ 0.
+      </div>
+      <div class="preset-scroll" id="presets"></div>
+      <div class="size-row">
+        <label>n (ecuaciones e incógnitas):</label>
+        <select id="selN" onchange="rebuild()"><option selected>2</option><option>3</option><option>4</option></select>
+      </div>
+      <div style="overflow-x:auto;" id="inputWrap"></div>
+      <div class="btn-row" style="margin-top:0.5rem;">
+        <button class="btn btn-primary" onclick="solve()">▶ Resolver por Cramer</button>
+        <button class="btn btn-accent" onclick="clearInput()">Limpiar</button>
+      </div>
+    </div>
+  </div>
+  <div class="panel" id="stepsPanel" style="display:none;">
+    <div class="panel-head">📊 Resolución por Regla de Cramer</div>
+    <div class="panel-body" id="stepsBox"></div>
+  </div>
+</div>
+<footer class="lab-footer">Álgebra Lineal con Abordaje Tecnológico · Laboratorio 3.3 · Regla de Cramer</footer>
+
+<script>
+// ---- FRACTION ARITHMETIC ----
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a||1;}
+function fr(n,d){if(!d)d=1;if(!n)return{n:0,d:1};const g=gcd(Math.abs(n),Math.abs(d));n/=g;d/=g;if(d<0){n=-n;d=-d;}return{n,d};}
+function frN(x){if(Number.isInteger(x))return fr(x,1);for(let d=1;d<=10000;d++){const n=Math.round(x*d);if(Math.abs(n/d-x)<1e-10)return fr(n,d);}return fr(Math.round(x*10000),10000);}
+function fStr(f){return f.d===1?''+f.n:f.n+'/'+f.d;}
+function fVal(f){return f.n/f.d;}
+
+let N=2;
+const VARS=['x','y','z','w'];
+
+const PRESETS=[
+  {name:'Libro: 2x+y-z=1, 4x-5y+2z=3, x-y=−5',n:3,A:[[2,1,-1],[4,-5,2],[1,-1,0]],B:[1,3,-5]},
+  {name:'Libro: x+2y=1, 4x-5y=−3',n:2,A:[[1,2],[4,-5]],B:[1,-3]},
+  {name:'Libro: 3x+2y+z=1, x-2y+z=0, 2x+y-3z=2',n:3,A:[[3,2,1],[1,-2,1],[2,1,-3]],B:[1,0,2]},
+  {name:'2×2: 3x+2y=1, x-y=2',n:2,A:[[3,2],[1,-1]],B:[1,2]},
+  {name:'det=0 (sin solución)',n:2,A:[[1,1],[2,2]],B:[1,3]},
+  {name:'4×4 sistema',n:4,A:[[1,1,1,0],[1,1,0,1],[1,0,1,1],[0,1,1,1]],B:[2,3,4,5]},
+];
+
+window.addEventListener('DOMContentLoaded',()=>{buildPresets();rebuild();loadPreset(0);});
+
+function buildPresets(){const g=document.getElementById('presets');PRESETS.forEach((p,i)=>{const b=document.createElement('button');b.className='preset-pill';b.textContent=p.name;b.onclick=()=>loadPreset(i);g.appendChild(b);});}
+
+function loadPreset(i){const p=PRESETS[i];document.getElementById('selN').value=p.n;N=p.n;rebuild();
+  for(let r=0;r<p.n;r++){for(let c=0;c<p.n;c++){const el=document.getElementById(`a_${r}_${c}`);if(el)el.value=p.A[r][c];}
+    const bel=document.getElementById(`b_${r}`);if(bel)bel.value=p.B[r];}
+  document.querySelectorAll('.preset-pill').forEach((b,j)=>b.classList.toggle('active',j===i));
+  document.getElementById('stepsPanel').style.display='none';}
+
+function rebuild(){
+  N=parseInt(document.getElementById('selN').value);
+  const w=document.getElementById('inputWrap');
+  let html=`<div class="aug-wrap"><div class="aug-bk left"></div>`;
+  html+=`<div class="aug-grid" style="grid-template-columns:repeat(${N},1fr);">`;
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++) html+=`<input type="number" id="a_${i}_${j}" value="0" step="any" onfocus="this.select()">`;
+  html+=`</div><div class="aug-sep"></div>`;
+  html+=`<div class="aug-grid" style="grid-template-columns:1fr;">`;
+  for(let i=0;i<N;i++) html+=`<input type="number" id="b_${i}" value="0" step="any" class="b-col" onfocus="this.select()">`;
+  html+=`</div><div class="aug-bk right"></div></div>`;
+  w.innerHTML=html;
+  document.getElementById('stepsPanel').style.display='none';
+}
+
+function clearInput(){document.querySelectorAll('.aug-grid input').forEach(inp=>inp.value=0);document.getElementById('stepsPanel').style.display='none';}
+
+function readA(){const M=[];for(let i=0;i<N;i++){const r=[];for(let j=0;j<N;j++)r.push(parseFloat(document.getElementById(`a_${i}_${j}`).value)||0);M.push(r);}return M;}
+function readB(){const v=[];for(let i=0;i<N;i++)v.push(parseFloat(document.getElementById(`b_${i}`).value)||0);return v;}
+function r2(x){return Math.round(x*1000)/1000;}
+
+// ---- DETERMINANT ----
+function det(M){
+  const n=M.length;
+  if(n===1)return M[0][0];
+  if(n===2)return M[0][0]*M[1][1]-M[0][1]*M[1][0];
+  let s=0;for(let j=0;j<n;j++){s+=((j%2===0)?1:-1)*M[0][j]*det(M.filter((_,i)=>i!==0).map(r=>r.filter((_,k)=>k!==j)));}return s;
+}
+
+// Replace column j of A with B
+function replaceCol(A,B,j){return A.map((row,i)=>row.map((v,k)=>k===j?B[i]:v));}
+
+// ---- SOLVE ----
+function solve(){
+  const A=readA(), B=readB();
+  const detA=det(A);
+  let html='';
+
+  // Step 0: det(A)
+  html+=`<div class="step-card"><div class="step-head" style="background:rgba(0,0,128,0.05);"><span class="snum" style="background:var(--navy);">0</span><span style="font-weight:700;">Determinante de A</span></div>`;
+  html+=`<div class="step-body">`;
+  html+=`<div>det(A) = det${renderMiniMat(A)}</div>`;
+  if(N===2){
+    html+=`<div style="padding-left:1rem;">= (${r2(A[0][0])})(${r2(A[1][1])}) - (${r2(A[0][1])})(${r2(A[1][0])})</div>`;
+    html+=`<div style="padding-left:1rem;">= ${r2(A[0][0]*A[1][1])} - ${r2(A[0][1]*A[1][0])}</div>`;
+  }
+  html+=`<div style="padding-left:1rem;"><strong style="color:var(--navy);">det(A) = ${r2(detA)}</strong></div>`;
+  if(Math.abs(detA)<1e-10){
+    html+=`<div style="margin-top:0.3rem;color:var(--brick);font-weight:700;">det(A) = 0 → No se puede aplicar la Regla de Cramer.</div>`;
+  } else {
+    html+=`<div style="margin-top:0.2rem;color:var(--forest);font-size:0.73rem;">det(A) ≠ 0 → Se puede aplicar la Regla de Cramer ✓</div>`;
+  }
+  html+=`</div></div>`;
+
+  if(Math.abs(detA)<1e-10){
+    html+=`<div class="result-box fail"><div class="result-title fail">✗ No aplicable</div><div style="font-size:0.8rem;">det(A) = 0. El sistema puede tener infinitas soluciones o ninguna. Use reducción gaussiana para determinarlo.</div></div>`;
+    document.getElementById('stepsBox').innerHTML=html;
+    document.getElementById('stepsPanel').style.display='';
+    return;
+  }
+
+  // Steps 1..n: each variable
+  const solutions=[];
+  for(let j=0;j<N;j++){
+    const Aj=replaceCol(A,B,j);
+    const detAj=det(Aj);
+    const xj=frN(detAj/detA);
+    solutions.push({detAj,xj,Aj});
+
+    const varName=j<VARS.length?VARS[j]:`x${j+1}`;
+    const colors=['#2980B9','#E67E22','#8E44AD','#16A085'];
+    const color=colors[j%colors.length];
+
+    html+=`<div class="step-card" style="animation-delay:${(j+1)*0.08}s;"><div class="step-head" style="background:${color}0A;"><span class="snum" style="background:${color};">${j+1}</span><span style="font-weight:700;color:${color};">Variable ${varName}</span></div>`;
+    html+=`<div class="step-body">`;
+    html+=`<div style="margin-bottom:0.3rem;">Se sustituye la <strong>columna ${j+1}</strong> de A por <strong style="color:var(--brick);">B</strong>:</div>`;
+    html+=`<div>(A${sub(j+1)} : B) = ${renderMiniMat(Aj,j)}</div>`;
+    html+=`<div style="margin-top:0.3rem;">det(A${sub(j+1)} : B) = <strong>${r2(detAj)}</strong></div>`;
+    html+=`<div style="margin-top:0.2rem;font-size:0.85rem;"><span class="sol-var">${varName}</span> = det(A${sub(j+1)} : B) / det(A) = ${r2(detAj)} / ${r2(detA)} = <span class="sol-frac">${fStr(xj)}</span></div>`;
+    html+=`</div></div>`;
+  }
+
+  // Result
+  html+=`<div class="result-box"><div class="result-title ok">✓ Solución por Regla de Cramer</div>`;
+  html+=`<div class="sol-line">S = { (`;
+  html+=solutions.map((s,j)=>{
+    const varName=j<VARS.length?VARS[j]:`x${j+1}`;
+    return `<span class="sol-var">${varName}</span> = <span class="sol-frac">${fStr(s.xj)}</span>`;
+  }).join(',&nbsp; ');
+  html+=`) }</div></div>`;
+
+  document.getElementById('stepsBox').innerHTML=html;
+  document.getElementById('stepsPanel').style.display='';
+}
+
+function sub(n){const s='₀₁₂₃₄₅₆₇₈₉';return(''+n).split('').map(c=>s[parseInt(c)]||c).join('');}
+
+function renderMiniMat(M,highlightCol){
+  const n=M.length;
+  let html='<div class="smat"><div class="smat-bk left"></div>';
+  html+=`<div class="smat-grid" style="grid-template-columns:repeat(${n},1fr);">`;
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++){
+    const cls=j===highlightCol?'smat-cell sub-col':'smat-cell';
+    html+=`<span class="${cls}">${r2(M[i][j])}</span>`;
+  }
+  html+=`</div><div class="smat-bk right"></div></div>`;
+  return html;
+}
+</script>
+</body>
+</html>
