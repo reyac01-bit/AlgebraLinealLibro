@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz: Espacios Vectoriales — Álgebra Lineal</title>
+<style>
+  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#888;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;--correct:#228B22;--wrong:#B22222;}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
+  .lab-header{background:linear-gradient(135deg,var(--navy) 0%,var(--gmitblue) 100%);color:#fff;padding:0.7rem 1.5rem;position:relative;overflow:hidden;}
+  .lab-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none;}
+  .lab-header-inner{max-width:800px;margin:0 auto;display:flex;align-items:center;gap:0.8rem;position:relative;z-index:1;}
+  .lab-icon{width:38px;height:38px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+  .lab-header h1{font-family:var(--font-display);font-size:clamp(0.9rem,2vw,1.25rem);font-weight:700;line-height:1.2;}
+  .lab-subtitle{font-size:0.72rem;opacity:0.75;}
+  .lab-badge{display:inline-block;background:var(--brick);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15em 0.5em;border-radius:3px;letter-spacing:0.05em;text-transform:uppercase;margin-right:0.35rem;vertical-align:middle;}
+  .main{max-width:800px;margin:0 auto;padding:0.6rem 0.8rem 1.5rem;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:0.7rem;}
+  .panel-body{padding:0.7rem 0.9rem;}
+  .score-bar{display:flex;align-items:center;gap:1rem;padding:0.5rem 0.9rem;border-bottom:1px solid var(--border);background:var(--surface-alt);font-family:var(--font-mono);font-size:0.78rem;flex-wrap:wrap;}
+  .score-item{display:flex;align-items:center;gap:0.3rem;}.score-item .slab{font-weight:700;}.score-item.correct .slab{color:var(--correct);}.score-item.wrong .slab{color:var(--wrong);}
+  .progress-bar{flex:1;min-width:100px;height:6px;background:rgba(0,0,0,0.06);border-radius:3px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--forest);border-radius:3px;transition:width 0.4s ease;}
+  .q-counter{font-family:var(--font-mono);font-size:0.72rem;color:var(--text-muted);}
+  .q-topic{display:inline-block;padding:0.15em 0.5em;border-radius:10px;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.3rem;}
+  .q-text{font-size:0.92rem;font-weight:600;margin:0.4rem 0 0.6rem;line-height:1.55;}
+  .q-text .mono{font-family:var(--font-mono);font-weight:700;color:var(--navy);}
+  .options{display:flex;flex-direction:column;gap:0.4rem;margin:0.5rem 0;}
+  .opt-btn{display:flex;align-items:flex-start;gap:0.5rem;padding:0.55rem 0.8rem;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;transition:var(--transition);font-family:var(--font-body);font-size:0.84rem;text-align:left;line-height:1.4;}
+  .opt-btn:hover:not(.disabled){border-color:var(--gmitblue);background:var(--gmitblue-pale);}
+  .opt-btn .opt-key{width:24px;height:24px;border-radius:50%;background:var(--surface-alt);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:0.72rem;font-weight:700;flex-shrink:0;transition:var(--transition);}
+  .opt-btn.correct{border-color:var(--correct);background:rgba(34,139,34,0.06);}.opt-btn.correct .opt-key{background:var(--correct);color:#fff;border-color:var(--correct);}
+  .opt-btn.wrong{border-color:var(--wrong);background:rgba(178,34,34,0.04);}.opt-btn.wrong .opt-key{background:var(--wrong);color:#fff;border-color:var(--wrong);}
+  .opt-btn.disabled{cursor:default;opacity:0.6;}.opt-btn.disabled.correct{opacity:1;}
+  .feedback{border-radius:var(--radius-sm);padding:0.5rem 0.7rem;font-size:0.8rem;line-height:1.6;margin:0.5rem 0;display:none;}
+  .feedback.correct{display:block;background:rgba(34,139,34,0.08);border:1px solid rgba(34,139,34,0.2);color:var(--correct);}
+  .feedback.wrong{display:block;background:rgba(178,34,34,0.06);border:1px solid rgba(178,34,34,0.15);color:var(--wrong);}
+  .feedback strong{font-weight:700;}
+  .btn{display:inline-flex;align-items:center;gap:0.3rem;padding:0.45rem 0.85rem;border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.82rem;font-weight:600;cursor:pointer;transition:var(--transition);}
+  .btn-primary{background:var(--navy);color:#fff;}.btn-accent{background:var(--forest);color:#fff;}
+  .btn-row{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.5rem;}
+  .final-box{text-align:center;padding:1.5rem 1rem;}
+  .final-score{font-family:var(--font-display);font-size:2rem;font-weight:700;color:var(--navy);margin:0.5rem 0;}
+  .final-msg{font-size:1rem;color:var(--text-secondary);margin-bottom:1rem;}
+  .lab-footer{max-width:800px;margin:0 auto;padding:0.5rem 1rem;text-align:center;font-size:0.68rem;color:var(--text-muted);}
+</style>
+</head>
+<body>
+<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">🔷</div><div><h1><span class="lab-badge">Cap 5</span>Quiz: Espacios Vectoriales</h1><div class="lab-subtitle">Quiz Interactivo · Espacios Vectoriales</div></div></div></header>
+<div class="main">
+  <div class="panel" id="quizPanel">
+    <div class="score-bar">
+      <span class="score-item"><span style="color:var(--text-muted);">Pregunta</span> <span class="slab" id="qNum">1</span>/<span id="qTotal">12</span></span>
+      <div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
+      <span class="score-item correct">✓ <span class="slab" id="scoreOk">0</span></span>
+      <span class="score-item wrong">✗ <span class="slab" id="scoreWrong">0</span></span>
+    </div>
+    <div class="panel-body" id="qBody"></div>
+  </div>
+</div>
+<footer class="lab-footer">Álgebra Lineal con Abordaje Tecnológico · Quiz 5.7 · Espacios Vectoriales</footer>
+
+<script>
+const TOTAL=12;
+let current=0,scoreOk=0,scoreWrong=0,answered=false,questions=[];
+function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function pick(a){return a[ri(0,a.length-1)];}
+function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=ri(0,i);[r[i],r[j]]=[r[j],r[i]];}return r;}
+function vStr(v){return`(${v.join(', ')})`;}
+
+const TOPICS={sub:{label:'Subespacio',color:'#2980B9'},gen:{label:'Espacio Generado',color:'#E67E22'},li:{label:'Independencia Lineal',color:'#8E44AD'},base:{label:'Base',color:'#16A085'},dim:{label:'Dimensión',color:'#C0392B'},ev:{label:'Espacio Vectorial',color:'#2C3E50'},coord:{label:'Coordenadas',color:'#D35400'}};
+
+// ---- SUBSPACE QUESTIONS ----
+function qSubYes(){
+  const sets=[
+    {desc:'W = {(x, 0) : x ∈ ℝ} en ℝ²',why:'Cerrado bajo suma y escalar: (x₁,0)+(x₂,0)=(x₁+x₂,0)∈W y k(x,0)=(kx,0)∈W. Contiene al 0=(0,0).'},
+    {desc:'W = {(x, y, z) : x + y + z = 0} en ℝ³',why:'Es el núcleo de una ecuación lineal homogénea. Si u,v∈W entonces u+v también suma 0, y ku también.'},
+    {desc:'W = {(x, y) : 2x − y = 0} en ℝ²',why:'Equivale a y=2x. Es una recta por el origen. Cerrado bajo suma y escalar.'},
+    {desc:'W = {matrices simétricas A : A = Aᵀ} en M(2,ℝ)',why:'Si A=Aᵀ y B=Bᵀ, entonces (A+B)ᵀ=Aᵀ+Bᵀ=A+B y (kA)ᵀ=kAᵀ=kA.'},
+  ];
+  const s=pick(sets);
+  return{topic:'sub',text:`¿Es <span class="mono">${s.desc}</span> un subespacio vectorial?`,
+    options:shuffle(['Sí, es subespacio','No, no es subespacio']),correct:null,_cv:'Sí, es subespacio',explanation:s.why,get correct(){return this.options.indexOf(this._cv)}};
+}
+
+function qSubNo(){
+  const sets=[
+    {desc:'W = {(x, y) : x + y = 1} en ℝ²',why:'(0,0) no pertenece a W pues 0+0=0≠1. Todo subespacio debe contener al vector cero.'},
+    {desc:'W = {(x, y) : xy ≥ 0} en ℝ²',why:'No es cerrado bajo suma: (1,1)∈W y (−1,2)∈W pero (0,3)∈W... sin embargo (1,−1)∉W pues 1(−1)<0 pero... Mejor: (1,1)+(−2,1)=(−1,2) con −1·2<0. No cerrado.'},
+    {desc:'W = {(x, y) : x² + y² ≤ 1} en ℝ²',why:'No es cerrado bajo escalar: (1,0)∈W pero 2(1,0)=(2,0)∉W pues 4+0=4>1.'},
+    {desc:'W = {(1, y) : y ∈ ℝ} en ℝ²',why:'(0,0)∉W pues la primera componente es siempre 1≠0. Todo subespacio debe contener al vector cero.'},
+  ];
+  const s=pick(sets);
+  return{topic:'sub',text:`¿Es <span class="mono">${s.desc}</span> un subespacio vectorial?`,
+    options:shuffle(['Sí, es subespacio','No, no es subespacio']),correct:null,_cv:'No, no es subespacio',explanation:s.why,get correct(){return this.options.indexOf(this._cv)}};
+}
+
+function qSubTest(){
+  return{topic:'sub',text:'Para verificar que W ⊂ V es subespacio, basta comprobar que:',
+    options:shuffle(['Para todo u,v∈W y k∈ℝ: ku+v ∈ W','W tiene exactamente n elementos','W contiene al menos un vector no nulo','W es un conjunto finito']),
+    correct:null,_cv:'Para todo u,v∈W y k∈ℝ: ku+v ∈ W',
+    explanation:'Por el Teorema del libro: W es subespacio si y solo si ku+v ∈ W para todo u,v∈W y k∈ℝ. Esto verifica cerradura bajo suma y escalar simultáneamente.',
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
+// ---- LINEAR INDEPENDENCE ----
+function qLIvectors(){
+  const a=ri(1,3),b=ri(-3,3);
+  const u=[a,b],v=[a*2,b*2];
+  return{topic:'li',text:`¿Son linealmente independientes u = ${vStr(u)} y v = ${vStr(v)}?`,
+    options:shuffle(['No, son LD (dependientes)','Sí, son LI (independientes)']),correct:null,_cv:'No, son LD (dependientes)',
+    explanation:`v = 2u, por lo tanto son linealmente dependientes. La combinación 2u − v = 0 con coeficientes no todos nulos.`,
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
+function qLIvectorsTrue(){
+  let u,v;do{u=[ri(-3,3),ri(-3,3)];v=[ri(-3,3),ri(-3,3)];}while(u[0]*v[1]-u[1]*v[0]===0);
+  return{topic:'li',text:`¿Son linealmente independientes u = ${vStr(u)} y v = ${vStr(v)} en ℝ²?`,
+    options:shuffle(['Sí, son LI (independientes)','No, son LD (dependientes)']),correct:null,_cv:'Sí, son LI (independientes)',
+    explanation:`det[u|v] = (${u[0]})(${v[1]}) − (${u[1]})(${v[0]}) = ${u[0]*v[1]-u[1]*v[0]} ≠ 0, por lo tanto son LI.`,
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
+function qLIzero(){
+  return{topic:'li',text:'Si un conjunto de vectores contiene al vector cero, entonces:',
+    options:shuffle(['Siempre es linealmente dependiente','Siempre es linealmente independiente','Puede ser LI o LD','Es una base']),
+    correct:null,_cv:'Siempre es linealmente dependiente',
+    explanation:'Si 0∈{v₁,...,vₙ}, digamos v₁=0, entonces 1·v₁ + 0·v₂ + ... + 0·vₙ = 0 con coeficientes no todos nulos (c₁=1). Por lo tanto es LD.',
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
+// ---- BASIS AND DIMENSION ----
+function qDimRn(){
+  const n=pick([2,3,4,5]);
+  return{topic:'dim',text:`¿Cuál es la dimensión de ℝ<sup>${n}</sup>?`,
+    options:shuffle([String(n),String(n-1),String(n+1),String(2*n)]),correct:null,_cv:String(n),
+    explanation:`dim(ℝⁿ) = n. La base canónica {e₁,...,eₙ} tiene n vectores.`,
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
+function qDimMat(){
+  const m=pick([2,3]),n=pick([2,3]);
+  const d=m*n;
+  return{topic:'dim',text:`¿Cuál es la dimensión de M(${m},${n},ℝ) (matrices ${m}×${n})?`,
+    options:shuffle([String(d),String(m+n),String(m),String(n)]),correct:null,_cv:String(d),
+    explanation:`dim M(${m},${n},ℝ) = ${m}·${n} = ${d}. La base canónica tiene ${d} matrices con un 1 en cada posición.`,
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
+function qDimPn(){
+  const n=pick([2,3,4]);
+  return{topic:'dim',text:`¿Cuál es la dimensión de P<sub>${n}</sub> (polinomios de grado ≤ ${n})?`,
+    options:shuffle([String(n+1),String(n),String(n-1),String(2*n)]),correct:null,_cv:String(n+1),
+    explanation:`dim(P${n}) = ${n+1}. La base canónica es {1, x, x², ..., x${n>1?'ⁿ':''}} que tiene ${n+1} elementos.`,
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
+function qBaseConditions(){
+  return{topic:'base',text:'Un conjunto B es base de V si y solo si:',
+    options:shuffle(['B es LI y genera V (Cl(B)=V)','B genera V (no importa si es LI)','B es LI (no importa si genera)','B tiene dim(V)+1 elementos']),
+    correct:null,_cv:'B es LI y genera V (Cl(B)=V)',
+    explanation:'Por definición: B es base si (1) es linealmente independiente y (2) genera todo el espacio V. Ambas condiciones son necesarias.',
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
+function qBaseSizeTheorem(){
+  return{topic:'base',text:'Si V tiene dimensión n, entonces toda base de V tiene:',
+    options:shuffle(['Exactamente n vectores','Al menos n vectores','A lo más n vectores','n+1 vectores']),
+    correct:null,_cv:'Exactamente n vectores',
+    explanation:'Todas las bases de V tienen el mismo número de elementos. Ese número es precisamente dim(V) = n.',
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
+function qMoreThanDim(){
+  return{topic:'li',text:'Si V tiene dimensión n y S tiene n+1 vectores de V, entonces:',
+    options:shuffle(['S es necesariamente LD','S es necesariamente LI','S puede ser LI o LD','S es una base de V']),
+    correct:null,_cv:'S es necesariamente LD',
+    explanation:'En un espacio de dimensión n, todo conjunto con más de n vectores es linealmente dependiente. Esto es consecuencia del Teorema S≥L del libro.',
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
+function qFewerThanDim(){
+  return{topic:'gen',text:'Si V tiene dimensión n y S tiene n−1 vectores, entonces S:',
+    options:shuffle(['No puede generar V','Siempre genera V','Es necesariamente LD','Es una base de V']),
+    correct:null,_cv:'No puede generar V',
+    explanation:'Un conjunto generador de V necesita al menos n = dim(V) vectores. Con n−1 vectores no se puede generar todo V.',
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
+// ---- VECTOR SPACE EXAMPLES ----
+function qEVexample(){
+  return{topic:'ev',text:'¿Cuál de los siguientes es un espacio vectorial sobre ℝ?',
+    options:shuffle(['P₂ (polinomios de grado ≤ 2)','ℤ (los enteros)','{(x,y) : x > 0}','{(x,y) : x²+y²=1}']),
+    correct:null,_cv:'P₂ (polinomios de grado ≤ 2)',
+    explanation:'P₂ con la suma y multiplicación escalar usuales es un espacio vectorial (se verifican los 8 axiomas). ℤ no es cerrado bajo escalar (½·2=1∉ℤ... pero ½·1=½∉ℤ). Los otros no son cerrados bajo suma.',
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
+function qCanonicalBase(){
+  return{topic:'base',text:'La base canónica de ℝ³ es:',
+    options:shuffle(['{(1,0,0), (0,1,0), (0,0,1)}','{(1,1,1), (0,1,1), (0,0,1)}','{(1,0,0), (0,1,0)}','{(1,1,0), (0,1,1), (1,0,1)}']),
+    correct:null,_cv:'{(1,0,0), (0,1,0), (0,0,1)}',
+    explanation:'La base canónica de ℝ³ es {e₁, e₂, e₃} = {(1,0,0), (0,1,0), (0,0,1)}. Los otros conjuntos pueden ser bases pero no son la canónica.',
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
+function qSpanMeaning(){
+  return{topic:'gen',text:'Cl({v₁, v₂}) = Span({v₁, v₂}) es el conjunto de:',
+    options:shuffle(['Todas las combinaciones lineales c₁v₁ + c₂v₂','Solo v₁ y v₂','Todos los vectores ortogonales a v₁ y v₂','v₁ + v₂ solamente']),
+    correct:null,_cv:'Todas las combinaciones lineales c₁v₁ + c₂v₂',
+    explanation:'Cl(S) = Span(S) es el conjunto de todas las combinaciones lineales de los vectores de S, con coeficientes en ℝ.',
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
+function qCoordVector(){
+  return{topic:'coord',text:'Si B = {v₁, v₂} es base de V y u = 3v₁ − 2v₂, entonces [u]<sub>B</sub> =',
+    options:shuffle(['(3, −2)','(−2, 3)','(3, 2)','(v₁, v₂)']),
+    correct:null,_cv:'(3, −2)',
+    explanation:'El vector de coordenadas [u]_B contiene los coeficientes de u en la base B. Como u = 3v₁ + (−2)v₂, entonces [u]_B = (3, −2).',
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
+function qSubspaceZero(){
+  return{topic:'sub',text:'¿Cuál es la dimensión del subespacio W = {0} (solo el vector cero)?',
+    options:shuffle(['0','1','No tiene dimensión','Infinita']),
+    correct:null,_cv:'0',
+    explanation:'El subespacio trivial {0} tiene dimensión 0. Su base es el conjunto vacío ∅ (no tiene vectores, pues el vector cero no puede ser parte de un conjunto LI).',
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
+function qRowSpaceDim(){
+  return{topic:'dim',text:'Si A es una matriz 3×4 con rango 2, ¿cuál es la dimensión del espacio nulo de A?',
+    options:shuffle(['2','3','1','4']),
+    correct:null,_cv:'2',
+    explanation:'Por el Teorema de rango-nulidad: dim(Nul A) = n − rango(A) = 4 − 2 = 2, donde n=4 es el número de columnas.',
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
+// ---- BUILD QUIZ ----
+const ALL=[qSubYes,qSubNo,qSubTest,qLIvectors,qLIvectorsTrue,qLIzero,qDimRn,qDimMat,qDimPn,qBaseConditions,qBaseSizeTheorem,qMoreThanDim,qFewerThanDim,qEVexample,qCanonicalBase,qSpanMeaning,qCoordVector,qSubspaceZero,qRowSpaceDim];
+
+function buildQuiz(){
+  questions=shuffle(ALL).slice(0,TOTAL).map(gen=>{
+    const q=gen();
+    if(q._cv!==undefined&&q.correct===null)q.correct=q.options.indexOf(q._cv);
+    return q;
+  });
+  current=0;scoreOk=0;scoreWrong=0;answered=false;showQuestion();
+}
+
+function showQuestion(){
+  if(current>=TOTAL){showFinal();return;}
+  const q=questions[current];answered=false;
+  document.getElementById('qNum').textContent=current+1;
+  document.getElementById('qTotal').textContent=TOTAL;
+  document.getElementById('scoreOk').textContent=scoreOk;
+  document.getElementById('scoreWrong').textContent=scoreWrong;
+  document.getElementById('progFill').style.width=((current/TOTAL)*100)+'%';
+  const t=TOPICS[q.topic];
+  let html=`<div class="q-counter">Pregunta ${current+1} de ${TOTAL}</div>`;
+  html+=`<span class="q-topic" style="background:${t.color}15;color:${t.color};border:1px solid ${t.color}33;">${t.label}</span>`;
+  html+=`<div class="q-text">${q.text}</div>`;
+  html+=`<div class="options">`;
+  const keys='ABCD';
+  q.options.forEach((opt,i)=>{html+=`<button class="opt-btn" onclick="answer(${i})"><span class="opt-key">${keys[i]}</span><span>${opt}</span></button>`;});
+  html+=`</div><div class="feedback" id="fb"></div>`;
+  html+=`<div class="btn-row" id="btnRow" style="display:none;"><button class="btn btn-primary" onclick="nextQ()">Siguiente →</button></div>`;
+  document.getElementById('qBody').innerHTML=html;
+}
+
+function answer(idx){
+  if(answered)return;answered=true;
+  const q=questions[current];const isCorrect=idx===q.correct;
+  if(isCorrect)scoreOk++;else scoreWrong++;
+  document.querySelectorAll('.opt-btn').forEach((btn,i)=>{btn.classList.add('disabled');if(i===q.correct)btn.classList.add('correct');if(i===idx&&!isCorrect)btn.classList.add('wrong');});
+  const fb=document.getElementById('fb');
+  fb.className=`feedback ${isCorrect?'correct':'wrong'}`;
+  fb.innerHTML=`<strong>${isCorrect?'¡Correcto!':'Incorrecto.'}</strong> ${q.explanation}`;
+  document.getElementById('scoreOk').textContent=scoreOk;document.getElementById('scoreWrong').textContent=scoreWrong;
+  document.getElementById('btnRow').style.display='flex';
+}
+function nextQ(){current++;showQuestion();}
+
+function showFinal(){
+  const pct=Math.round((scoreOk/TOTAL)*100);
+  const stars=pct>=90?'⭐⭐⭐':pct>=70?'⭐⭐':pct>=50?'⭐':'';
+  let msg=pct>=90?'¡Excelente! Dominas los espacios vectoriales.':pct>=70?'¡Muy bien! Repasa subespacios y dimensión.':pct>=50?'Aprobado. Te recomiendo repasar las definiciones clave.':'Necesitas más práctica. Revisa el Capítulo 5.';
+  document.getElementById('progFill').style.width='100%';
+  document.getElementById('qBody').innerHTML=`<div class="final-box"><div style="font-size:0.9rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;">Resultado Final</div><div class="final-score">${scoreOk} / ${TOTAL}</div><div style="margin:0.3rem 0;">${stars}</div><div class="final-msg">${msg}</div><div style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text-secondary);margin-bottom:1rem;">✓ ${scoreOk} &nbsp;|&nbsp; ✗ ${scoreWrong} &nbsp;|&nbsp; ${pct}%</div><button class="btn btn-accent" onclick="buildQuiz()" style="font-size:0.9rem;padding:0.6rem 1.5rem;">🔄 Reintentar</button></div>`;
+}
+
+document.addEventListener('keydown',e=>{
+  if(!answered){const idx='abcd'.indexOf(e.key.toLowerCase());if(idx>=0&&idx<(questions[current]?.options.length||0))answer(idx);
+    if(e.key>='1'&&e.key<='4'){const i=parseInt(e.key)-1;if(i<(questions[current]?.options.length||0))answer(i);}}
+  else{if(e.key==='Enter'||e.key===' '||e.key==='ArrowRight')nextQ();}
+});
+
+window.addEventListener('DOMContentLoaded',buildQuiz);
+</script>
+</body>
+</html>
