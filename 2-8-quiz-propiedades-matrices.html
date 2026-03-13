@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz: Propiedades de Operaciones Matriciales — Álgebra Lineal</title>
+<style>
+  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#888;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;--correct:#228B22;--wrong:#B22222;}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
+  .lab-header{background:linear-gradient(135deg,var(--navy) 0%,var(--gmitblue) 100%);color:#fff;padding:0.7rem 1.5rem;position:relative;overflow:hidden;}
+  .lab-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none;}
+  .lab-header-inner{max-width:800px;margin:0 auto;display:flex;align-items:center;gap:0.8rem;position:relative;z-index:1;}
+  .lab-icon{width:38px;height:38px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+  .lab-header h1{font-family:var(--font-display);font-size:clamp(0.9rem,2vw,1.25rem);font-weight:700;line-height:1.2;}
+  .lab-subtitle{font-size:0.72rem;opacity:0.75;}
+  .lab-badge{display:inline-block;background:var(--brick);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15em 0.5em;border-radius:3px;letter-spacing:0.05em;text-transform:uppercase;margin-right:0.35rem;vertical-align:middle;}
+  .main{max-width:800px;margin:0 auto;padding:0.6rem 0.8rem 1.5rem;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:0.7rem;}
+  .panel-head{padding:0.5rem 0.9rem;font-family:var(--font-display);font-size:0.85rem;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.4rem;background:var(--surface-alt);flex-wrap:wrap;}
+  .panel-body{padding:0.7rem 0.9rem;}
+  .score-bar{display:flex;align-items:center;gap:1rem;padding:0.5rem 0.9rem;border-bottom:1px solid var(--border);background:var(--surface-alt);font-family:var(--font-mono);font-size:0.78rem;flex-wrap:wrap;}
+  .score-item{display:flex;align-items:center;gap:0.3rem;}
+  .score-item .slab{font-weight:700;}.score-item.correct .slab{color:var(--correct);}.score-item.wrong .slab{color:var(--wrong);}
+  .progress-bar{flex:1;min-width:100px;height:6px;background:rgba(0,0,0,0.06);border-radius:3px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--forest);border-radius:3px;transition:width 0.4s ease;}
+  .q-counter{font-family:var(--font-mono);font-size:0.72rem;color:var(--text-muted);}
+  .q-text{font-size:0.92rem;font-weight:600;margin:0.5rem 0;line-height:1.5;}
+  .q-statement{font-family:var(--font-mono);font-size:1rem;font-weight:700;color:var(--navy);text-align:center;padding:0.8rem;margin:0.6rem 0;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-alt);line-height:1.6;}
+  .q-context{font-size:0.78rem;color:var(--text-secondary);text-align:center;margin-bottom:0.5rem;font-style:italic;}
+  .options{display:flex;gap:0.5rem;margin:0.6rem 0;justify-content:center;}
+  .opt-btn{display:flex;align-items:center;gap:0.4rem;padding:0.6rem 1.5rem;border:2px solid var(--border);border-radius:var(--radius);background:var(--surface);cursor:pointer;transition:var(--transition);font-family:var(--font-body);font-size:0.9rem;font-weight:600;}
+  .opt-btn:hover:not(.disabled){border-color:var(--gmitblue);background:var(--gmitblue-pale);}
+  .opt-btn.correct{border-color:var(--correct);background:rgba(34,139,34,0.08);color:var(--correct);}
+  .opt-btn.wrong{border-color:var(--wrong);background:rgba(178,34,34,0.06);color:var(--wrong);}
+  .opt-btn.disabled{cursor:default;opacity:0.6;}.opt-btn.disabled.correct{opacity:1;}.opt-btn.disabled.wrong{opacity:0.5;}
+  .feedback{border-radius:var(--radius-sm);padding:0.6rem 0.8rem;font-size:0.8rem;line-height:1.6;margin:0.5rem 0;display:none;}
+  .feedback.correct{display:block;background:rgba(34,139,34,0.08);border:1px solid rgba(34,139,34,0.2);color:var(--correct);}
+  .feedback.wrong{display:block;background:rgba(178,34,34,0.06);border:1px solid rgba(178,34,34,0.15);color:var(--wrong);}
+  .feedback strong{font-weight:700;}
+  .counter-example{font-family:var(--font-mono);font-size:0.76rem;background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.4rem 0.6rem;margin-top:0.4rem;line-height:1.8;overflow-x:auto;}
+  .mmat{display:inline-flex;align-items:stretch;vertical-align:middle;margin:0 0.1rem;}
+  .mmat-bk{display:flex;flex-direction:column;justify-content:center;}
+  .mmat-bk.left{border-left:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);border-radius:3px 0 0 3px;width:5px;}
+  .mmat-bk.right{border-right:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);border-radius:0 3px 3px 0;width:5px;}
+  .mmat-grid{display:inline-grid;gap:1px 4px;padding:3px 3px;}
+  .mmat-cell{font-family:var(--font-mono);font-size:0.78rem;text-align:center;min-width:22px;padding:1px 2px;}
+  .btn{display:inline-flex;align-items:center;gap:0.3rem;padding:0.45rem 0.85rem;border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.82rem;font-weight:600;cursor:pointer;transition:var(--transition);white-space:nowrap;}
+  .btn-primary{background:var(--navy);color:#fff;}.btn-accent{background:var(--forest);color:#fff;}
+  .btn-row{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.5rem;justify-content:center;}
+  .final-box{text-align:center;padding:1.5rem 1rem;}
+  .final-score{font-family:var(--font-display);font-size:2rem;font-weight:700;color:var(--navy);margin:0.5rem 0;}
+  .final-msg{font-size:1rem;color:var(--text-secondary);margin-bottom:1rem;}
+  .lab-footer{max-width:800px;margin:0 auto;padding:0.5rem 1rem;text-align:center;font-size:0.68rem;color:var(--text-muted);}
+</style>
+</head>
+<body>
+<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">❓</div><div><h1><span class="lab-badge">Cap 2</span>Quiz: Propiedades de Operaciones Matriciales</h1><div class="lab-subtitle">Quiz Interactivo · Matrices</div></div></div></header>
+<div class="main">
+  <div class="panel" id="quizPanel">
+    <div class="score-bar">
+      <span class="score-item"><span style="color:var(--text-muted);">Pregunta</span> <span class="slab" id="qNum">1</span>/<span id="qTotal">10</span></span>
+      <div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
+      <span class="score-item correct">✓ <span class="slab" id="scoreOk">0</span></span>
+      <span class="score-item wrong">✗ <span class="slab" id="scoreWrong">0</span></span>
+    </div>
+    <div class="panel-body" id="qBody"></div>
+  </div>
+</div>
+<footer class="lab-footer">Álgebra Lineal con Abordaje Tecnológico · Quiz 2.8 · Propiedades de Operaciones Matriciales</footer>
+
+<script>
+const TOTAL=10;
+let current=0,scoreOk=0,scoreWrong=0,answered=false,questions=[];
+
+function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function pick(a){return a[ri(0,a.length-1)];}
+function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=ri(0,i);[r[i],r[j]]=[r[j],r[i]];}return r;}
+
+// Matrix ops
+function randMat(r,c){const M=[];for(let i=0;i<r;i++){const row=[];for(let j=0;j<c;j++)row.push(ri(-3,3));M.push(row);}return M;}
+function matMul(A,B){const m=A.length,n=B[0].length,p=A[0].length,R=[];for(let i=0;i<m;i++){const row=[];for(let j=0;j<n;j++){let s=0;for(let k=0;k<p;k++)s+=A[i][k]*B[k][j];row.push(s);}R.push(row);}return R;}
+function matAdd(A,B){return A.map((r,i)=>r.map((v,j)=>v+B[i][j]));}
+function matScale(k,A){return A.map(r=>r.map(v=>k*v));}
+function matT(A){const R=[];for(let j=0;j<A[0].length;j++){const row=[];for(let i=0;i<A.length;i++)row.push(A[i][j]);R.push(row);}return R;}
+function matEq(A,B){if(A.length!==B.length||A[0].length!==B[0].length)return false;for(let i=0;i<A.length;i++)for(let j=0;j<A[0].length;j++)if(A[i][j]!==B[i][j])return false;return true;}
+function fmtN(x){return''+x;}
+function renderMat(M){const r=M.length,c=M[0].length;let h='<div class="mmat"><div class="mmat-bk left"></div><div class="mmat-grid" style="grid-template-columns:repeat('+c+',1fr);">';for(let i=0;i<r;i++)for(let j=0;j<c;j++)h+=`<span class="mmat-cell">${fmtN(M[i][j])}</span>`;h+='</div><div class="mmat-bk right"></div></div>';return h;}
+
+// ---- QUESTION POOL ----
+// Each returns {statement, isTrue, explanation, counterExample?}
+
+function qCommutative(){
+  const A=randMat(2,2),B=randMat(2,2);
+  const AB=matMul(A,B),BA=matMul(B,A);
+  const eq=matEq(AB,BA);
+  return{
+    statement:'En general, AB = BA para matrices cuadradas.',
+    isTrue:false,
+    explanation:'El producto de matrices <strong>no es conmutativo</strong> en general. AB ≠ BA salvo en casos especiales (como matrices diagonales o múltiplos de la identidad).',
+    counter:matEq(AB,BA)?null:{A,B,AB,BA,left:'AB',right:'BA'}
+  };
+}
+
+function qCommutativeSpecific(){
+  const A=randMat(2,2),B=randMat(2,2);
+  const AB=matMul(A,B),BA=matMul(B,A);
+  const eq=matEq(AB,BA);
+  return{
+    statement:`Para A = ${renderMat(A)} y B = ${renderMat(B)}, ¿se cumple AB = BA?`,
+    isTrue:eq,
+    explanation:eq?`En este caso particular sí se cumple AB = BA = ${renderMat(AB)}.`:`AB ≠ BA en este caso.`,
+    counter:eq?null:{A,B,AB,BA,left:'AB',right:'BA'}
+  };
+}
+
+function qAssociative(){
+  return{statement:'(AB)C = A(BC) siempre que los productos estén definidos.',isTrue:true,
+    explanation:'La multiplicación de matrices <strong>es asociativa</strong>. Esto se demuestra en el Teorema del libro usando la definición del producto entrada a entrada.',counter:null};
+}
+
+function qDistributive(){
+  return{statement:'A(B + C) = AB + AC siempre que los productos y sumas estén definidos.',isTrue:true,
+    explanation:'La multiplicación es <strong>distributiva</strong> respecto a la suma: A(B+C) = AB + AC. Esta es una propiedad fundamental demostrada en el libro.',counter:null};
+}
+
+function qTransposeProduct(){
+  const A=randMat(2,2),B=randMat(2,2);
+  const AB=matMul(A,B);
+  return{statement:'(AB)ᵀ = AᵀBᵀ',isTrue:false,
+    explanation:'La transpuesta del producto <strong>invierte el orden</strong>: (AB)ᵀ = <strong>Bᵀ</strong>Aᵀ, no AᵀBᵀ.',
+    counter:{A,B,AB:matT(AB),BA:matMul(matT(A),matT(B)),left:'(AB)ᵀ',right:'AᵀBᵀ'}};
+}
+
+function qTransposeProductCorrect(){
+  return{statement:'(AB)ᵀ = BᵀAᵀ',isTrue:true,
+    explanation:'Correcto. La transpuesta del producto <strong>invierte el orden</strong>: (AB)ᵀ = BᵀAᵀ. Esto se conoce como la "regla de la media vuelta".',counter:null};
+}
+
+function qSumCommutative(){
+  return{statement:'A + B = B + A para toda A, B del mismo tamaño.',isTrue:true,
+    explanation:'La suma de matrices <strong>es conmutativa</strong>: se suma entrada por entrada, y la suma de números reales es conmutativa. Esto se demuestra en el Teorema del libro.',counter:null};
+}
+
+function qScalarDistrib(){
+  return{statement:'k(A + B) = kA + kB para todo escalar k.',isTrue:true,
+    explanation:'La multiplicación escalar <strong>distribuye</strong> sobre la suma de matrices. Esto es la propiedad (5) del Teorema del libro.',counter:null};
+}
+
+function qPowerCommute(){
+  const A=randMat(2,2);
+  const A2=matMul(A,A),A3=matMul(A2,A);
+  return{statement:'Si A es cuadrada, entonces A²·A = A·A².',isTrue:true,
+    explanation:'Las potencias de una <strong>misma</strong> matriz siempre conmutan entre sí: AⁿAᵐ = Aⁿ⁺ᵐ = AᵐAⁿ. Esto es consecuencia directa de la asociatividad.',counter:null};
+}
+
+function qZeroProduct(){
+  return{statement:'Si AB = 0, entonces A = 0 o B = 0.',isTrue:false,
+    explanation:'Esto es <strong>falso</strong>. En matrices, AB = 0 no implica que alguna sea la matriz nula. Existen matrices no nulas cuyo producto es cero (se llaman "divisores de cero").',
+    counter:{A:[[1,0],[0,0]],B:[[0,0],[1,0]],AB:matMul([[1,0],[0,0]],[[0,0],[1,0]]),BA:[[0,0],[0,0]],left:'AB',right:'0'}};
+}
+
+function qCancelLaw(){
+  return{statement:'Si AB = AC y A ≠ 0, entonces B = C.',isTrue:false,
+    explanation:'La <strong>ley de cancelación no vale</strong> en general para matrices. Que AB = AC no implica B = C a menos que A sea invertible (det(A) ≠ 0).',counter:null};
+}
+
+function qIdentityProd(){
+  return{statement:'AI = IA = A, donde I es la identidad del tamaño adecuado.',isTrue:true,
+    explanation:'Correcto. La matriz identidad I es el <strong>neutro multiplicativo</strong>: AI = IA = A para toda matriz A de tamaño compatible.',counter:null};
+}
+
+function qIdempotent(){
+  const A=[[1,1],[0,0]];
+  return{statement:`La matriz A = ${renderMat(A)} es idempotente (A² = A).`,isTrue:true,
+    explanation:'Verificación: A² = AA = A. Una matriz es <strong>idempotente</strong> si A² = A. Este es el ejemplo del libro.',counter:null};
+}
+
+function qInvolutive(){
+  const A=[[1,-1],[0,-1]];
+  const A2=matMul(A,A);
+  return{statement:`La matriz A = ${renderMat(A)} es involutiva (A² = I).`,isTrue:true,
+    explanation:`Verificación: A² = ${renderMat(A2)} = I₂. Una matriz es <strong>involutiva</strong> si A² = I.`,counter:null};
+}
+
+function qTransposeSum(){
+  return{statement:'(A + B)ᵀ = Aᵀ + Bᵀ',isTrue:true,
+    explanation:'Correcto. La transpuesta de la suma es la suma de las transpuestas. Esto se sigue directamente de la definición entrada por entrada.',counter:null};
+}
+
+function qTransposeScalar(){
+  return{statement:'(kA)ᵀ = kAᵀ para todo escalar k.',isTrue:true,
+    explanation:'Correcto. Escalar y transpuesta conmutan: (kA)ᵀ = kAᵀ.',counter:null};
+}
+
+function qDoubleTranspose(){
+  return{statement:'(Aᵀ)ᵀ = A',isTrue:true,
+    explanation:'Correcto. Transponer dos veces devuelve la matriz original.',counter:null};
+}
+
+function qSizeProduct(){
+  return{statement:'Si A es 3×2 y B es 2×4, entonces AB es de tamaño 3×4.',isTrue:true,
+    explanation:'Correcto. Si A es m×n y B es n×p, entonces AB es <strong>m×p</strong>. En este caso: (3×2)(2×4) = 3×4.',counter:null};
+}
+
+function qSizeProductWrong(){
+  return{statement:'Si A es 2×3 y B es 2×3, entonces AB está definido.',isTrue:false,
+    explanation:'Para que AB esté definido, el número de <strong>columnas de A</strong> debe ser igual al número de <strong>filas de B</strong>. Aquí: columnas(A) = 3 ≠ 2 = filas(B), así que AB <strong>no está definido</strong>.',counter:null};
+}
+
+// ---- BUILD QUIZ ----
+const ALL_GENERATORS=[qCommutative,qCommutativeSpecific,qAssociative,qDistributive,qTransposeProduct,qTransposeProductCorrect,qSumCommutative,qScalarDistrib,qPowerCommute,qZeroProduct,qCancelLaw,qIdentityProd,qIdempotent,qInvolutive,qTransposeSum,qDoubleTranspose,qSizeProduct,qSizeProductWrong];
+
+function buildQuiz(){
+  const selected=shuffle(ALL_GENERATORS).slice(0,TOTAL);
+  questions=selected.map(gen=>gen());
+  // Ensure mix of true/false
+  const trueCount=questions.filter(q=>q.isTrue).length;
+  if(trueCount<3||trueCount>7){return buildQuiz();} // Reroll
+  current=0;scoreOk=0;scoreWrong=0;answered=false;
+  showQuestion();
+}
+
+function showQuestion(){
+  if(current>=TOTAL){showFinal();return;}
+  const q=questions[current];answered=false;
+  document.getElementById('qNum').textContent=current+1;
+  document.getElementById('qTotal').textContent=TOTAL;
+  document.getElementById('scoreOk').textContent=scoreOk;
+  document.getElementById('scoreWrong').textContent=scoreWrong;
+  document.getElementById('progFill').style.width=((current/TOTAL)*100)+'%';
+
+  let html=`<div class="q-counter">Pregunta ${current+1} de ${TOTAL}</div>`;
+  html+=`<div class="q-text">¿Verdadero o Falso?</div>`;
+  html+=`<div class="q-statement">${q.statement}</div>`;
+  html+=`<div class="q-context">Considera A, B, C matrices cuadradas reales (tamaño compatible)</div>`;
+  html+=`<div class="options" id="opts">`;
+  html+=`<button class="opt-btn" data-v="true" onclick="answer(true)" style="min-width:120px;">✓ Verdadero</button>`;
+  html+=`<button class="opt-btn" data-v="false" onclick="answer(false)" style="min-width:120px;">✗ Falso</button>`;
+  html+=`</div>`;
+  html+=`<div class="feedback" id="fb"></div>`;
+  html+=`<div class="btn-row" id="btnRow" style="display:none;"><button class="btn btn-primary" onclick="nextQ()">Siguiente →</button></div>`;
+  document.getElementById('qBody').innerHTML=html;
+}
+
+function answer(val){
+  if(answered)return;answered=true;
+  const q=questions[current];
+  const isCorrect=val===q.isTrue;
+  if(isCorrect)scoreOk++;else scoreWrong++;
+
+  document.querySelectorAll('.opt-btn').forEach(btn=>{
+    btn.classList.add('disabled');
+    const bv=btn.dataset.v==='true';
+    if(bv===q.isTrue)btn.classList.add('correct');
+    if(bv===val&&!isCorrect)btn.classList.add('wrong');
+  });
+
+  const fb=document.getElementById('fb');
+  let fbHtml=isCorrect?`<strong>¡Correcto!</strong> `:`<strong>Incorrecto.</strong> La respuesta es <strong>${q.isTrue?'Verdadero':'Falso'}</strong>. `;
+  fbHtml+=q.explanation;
+  if(q.counter&&q.counter.A){
+    fbHtml+=`<div class="counter-example"><strong>Contraejemplo numérico:</strong><br>`;
+    fbHtml+=`A = ${renderMat(q.counter.A)}&nbsp; B = ${renderMat(q.counter.B)}<br>`;
+    fbHtml+=`${q.counter.left} = ${renderMat(q.counter.AB)}<br>`;
+    fbHtml+=`${q.counter.right} = ${renderMat(q.counter.BA)}<br>`;
+    if(!matEq(q.counter.AB,q.counter.BA))fbHtml+=`<strong>${q.counter.left} ≠ ${q.counter.right}</strong>`;
+    else fbHtml+=`<strong>${q.counter.left} = ${q.counter.right} = 0</strong>`;
+    fbHtml+=`</div>`;
+  }
+  fb.className=`feedback ${isCorrect?'correct':'wrong'}`;
+  fb.innerHTML=fbHtml;
+  document.getElementById('scoreOk').textContent=scoreOk;
+  document.getElementById('scoreWrong').textContent=scoreWrong;
+  document.getElementById('btnRow').style.display='flex';
+}
+
+function nextQ(){current++;showQuestion();}
+
+function showFinal(){
+  const pct=Math.round((scoreOk/TOTAL)*100);
+  const stars=pct>=90?'⭐⭐⭐':pct>=70?'⭐⭐':pct>=50?'⭐':'';
+  let msg=pct>=90?'¡Excelente! Dominas las propiedades matriciales.':pct>=70?'¡Muy bien! Buen manejo con algunos detalles.':pct>=50?'Aprobado. Repasa las propiedades del Teorema 2.X.':'Necesitas practicar más. Las propiedades falsas son trampas comunes.';
+  document.getElementById('progFill').style.width='100%';
+  document.getElementById('qBody').innerHTML=`
+    <div class="final-box">
+      <div style="font-size:0.9rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;">Resultado Final</div>
+      <div class="final-score">${scoreOk} / ${TOTAL}</div>
+      <div style="margin:0.3rem 0;">${stars}</div>
+      <div class="final-msg">${msg}</div>
+      <div style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text-secondary);margin-bottom:1rem;">✓ Correctas: ${scoreOk} &nbsp;|&nbsp; ✗ Incorrectas: ${scoreWrong} &nbsp;|&nbsp; ${pct}%</div>
+      <button class="btn btn-accent" onclick="buildQuiz()" style="font-size:0.9rem;padding:0.6rem 1.5rem;">🔄 Reintentar con nuevas preguntas</button>
+    </div>`;
+}
+
+document.addEventListener('keydown',e=>{
+  if(!answered){if(e.key==='v'||e.key==='V'||e.key==='1')answer(true);if(e.key==='f'||e.key==='F'||e.key==='2')answer(false);}
+  else{if(e.key==='Enter'||e.key===' '||e.key==='ArrowRight')nextQ();}
+});
+
+window.addEventListener('DOMContentLoaded',buildQuiz);
+</script>
+</body>
+</html>
