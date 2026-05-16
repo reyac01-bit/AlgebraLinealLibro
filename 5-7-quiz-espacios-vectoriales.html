@@ -68,7 +68,34 @@ let current=0,scoreOk=0,scoreWrong=0,answered=false,questions=[];
 function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
 function pick(a){return a[ri(0,a.length-1)];}
 function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=ri(0,i);[r[i],r[j]]=[r[j],r[i]];}return r;}
-function vStr(v){return`(${v.join(', ')})`;}
+
+// ---- FRACTION DISPLAY ----
+function _gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a;}
+function fmtNum(val){
+  if(val==null||isNaN(val))return'0';
+  if(Number.isInteger(val))return String(val);
+  for(let d=2;d<=12;d++){const n=val*d;if(Math.abs(n-Math.round(n))<1e-9){const num=Math.round(n),g=_gcd(Math.abs(num),d),rn=num/g,rd=d/g;if(rd===1)return String(rn);return`${rn}/${rd}`;}}
+  return val.toFixed(3).replace(/0+$/,'').replace(/\.$/,'');
+}
+function vStr(v){return`(${v.map(x=>fmtNum(x)).join(', ')})`;}
+
+// Generate a random "clean" fraction: returns a number like 1/2, -3/4, 2/3, 5/2, etc.
+// Pool of denominators 1-4, numerators -4..4 (no zero)
+function rFrac(){
+  const den=pick([2,3,4]);
+  let num;do{num=ri(-4,4);}while(num===0);
+  return num/den;
+}
+// Random nonzero integer
+function rNZ(a,b){let v;do{v=ri(a,b);}while(v===0);return v;}
+// Random component: 50% integer, 50% fraction
+function rComp(){return Math.random()<0.5 ? rNZ(-3,3) : rFrac();}
+// Format a coefficient for display: "3", "-2", "1/2", "-3/4"
+function fmtCoef(c,first){
+  const s=fmtNum(c);
+  if(first)return s;
+  return c>=0?`+ ${s}`:`− ${fmtNum(Math.abs(c))}`;
+}
 
 const TOPICS={sub:{label:'Subespacio',color:'#2980B9'},gen:{label:'Espacio Generado',color:'#E67E22'},li:{label:'Independencia Lineal',color:'#8E44AD'},base:{label:'Base',color:'#16A085'},dim:{label:'Dimensión',color:'#C0392B'},ev:{label:'Espacio Vectorial',color:'#2C3E50'},coord:{label:'Coordenadas',color:'#D35400'}};
 
@@ -107,19 +134,34 @@ function qSubTest(){
 
 // ---- LINEAR INDEPENDENCE ----
 function qLIvectors(){
-  const a=ri(1,3),b=ri(-3,3);
-  const u=[a,b],v=[a*2,b*2];
-  return{topic:'li',text:`¿Son linealmente independientes u = ${vStr(u)} y v = ${vStr(v)}?`,
+  const useFrac=Math.random()<0.5;
+  let u,v,kStr;
+  if(useFrac){
+    const k=pick([1/2,3/2,-1/2,2/3,-2/3,3/4,-3/4]);
+    u=[rNZ(-3,3),rNZ(-3,3)];
+    v=[u[0]*k,u[1]*k];
+    kStr=fmtNum(k);
+  } else {
+    const a=ri(1,3),b=ri(-3,3);
+    u=[a,b];v=[a*2,b*2];
+    kStr='2';
+  }
+  return{topic:'li',text:`¿Son linealmente independientes u = <span class="mono">${vStr(u)}</span> y v = <span class="mono">${vStr(v)}</span>?`,
     options:shuffle(['No, son LD (dependientes)','Sí, son LI (independientes)']),correct:null,_cv:'No, son LD (dependientes)',
-    explanation:`v = 2u, por lo tanto son linealmente dependientes. La combinación 2u − v = 0 con coeficientes no todos nulos.`,
+    explanation:`v = ${kStr}·u, por lo tanto son linealmente dependientes. Existe una combinación lineal no trivial que da el vector cero.`,
     get correct(){return this.options.indexOf(this._cv)}};
 }
 
 function qLIvectorsTrue(){
-  let u,v;do{u=[ri(-3,3),ri(-3,3)];v=[ri(-3,3),ri(-3,3)];}while(u[0]*v[1]-u[1]*v[0]===0);
-  return{topic:'li',text:`¿Son linealmente independientes u = ${vStr(u)} y v = ${vStr(v)} en ℝ²?`,
+  let u,v,det;
+  do{
+    u=[rComp(),rComp()];v=[rComp(),rComp()];
+    det=u[0]*v[1]-u[1]*v[0];
+  }while(Math.abs(det)<0.01);
+  const detStr=fmtNum(det);
+  return{topic:'li',text:`¿Son linealmente independientes u = <span class="mono">${vStr(u)}</span> y v = <span class="mono">${vStr(v)}</span> en ℝ²?`,
     options:shuffle(['Sí, son LI (independientes)','No, son LD (dependientes)']),correct:null,_cv:'Sí, son LI (independientes)',
-    explanation:`det[u|v] = (${u[0]})(${v[1]}) − (${u[1]})(${v[0]}) = ${u[0]*v[1]-u[1]*v[0]} ≠ 0, por lo tanto son LI.`,
+    explanation:`det[u|v] = (${fmtNum(u[0])})(${fmtNum(v[1])}) − (${fmtNum(u[1])})(${fmtNum(v[0])}) = ${detStr} ≠ 0, por lo tanto son LI.`,
     get correct(){return this.options.indexOf(this._cv)}};
 }
 
@@ -215,10 +257,16 @@ function qSpanMeaning(){
 }
 
 function qCoordVector(){
-  return{topic:'coord',text:'Si B = {v₁, v₂} es base de V y u = 3v₁ − 2v₂, entonces [u]<sub>B</sub> =',
-    options:shuffle(['(3, −2)','(−2, 3)','(3, 2)','(v₁, v₂)']),
-    correct:null,_cv:'(3, −2)',
-    explanation:'El vector de coordenadas [u]_B contiene los coeficientes de u en la base B. Como u = 3v₁ + (−2)v₂, entonces [u]_B = (3, −2).',
+  const c1=pick([3,rFrac(),rNZ(-3,3),1/2,-1/2,2/3]);
+  const c2=pick([-2,rFrac(),rNZ(-3,3),-3/4,1/3,-1/2]);
+  const cv=`(${fmtNum(c1)}, ${fmtNum(c2)})`;
+  // Generate plausible wrong answers
+  const w1=`(${fmtNum(c2)}, ${fmtNum(c1)})`;
+  const w2=`(${fmtNum(Math.abs(c1))}, ${fmtNum(Math.abs(c2))})`;
+  const w3=`(v₁, v₂)`;
+  return{topic:'coord',text:`Si B = {v₁, v₂} es base de V y u = ${fmtNum(c1)}v₁ ${c2>=0?'+ '+fmtNum(c2):'− '+fmtNum(Math.abs(c2))}v₂, entonces [u]<sub>B</sub> =`,
+    options:shuffle([cv,w1,w2,w3]),correct:null,_cv:cv,
+    explanation:`El vector de coordenadas [u]_B contiene los coeficientes de u en la base B. Como u = ${fmtNum(c1)}v₁ + (${fmtNum(c2)})v₂, entonces [u]_B = ${cv}.`,
     get correct(){return this.options.indexOf(this._cv)}};
 }
 
@@ -238,8 +286,60 @@ function qRowSpaceDim(){
     get correct(){return this.options.indexOf(this._cv)}};
 }
 
+// ---- FRACTION-BASED QUESTIONS ----
+function qLinCombFrac(){
+  // Generate u, v linearly independent, then w = c1*u + c2*v with fraction coefficients
+  const c1=pick([1/2,-1/2,1/3,2/3,3/4,1/4,-3/4]);
+  const c2=pick([1/2,-1/2,1/3,-2/3,3/4,-1/4,2]);
+  const u=[rNZ(-2,2),rNZ(-2,2)];
+  const v=[rNZ(-2,2),rNZ(-2,2)];
+  // Ensure LI
+  if(Math.abs(u[0]*v[1]-u[1]*v[0])<0.01){v[0]+=1;}
+  const w=[c1*u[0]+c2*v[0], c1*u[1]+c2*v[1]];
+  return{topic:'gen',text:`Si u = <span class="mono">${vStr(u)}</span> y v = <span class="mono">${vStr(v)}</span>, ¿cuáles coeficientes dan w = <span class="mono">${vStr(w)}</span> = c₁u + c₂v?`,
+    options:shuffle([
+      `c₁ = ${fmtNum(c1)}, c₂ = ${fmtNum(c2)}`,
+      `c₁ = ${fmtNum(c2)}, c₂ = ${fmtNum(c1)}`,
+      `c₁ = ${fmtNum(-c1)}, c₂ = ${fmtNum(-c2)}`,
+      `c₁ = ${fmtNum(c1+1)}, c₂ = ${fmtNum(c2-1)}`
+    ]),
+    correct:null,_cv:`c₁ = ${fmtNum(c1)}, c₂ = ${fmtNum(c2)}`,
+    explanation:`w = ${fmtNum(c1)}·${vStr(u)} + ${fmtNum(c2)}·${vStr(v)} = (${fmtNum(c1*u[0])}+${fmtNum(c2*v[0])}, ${fmtNum(c1*u[1])}+${fmtNum(c2*v[1])}) = ${vStr(w)}.`,
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
+function qSubMember(){
+  // "Does this vector with fractions belong to this subspace?"
+  const sets=[
+    {sub:'W = {(x, y) : y = 2x}', test:[1/2,1], inside:true, why:'y = 2x → 1 = 2(1/2) ✓'},
+    {sub:'W = {(x, y) : y = 2x}', test:[3/4,1], inside:false, why:'y = 2x → 1 ≠ 2(3/4) = 3/2'},
+    {sub:'W = {(x, y, z) : x + y + z = 0}', test:[1/2,-1/4,-1/4], inside:true, why:'1/2 + (-1/4) + (-1/4) = 0 ✓'},
+    {sub:'W = {(x, y, z) : x + y + z = 0}', test:[1/3,1/3,1/3], inside:false, why:'1/3 + 1/3 + 1/3 = 1 ≠ 0'},
+    {sub:'W = {(x, y) : 3x − y = 0}', test:[1/3,1], inside:true, why:'3(1/3) − 1 = 0 ✓'},
+    {sub:'W = {(x, y) : 3x − y = 0}', test:[1/2,1], inside:false, why:'3(1/2) − 1 = 1/2 ≠ 0'},
+  ];
+  const s=pick(sets);
+  const yesNo=s.inside?'Sí, pertenece a W':'No, no pertenece a W';
+  return{topic:'sub',text:`¿Pertenece el vector <span class="mono">${vStr(s.test)}</span> al subespacio <span class="mono">${s.sub}</span>?`,
+    options:shuffle(['Sí, pertenece a W','No, no pertenece a W']),correct:null,_cv:yesNo,
+    explanation:s.why,
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
+function qScaleFrac(){
+  // "If v is in W, is kv in W?" with fraction scalar
+  const k=pick([1/2,-3/4,2/3,5/2,-1/3]);
+  const v=[rNZ(-2,2),rNZ(-2,2)];
+  const kv=[k*v[0],k*v[1]];
+  return{topic:'sub',text:`Si W es un subespacio y v = <span class="mono">${vStr(v)}</span> ∈ W, ¿pertenece <span class="mono">${fmtNum(k)}·v = ${vStr(kv)}</span> a W?`,
+    options:shuffle(['Sí, por cerradura bajo multiplicación escalar','No, las fracciones sacan al vector de W','Solo si k es entero','Depende del subespacio']),
+    correct:null,_cv:'Sí, por cerradura bajo multiplicación escalar',
+    explanation:`Si W es subespacio y v ∈ W, entonces kv ∈ W para todo escalar k ∈ ℝ, incluyendo k = ${fmtNum(k)}. Esto es la cerradura bajo multiplicación escalar.`,
+    get correct(){return this.options.indexOf(this._cv)}};
+}
+
 // ---- BUILD QUIZ ----
-const ALL=[qSubYes,qSubNo,qSubTest,qLIvectors,qLIvectorsTrue,qLIzero,qDimRn,qDimMat,qDimPn,qBaseConditions,qBaseSizeTheorem,qMoreThanDim,qFewerThanDim,qEVexample,qCanonicalBase,qSpanMeaning,qCoordVector,qSubspaceZero,qRowSpaceDim];
+const ALL=[qSubYes,qSubNo,qSubTest,qLIvectors,qLIvectorsTrue,qLIzero,qDimRn,qDimMat,qDimPn,qBaseConditions,qBaseSizeTheorem,qMoreThanDim,qFewerThanDim,qEVexample,qCanonicalBase,qSpanMeaning,qCoordVector,qSubspaceZero,qRowSpaceDim,qLinCombFrac,qSubMember,qScaleFrac];
 
 function buildQuiz(){
   questions=shuffle(ALL).slice(0,TOTAL).map(gen=>{
