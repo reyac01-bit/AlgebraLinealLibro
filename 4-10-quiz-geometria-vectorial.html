@@ -69,21 +69,38 @@ function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
 function pick(a){return a[ri(0,a.length-1)];}
 function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=ri(0,i);[r[i],r[j]]=[r[j],r[i]];}return r;}
 function r2(x){return Math.round(x*100)/100;}
+
+// ---- FRACTION DISPLAY ----
+function _gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a;}
+function fmtNum(val){
+  if(val==null||isNaN(val))return'0';
+  if(Number.isInteger(val))return String(val);
+  for(let d=2;d<=12;d++){const n=val*d;if(Math.abs(n-Math.round(n))<1e-9){const num=Math.round(n),g=_gcd(Math.abs(num),d),rn=num/g,rd=d/g;if(rd===1)return String(rn);return`${rn}/${rd}`;}}
+  return val.toFixed(3).replace(/0+$/,'').replace(/\.$/,'');
+}
+
 function dot(u,v){let s=0;for(let i=0;i<u.length;i++)s+=u[i]*v[i];return s;}
 function norm(u){return Math.sqrt(dot(u,u));}
 function cross(u,v){return[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];}
-function vStr(v){return`(${v.map(r2).join(', ')})`;}
+function vStr(v){return`(${v.map(x=>fmtNum(x)).join(', ')})`;}
+
+// Random fraction utils
+function rFrac(){const den=pick([2,3,4]);let num;do{num=ri(-4,4);}while(num===0);return num/den;}
+function rNZ(a,b){let v;do{v=ri(a,b);}while(v===0);return v;}
+function rComp(){return Math.random()<0.5?rNZ(-3,3):rFrac();}
 
 const TOPICS={dot:{label:'Producto Punto',color:'#2980B9'},norm:{label:'Norma',color:'#E67E22'},angle:{label:'Ángulo',color:'#8E44AD'},orth:{label:'Ortogonalidad',color:'#16A085'},proj:{label:'Proyección',color:'#C0392B'},cross:{label:'Producto Cruz',color:'#2C3E50'},area:{label:'Área/Volumen',color:'#D35400'},dep:{label:'Dependencia Lineal',color:'#7D3C98'}};
 
 // ---- QUESTION GENERATORS ----
 function qDotProduct(){
-  const u=[ri(-4,4),ri(-4,4),ri(-4,4)],v=[ri(-4,4),ri(-4,4),ri(-4,4)];
+  const useFrac=Math.random()<0.4;
+  const u=useFrac?[rComp(),rComp(),rNZ(-3,3)]:[ri(-4,4),ri(-4,4),ri(-4,4)];
+  const v=useFrac?[rNZ(-3,3),rComp(),rComp()]:[ri(-4,4),ri(-4,4),ri(-4,4)];
   const d=dot(u,v);
   const wrongs=new Set();while(wrongs.size<3){const w=d+pick([-5,-3,-2,-1,1,2,3,5]);if(w!==d)wrongs.add(w);}
-  const opts=shuffle([d,...wrongs]);
-  return{topic:'dot',text:`Calcule u · v donde u = ${vStr(u)} y v = ${vStr(v)}`,options:opts.map(String),correct:opts.indexOf(d),
-    explanation:`u · v = ${u.map((x,i)=>`(${x})(${v[i]})`).join(' + ')} = ${d}`};
+  const opts=shuffle([fmtNum(d),...[...wrongs].map(w=>fmtNum(w))]);
+  return{topic:'dot',text:`Calcule u · v donde u = ${vStr(u)} y v = ${vStr(v)}`,options:opts,correct:opts.indexOf(fmtNum(d)),
+    explanation:`u · v = ${u.map((x,i)=>`(${fmtNum(x)})(${fmtNum(v[i])})`).join(' + ')} = ${fmtNum(d)}`};
 }
 
 function qNorm(){
@@ -137,12 +154,12 @@ function qOrthDesigned(){
 function qProjection(){
   const u=[ri(1,4),ri(-3,3)],v=[ri(1,4),0];
   const d=dot(u,v),nv2=dot(v,v);
-  const t=d/nv2;const proj=v.map(x=>r2(x*t));
-  const correct=`(${proj.join(', ')})`;
-  const wrongs=[`(${u.join(', ')})`,`(${v.join(', ')})`,`(${v.map(x=>r2(x*d)).join(', ')})`];
+  const t=d/nv2;const proj=v.map(x=>x*t);
+  const correct=vStr(proj);
+  const wrongs=[vStr(u),vStr(v),vStr(v.map(x=>x*d))];
   const opts=shuffle([correct,...wrongs.filter(w=>w!==correct).slice(0,3)]);
   return{topic:'proj',text:`Calcule Proy<sub>v</sub>u donde u = ${vStr(u)} y v = ${vStr(v)}`,options:opts,correct:opts.indexOf(correct),
-    explanation:`t = (u·v)/(‖v‖²) = ${d}/${nv2} = ${r2(t)}. Proy = t·v = ${correct}`};
+    explanation:`t = (u·v)/(‖v‖²) = ${fmtNum(d)}/${fmtNum(nv2)} = ${fmtNum(t)}. Proy = t·v = ${correct}`};
 }
 
 function qCrossProduct(){
@@ -182,25 +199,35 @@ function qAreaParallelogram(){
 }
 
 function qLinDep2(){
-  const u=[ri(1,4),ri(-3,3)];const k=pick([-3,-2,2,3]);const v=u.map(x=>x*k);
-  return{topic:'dep',text:`¿Son linealmente dependientes u = ${vStr(u)} y v = ${vStr(v)}?`,
+  const useFrac=Math.random()<0.5;
+  const u=[ri(1,4),ri(-3,3)];
+  const k=useFrac?pick([1/2,-1/2,3/2,-3/2,2/3,-2/3]):pick([-3,-2,2,3]);
+  const v=u.map(x=>x*k);
+  return{topic:'dep',text:`¿Son linealmente dependientes u = <span class="mono">${vStr(u)}</span> y v = <span class="mono">${vStr(v)}</span>?`,
     options:['Sí, son LD (dependientes)','No, son LI (independientes)'],correct:0,
-    explanation:`v = ${k}u, por lo tanto son linealmente dependientes (uno es múltiplo del otro).`};
+    explanation:`v = ${fmtNum(k)}·u, por lo tanto son linealmente dependientes (uno es múltiplo escalar del otro).`};
 }
 
 function qLinIndep2(){
-  let u,v;do{u=[ri(-3,3),ri(-3,3)];v=[ri(-3,3),ri(-3,3)];}while(u[0]*v[1]-u[1]*v[0]===0);
-  const d=u[0]*v[1]-u[1]*v[0];
-  return{topic:'dep',text:`¿Son linealmente independientes u = ${vStr(u)} y v = ${vStr(v)}?`,
+  let u,v,d;
+  do{u=[rComp(),rComp()];v=[rComp(),rComp()];d=u[0]*v[1]-u[1]*v[0];}while(Math.abs(d)<0.01);
+  return{topic:'dep',text:`¿Son linealmente independientes u = <span class="mono">${vStr(u)}</span> y v = <span class="mono">${vStr(v)}</span>?`,
     options:['Sí, son LI (independientes)','No, son LD (dependientes)'],correct:0,
-    explanation:`det[u|v] = (${u[0]})(${v[1]}) - (${u[1]})(${v[0]}) = ${d} ≠ 0, por lo tanto son LI.`};
+    explanation:`det[u|v] = (${fmtNum(u[0])})(${fmtNum(v[1])}) − (${fmtNum(u[1])})(${fmtNum(v[0])}) = ${fmtNum(d)} ≠ 0, por lo tanto son LI.`};
 }
 
 function qNormUnit(){
-  const u=[3,4];const n=5;
-  return{topic:'norm',text:`Si u = (3, 4), ¿cuál es el vector unitario en la dirección de u?`,
-    options:shuffle(['(3/5, 4/5)','(3, 4)','(1, 1)','(4/5, 3/5)']),correct:null,_correctVal:'(3/5, 4/5)',
-    explanation:`û = u/‖u‖ = (3,4)/5 = (3/5, 4/5). Se verifica: ‖û‖ = √(9/25 + 16/25) = 1.`,
+  // Pythagorean triples for clean unit vector fractions
+  const triples=[[3,4,5],[5,12,13],[8,15,17],[1,0,1]];
+  const t=pick(triples);
+  const s=pick([1,-1]);const u=[t[0]*s,t[1]*pick([1,-1])];const n=t[2];
+  const cv=`(${fmtNum(u[0]/n)}, ${fmtNum(u[1]/n)})`;
+  const w1=`(${fmtNum(u[1]/n)}, ${fmtNum(u[0]/n)})`;
+  const w2=vStr(u);
+  const w3=`(1, 1)`;
+  return{topic:'norm',text:`Si u = ${vStr(u)}, ¿cuál es el vector unitario û en la dirección de u?`,
+    options:shuffle([cv,w1,w2,w3]),correct:null,_correctVal:cv,
+    explanation:`û = u/‖u‖ = ${vStr(u)}/${n} = ${cv}. Se verifica: ‖û‖ = 1.`,
     get correct(){return this.options.indexOf(this._correctVal)}};
 }
 
@@ -233,8 +260,47 @@ function qProjFormula(){
     get correct(){return this.options.indexOf(this._correctVal)}};
 }
 
+// ---- FRACTION-ENRICHED QUESTIONS ----
+function qDotFrac(){
+  const u=[rFrac(),rNZ(-3,3)], v=[rNZ(-3,3),rFrac()];
+  const d=dot(u,v);
+  const wrongs=new Set();while(wrongs.size<3){const off=pick([-2,-1,1,2,0.5,-0.5]);const w=d+off;if(Math.abs(w-d)>0.01)wrongs.add(w);}
+  const opts=shuffle([fmtNum(d),...[...wrongs].map(w=>fmtNum(w))]);
+  return{topic:'dot',text:`Calcule u · v donde u = <span class="mono">${vStr(u)}</span> y v = <span class="mono">${vStr(v)}</span>`,options:opts,correct:opts.indexOf(fmtNum(d)),
+    explanation:`u · v = (${fmtNum(u[0])})(${fmtNum(v[0])}) + (${fmtNum(u[1])})(${fmtNum(v[1])}) = ${fmtNum(u[0]*v[0])} + ${fmtNum(u[1]*v[1])} = ${fmtNum(d)}`};
+}
+
+function qProjFrac(){
+  // Projection onto a simple axis-aligned vector to get clean fraction result
+  const a=rNZ(1,4), b=rNZ(-3,3);
+  const u=[a,b], v=[rNZ(1,3),0]; // v along x-axis for clean fractions
+  const d=dot(u,v), nv2=dot(v,v);
+  const t=d/nv2; const proj=v.map(x=>x*t);
+  const cv=vStr(proj);
+  const w1=vStr(u); const w2=vStr(v);
+  const w3=vStr(proj.map(x=>-x));
+  const opts=shuffle([cv,w1,w2,w3].filter((v,i,a)=>a.indexOf(v)===i).slice(0,4));
+  return{topic:'proj',text:`Calcule Proy<sub>v</sub>u donde u = <span class="mono">${vStr(u)}</span> y v = <span class="mono">${vStr(v)}</span>`,
+    options:opts,correct:opts.indexOf(cv),
+    explanation:`t = (u·v)/(‖v‖²) = ${fmtNum(d)}/${fmtNum(nv2)} = ${fmtNum(t)}. Proy = ${fmtNum(t)}·${vStr(v)} = ${cv}`};
+}
+
+function qScalarMultFrac(){
+  const k=pick([1/2,-1/2,1/3,2/3,3/4,-3/4,3/2]);
+  const v=[rNZ(-4,4),rNZ(-4,4)];
+  const kv=[k*v[0],k*v[1]];
+  const cv=vStr(kv);
+  const w1=vStr(v);
+  const w2=vStr(kv.map(x=>-x));
+  const w3=vStr([kv[0]+1,kv[1]-1]);
+  const opts=shuffle([cv,w1,w2,w3].filter((v,i,a)=>a.indexOf(v)===i).slice(0,4));
+  return{topic:'norm',text:`Si v = <span class="mono">${vStr(v)}</span>, ¿cuánto es <span class="mono">${fmtNum(k)}·v</span>?`,
+    options:opts,correct:opts.indexOf(cv),
+    explanation:`${fmtNum(k)}·${vStr(v)} = (${fmtNum(k)}·${fmtNum(v[0])}, ${fmtNum(k)}·${fmtNum(v[1])}) = ${cv}`};
+}
+
 // ---- BUILD QUIZ ----
-const ALL=[qDotProduct,qNorm,qAngle90,qAngle0or180,qOrthogonal,qOrthDesigned,qProjection,qCrossProduct,qCrossPerp,qCrossAnticomm,qAreaParallelogram,qLinDep2,qLinIndep2,qNormUnit,qDotZero,qCauchySchwarz,qTripleProduct,qProjFormula];
+const ALL=[qDotProduct,qNorm,qAngle90,qAngle0or180,qOrthogonal,qOrthDesigned,qProjection,qCrossProduct,qCrossPerp,qCrossAnticomm,qAreaParallelogram,qLinDep2,qLinIndep2,qNormUnit,qDotZero,qCauchySchwarz,qTripleProduct,qProjFormula,qDotFrac,qProjFrac,qScalarMultFrac];
 
 function buildQuiz(){
   questions=shuffle(ALL).slice(0,TOTAL).map(gen=>{
