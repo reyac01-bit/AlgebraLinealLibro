@@ -38,7 +38,11 @@
   .slider-row{display:flex;align-items:center;gap:0.35rem;margin-bottom:0.3rem;}
   .slider-row label{font-family:var(--font-mono);font-size:0.78rem;font-weight:600;min-width:1.6rem;text-align:right;color:var(--text-secondary);}
   .slider-row input[type="range"]{flex:1;accent-color:var(--navy);height:4px;}
-  .slider-row .sv{font-family:var(--font-mono);font-size:0.78rem;font-weight:600;color:var(--navy);min-width:2.2rem;text-align:left;}
+  .slider-row .sv{font-family:var(--font-mono);font-size:0.78rem;font-weight:600;color:var(--navy);min-width:2.2rem;text-align:center;width:3.2rem;border:1px solid var(--border);border-radius:4px;padding:0.1rem 0.15rem;background:#fff;transition:var(--transition);}
+  .slider-row .sv:focus{outline:none;border-color:var(--gmitblue);box-shadow:0 0 0 2px rgba(90,138,168,0.15);}
+  .slider-row .sv.invalid{border-color:var(--brick);box-shadow:0 0 0 2px rgba(178,34,34,0.12);background:rgba(178,34,34,0.03);}
+  .frac-hint{font-size:0.62rem;color:var(--text-muted);padding:0.15rem 0.4rem;background:var(--surface-alt);border-radius:4px;border:1px dashed var(--border);line-height:1.4;margin-bottom:0.4rem;}
+  .frac-hint code{font-family:var(--font-mono);background:rgba(90,138,168,0.1);padding:0.05em 0.2em;border-radius:3px;font-size:0.65rem;}
   /* Classification badge */
   .class-badge{display:inline-block;padding:0.25em 0.8em;border-radius:20px;font-weight:700;font-size:0.85rem;font-family:var(--font-mono);}
   .class-badge.unique{background:rgba(34,139,34,0.12);color:var(--forest);}
@@ -72,16 +76,17 @@
       <div class="panel-body">
         <div class="eq-panel">
           <div class="eq-label" style="color:var(--line1);">a₁x + b₁y = c₁</div>
-          <div class="slider-row"><label>a₁</label><input type="range" id="a1" min="-5" max="5" step="0.1" value="3" oninput="upd()"><span class="sv" id="va1">3.0</span></div>
-          <div class="slider-row"><label>b₁</label><input type="range" id="b1" min="-5" max="5" step="0.1" value="2" oninput="upd()"><span class="sv" id="vb1">2.0</span></div>
-          <div class="slider-row"><label>c₁</label><input type="range" id="c1" min="-10" max="10" step="0.1" value="1" oninput="upd()"><span class="sv" id="vc1">1.0</span></div>
+          <div class="frac-hint">Fracciones: <code>1/2</code> <code>-3/4</code></div>
+          <div class="slider-row"><label>a₁</label><input type="range" id="a1" min="-5" max="5" step="0.1" value="3" oninput="upd()"><input type="text" class="sv" id="va1" value="3" oninput="onSvInput('a1','va1')" onfocus="this.select()"></div>
+          <div class="slider-row"><label>b₁</label><input type="range" id="b1" min="-5" max="5" step="0.1" value="2" oninput="upd()"><input type="text" class="sv" id="vb1" value="2" oninput="onSvInput('b1','vb1')" onfocus="this.select()"></div>
+          <div class="slider-row"><label>c₁</label><input type="range" id="c1" min="-10" max="10" step="0.1" value="1" oninput="upd()"><input type="text" class="sv" id="vc1" value="1" oninput="onSvInput('c1','vc1')" onfocus="this.select()"></div>
         </div>
         <!-- Equation 2 -->
         <div class="eq-panel eq2" style="margin-top:0.6rem;">
           <div class="eq-label" style="color:var(--line2);">a₂x + b₂y = c₂</div>
-          <div class="slider-row"><label>a₂</label><input type="range" id="a2" min="-5" max="5" step="0.1" value="1" oninput="upd()"><span class="sv" id="va2">1.0</span></div>
-          <div class="slider-row"><label>b₂</label><input type="range" id="b2" min="-5" max="5" step="0.1" value="-1" oninput="upd()"><span class="sv" id="vb2">-1.0</span></div>
-          <div class="slider-row"><label>c₂</label><input type="range" id="c2" min="-10" max="10" step="0.1" value="2" oninput="upd()"><span class="sv" id="vc2">2.0</span></div>
+          <div class="slider-row"><label>a₂</label><input type="range" id="a2" min="-5" max="5" step="0.1" value="1" oninput="upd()"><input type="text" class="sv" id="va2" value="1" oninput="onSvInput('a2','va2')" onfocus="this.select()"></div>
+          <div class="slider-row"><label>b₂</label><input type="range" id="b2" min="-5" max="5" step="0.1" value="-1" oninput="upd()"><input type="text" class="sv" id="vb2" value="-1" oninput="onSvInput('b2','vb2')" onfocus="this.select()"></div>
+          <div class="slider-row"><label>c₂</label><input type="range" id="c2" min="-10" max="10" step="0.1" value="2" oninput="upd()"><input type="text" class="sv" id="vc2" value="2" oninput="onSvInput('c2','vc2')" onfocus="this.select()"></div>
         </div>
       </div>
     </div>
@@ -110,6 +115,15 @@
 <script>
 let canvas,ctx,W,H,sc=45,ox,oy;
 
+// ---- FRACTION SUPPORT ----
+function parseFrac(str){if(str==null)return 0;str=String(str).trim().replace(/\s/g,'').replace(/−/g,'-');if(str===''||str==='-')return 0;const m=str.match(/^(-?\d+)\/(-?\d+)$/);if(m){const n=parseInt(m[1],10),d=parseInt(m[2],10);if(d===0)return NaN;return n/d;}const v=parseFloat(str);return isNaN(v)?NaN:v;}
+function _gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a;}
+function fmtNum(val){if(val==null||isNaN(val))return'0';if(Number.isInteger(val))return String(val);for(let d=2;d<=12;d++){const n=val*d;if(Math.abs(n-Math.round(n))<1e-9){const num=Math.round(n),g=_gcd(Math.abs(num),d),rn=num/g,rd=d/g;if(rd===1)return String(rn);return`${rn}/${rd}`;}}return val.toFixed(2).replace(/0+$/,'').replace(/\.$/,'');}
+function fmtInput(val){if(val==null||isNaN(val))return'0';if(Number.isInteger(val))return String(val);for(let d=2;d<=12;d++){const n=val*d;if(Math.abs(n-Math.round(n))<1e-9){const num=Math.round(n),g=_gcd(Math.abs(num),d),rn=num/g,rd=d/g;if(rd===1)return String(rn);return`${rn}/${rd}`;}}return String(parseFloat(val.toFixed(4)));}
+
+const SLIDER_IDS=['a1','b1','c1','a2','b2','c2'];
+const VAL_IDS=['va1','vb1','vc1','va2','vb2','vc2'];
+
 const PRESETS=[
   {name:'Libro §1.1: 3x+2y=1, x-y=2',a1:3,b1:2,c1:1,a2:1,b2:-1,c2:2,desc:'S={(1,-1)}'},
   {name:'Libro §1.1: 3x+y=26, -x-3y=-14',a1:3,b1:1,c1:26,a2:-1,b2:-3,c2:-14,desc:'S={(8,2)}'},
@@ -129,17 +143,43 @@ function resize(){const w=document.getElementById('canvasWrap'),r=w.getBoundingC
 function buildPresets(){const g=document.getElementById('presets');PRESETS.forEach((p,i)=>{const b=document.createElement('button');b.className='preset-pill';b.textContent=p.name;b.onclick=()=>loadPreset(i);g.appendChild(b);});}
 
 function loadPreset(i){const p=PRESETS[i];
-  [['a1',p.a1],['b1',p.b1],['c1',p.c1],['a2',p.a2],['b2',p.b2],['c2',p.c2]].forEach(([id,v])=>document.getElementById(id).value=v);
+  [['a1',p.a1],['b1',p.b1],['c1',p.c1],['a2',p.a2],['b2',p.b2],['c2',p.c2]].forEach(([id,v])=>{
+    document.getElementById(id).value=v;
+    document.getElementById('v'+id).value=fmtInput(v);
+    document.getElementById('v'+id).classList.remove('invalid');
+  });
   document.querySelectorAll('.preset-pill').forEach((b,j)=>b.classList.toggle('active',j===i));
-  upd();
+  draw();
 }
 
-function gv(id){return parseFloat(document.getElementById(id).value)||0;}
-function r2(x){return Math.round(x*100)/100;}
+function gv(id){
+  const idx=SLIDER_IDS.indexOf(id);
+  const valEl=document.getElementById(VAL_IDS[idx]);
+  const v=parseFrac(valEl.value);
+  return isNaN(v)?0:v;
+}
+function r2(x){return fmtNum(x);}
 function toS(x,y){return[ox+x*sc,oy-y*sc];}
 
 function upd(){
-  ['a1','b1','c1','a2','b2','c2'].forEach(id=>{document.getElementById('v'+id).textContent=gv(id).toFixed(1);});
+  SLIDER_IDS.forEach((id,i)=>{
+    const val=parseFloat(document.getElementById(id).value);
+    const el=document.getElementById(VAL_IDS[i]);
+    el.value=fmtInput(val);
+    el.classList.remove('invalid');
+  });
+  draw();
+}
+
+function onSvInput(sliderId,valId){
+  const el=document.getElementById(valId);
+  const v=parseFrac(el.value);
+  if(isNaN(v)){el.classList.add('invalid');return;}
+  el.classList.remove('invalid');
+  const slider=document.getElementById(sliderId);
+  const min=parseFloat(slider.min),max=parseFloat(slider.max);
+  slider.value=Math.max(min,Math.min(max,v));
+  document.querySelectorAll('.preset-pill').forEach(b=>b.classList.remove('active'));
   draw();
 }
 
