@@ -133,7 +133,10 @@ function loadPreset(i){vecU={x:PRESETS[i].u[0],y:PRESETS[i].u[1]};vecV={x:PRESET
 
 function swapVectors(){const t={...vecU};vecU={...vecV};vecV=t;draw();}
 
-function r2(x){return Math.round(x*100)/100;}
+// ---- FRACTION DISPLAY ----
+function _gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a;}
+function fmtNum(val){if(val==null||isNaN(val))return'0';if(Number.isInteger(val))return String(val);for(let d=2;d<=12;d++){const n=val*d;if(Math.abs(n-Math.round(n))<1e-9){const num=Math.round(n),g=_gcd(Math.abs(num),d),rn=num/g,rd=d/g;if(rd===1)return String(rn);return\`\${rn}/\${rd}\`;}};return val.toFixed(3).replace(/0+$/,'').replace(/\.$/,'');}
+function r2(x){return fmtNum(x);}
 function toS(x,y){return[ox+x*sc,oy-y*sc];}
 function toW(sx,sy){return[(sx-ox)/sc,(oy-sy)/sc];}
 
