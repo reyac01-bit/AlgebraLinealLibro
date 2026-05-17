@@ -38,7 +38,7 @@
   .mmat-bk.left{border-left:2.5px solid var(--navy);border-top:2.5px solid var(--navy);border-bottom:2.5px solid var(--navy);border-radius:4px 0 0 4px;width:6px;}
   .mmat-bk.right{border-right:2.5px solid var(--navy);border-top:2.5px solid var(--navy);border-bottom:2.5px solid var(--navy);border-radius:0 4px 4px 0;width:6px;}
   .mmat-grid{display:inline-grid;gap:2px 6px;padding:4px 4px;}
-  .mmat-cell{text-align:center;min-width:26px;padding:1px 2px;border-radius:2px;}
+  .mmat-cell{text-align:center;min-width:30px;padding:1px 3px;border-radius:2px;}
   .mmat-cell.hl{background:rgba(90,138,168,0.15);font-weight:700;}
   .mmat-cell.changed{background:rgba(34,139,34,0.12);color:var(--forest);font-weight:700;}
   /* Options */
@@ -97,7 +97,18 @@ function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
 function pick(arr){return arr[ri(0,arr.length-1)];}
 function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=ri(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;}
 function r2(x){return Math.round(x*100)/100;}
-function fmtN(x){return Number.isInteger(x)?''+x:r2(x).toString();}
+
+// ---- FRACTION DISPLAY ----
+function _gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a;}
+function fmtNum(val){
+  if(val==null||isNaN(val))return'0';
+  if(Number.isInteger(val))return String(val);
+  for(let d=2;d<=12;d++){const n=val*d;if(Math.abs(n-Math.round(n))<1e-9){const num=Math.round(n),g=_gcd(Math.abs(num),d),rn=num/g,rd=d/g;if(rd===1)return String(rn);return`${rn}/${rd}`;}}
+  return val.toFixed(3).replace(/0+$/,'').replace(/\.$/,'');
+}
+function fmtN(x){return fmtNum(x);}
+function rFrac(){const den=pick([2,3,4]);let num;do{num=ri(-3,3);}while(num===0);return num/den;}
+function rComp(){return Math.random()<0.4?rFrac():ri(-4,4);}
 
 // ---- MATRIX HELPERS ----
 function randMat(rows,cols){const M=[];for(let i=0;i<rows;i++){const r=[];for(let j=0;j<cols;j++)r.push(ri(-5,5));M.push(r);}return M;}
@@ -138,7 +149,7 @@ function genIdentifyOp(){
     explanation=`Se multiplicó la fila ${r+1} por ${fmtN(k)}.`;
   } else {
     const target=ri(0,n-1);let src=ri(0,n-1);while(src===target)src=ri(0,n-1);
-    const k=pick([-3,-2,-1,1,2,3]);
+    const k=pick([-3,-2,-1,1,2,3,1/2,-1/2,1/3,-1/3]);
     B=addRows(A,target,src,k);
     correctAnswer=`f${target+1} → ${fmtN(k)}·f${src+1} + f${target+1}`;
     explanation=`Se sumó ${fmtN(k)} veces la fila ${src+1} a la fila ${target+1}.`;
@@ -148,8 +159,8 @@ function genIdentifyOp(){
   while(wrongs.size<3){
     const wt=ri(0,2);let w='';
     if(wt===0){const a=ri(1,n),b=ri(1,n);if(a!==b)w=`f${a} ↔ f${b}`;}
-    else if(wt===1){const r=ri(1,n),k=pick([-3,-2,2,3]);w=`f${r} → ${fmtN(k)}·f${r}`;}
-    else{const t=ri(1,n),s=ri(1,n),k=pick([-3,-2,-1,1,2,3]);if(t!==s)w=`f${t} → ${fmtN(k)}·f${s} + f${t}`;}
+    else if(wt===1){const r=ri(1,n),k=pick([-3,-2,2,3,1/2,-1/2]);w=`f${r} → ${fmtN(k)}·f${r}`;}
+    else{const t=ri(1,n),s=ri(1,n),k=pick([-3,-2,-1,1,2,3,1/2,-1/3]);if(t!==s)w=`f${t} → ${fmtN(k)}·f${s} + f${t}`;}
     if(w&&w!==correctAnswer)wrongs.add(w);
   }
   const options=shuffle([correctAnswer,...wrongs]);
@@ -172,11 +183,11 @@ function genApplyOp(){
     const r1=ri(0,n-1);let r2x=ri(0,n-1);while(r2x===r1)r2x=ri(0,n-1);
     B=swapRows(A,r1,r2x);opStr=`f${r1+1} ↔ f${r2x+1}`;
   } else if(opType===1){
-    const r=ri(0,n-1);const k=pick([-2,-1,2,3]);
+    const r=ri(0,n-1);const k=pick([-2,-1,2,3,1/2,-1/2,1/3]);
     B=scaleRow(A,r,k);opStr=`f${r+1} → ${fmtN(k)}·f${r+1}`;
   } else {
     const target=ri(0,n-1);let src=ri(0,n-1);while(src===target)src=ri(0,n-1);
-    const k=pick([-2,-1,1,2]);
+    const k=pick([-2,-1,1,2,1/2,-1/2,3/2]);
     B=addRows(A,target,src,k);opStr=`f${target+1} → ${fmtN(k)}·f${src+1} + f${target+1}`;
   }
   // Generate wrong results by applying different ops
@@ -184,8 +195,8 @@ function genApplyOp(){
   for(let w=0;w<3;w++){
     const wt=ri(0,2);let wm;
     if(wt===0){const a=ri(0,n-1),b=(a+1)%n;wm=swapRows(A,a,b);}
-    else if(wt===1){const r=ri(0,n-1),k=pick([-2,2,3]);wm=scaleRow(A,r,k);}
-    else{const t=ri(0,n-1),s=(t+1)%n,k=pick([-1,1,2]);wm=addRows(A,t,s,k);}
+    else if(wt===1){const r=ri(0,n-1),k=pick([-2,2,3,1/2,-1/2]);wm=scaleRow(A,r,k);}
+    else{const t=ri(0,n-1),s=(t+1)%n,k=pick([-1,1,2,1/2]);wm=addRows(A,t,s,k);}
     if(JSON.stringify(wm)!==JSON.stringify(B))wrongMats.push(wm);
   }
   while(wrongMats.length<3){
@@ -210,8 +221,8 @@ function genClassifyOp(){
   const opType=ri(0,2);
   const n=3;let opStr;
   if(opType===0){opStr=`f${ri(1,n)} ↔ f${ri(1,n)}`;}
-  else if(opType===1){opStr=`f${ri(1,n)} → ${pick([-3,-2,2,3,5])}·f${ri(1,n)}`;}
-  else{const t=ri(1,n),s=ri(1,n);opStr=`f${t} → ${pick([-2,-1,2,3])}·f${s!==t?s:((s%n)+1)} + f${t}`;}
+  else if(opType===1){opStr=`f${ri(1,n)} → ${fmtN(pick([-3,-2,2,3,1/2,-1/3,3/4]))}·f${ri(1,n)}`;}
+  else{const t=ri(1,n),s=ri(1,n);opStr=`f${t} → ${fmtN(pick([-2,-1,2,3,1/2,-1/2]))}·f${s!==t?s:((s%n)+1)} + f${t}`;}
   const correctAnswer=types[opType];
   const options=shuffle(types);
   return{
@@ -229,8 +240,8 @@ function genEchelonCheck(){
   if(isEchelon){
     const type=ri(0,2);
     if(type===0)M=[[1,ri(-3,3),ri(-3,3)],[0,1,ri(-3,3)],[0,0,0]];
-    else if(type===1)M=[[1,0,ri(-3,3)],[0,0,1],[0,0,0]];
-    else M=[[1,ri(-3,3)],[0,1]];
+    else if(type===1)M=[[1,0,pick([ri(-3,3),1/2,-1/3,3/4])],[0,0,1],[0,0,0]];
+    else M=[[1,pick([ri(-3,3),1/2,-3/4])],[0,1]];
     reason='Cumple las tres condiciones: pivotes son 1, están escalonados, y las filas nulas están al final.';
   } else {
     const type=ri(0,2);
