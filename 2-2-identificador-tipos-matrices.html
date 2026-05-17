@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Identificador de Tipos de Matrices — Álgebra Lineal</title>
+<style>
+  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#888;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
+  .lab-header{background:linear-gradient(135deg,var(--navy) 0%,var(--gmitblue) 100%);color:#fff;padding:0.7rem 1.5rem;position:relative;overflow:hidden;}
+  .lab-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none;}
+  .lab-header-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:0.8rem;position:relative;z-index:1;}
+  .lab-icon{width:38px;height:38px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+  .lab-header h1{font-family:var(--font-display);font-size:clamp(0.9rem,2vw,1.25rem);font-weight:700;line-height:1.2;}
+  .lab-subtitle{font-size:0.72rem;opacity:0.75;}
+  .lab-badge{display:inline-block;background:var(--brick);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15em 0.5em;border-radius:3px;letter-spacing:0.05em;text-transform:uppercase;margin-right:0.35rem;vertical-align:middle;}
+  .main{max-width:900px;margin:0 auto;padding:0.6rem 0.8rem 1.5rem;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:0.7rem;}
+  .panel-head{padding:0.5rem 0.9rem;font-family:var(--font-display);font-size:0.85rem;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.4rem;background:var(--surface-alt);flex-wrap:wrap;}
+  .panel-body{padding:0.7rem 0.9rem;}
+  .context-box{background:linear-gradient(135deg,var(--gmitblue-pale),rgba(90,138,168,0.04));border-left:3px solid var(--gmitblue);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:0.5rem 0.7rem;font-size:0.74rem;line-height:1.5;color:var(--text-secondary);margin-bottom:0.5rem;}.context-box strong{color:var(--navy);}
+  .size-row{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;font-size:0.8rem;}
+  .size-row label{font-weight:600;color:var(--text-secondary);}
+  .size-row select{padding:0.25rem 0.4rem;border:1px solid var(--border);border-radius:4px;font-family:var(--font-mono);font-size:0.82rem;background:#fff;}
+  .preset-scroll{display:flex;gap:0.25rem;flex-wrap:wrap;margin-bottom:0.5rem;}
+  .preset-pill{padding:0.22rem 0.5rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);cursor:pointer;transition:var(--transition);font-size:0.67rem;font-weight:600;white-space:nowrap;}
+  .preset-pill:hover{border-color:var(--navy);background:var(--gmitblue-pale);}
+  .preset-pill.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .mat-wrap{display:inline-flex;align-items:stretch;}.mat-bk{display:flex;flex-direction:column;justify-content:center;}
+  .mat-bk.left{border-left:2.5px solid var(--navy);border-top:2.5px solid var(--navy);border-bottom:2.5px solid var(--navy);border-radius:4px 0 0 4px;width:7px;}
+  .mat-bk.right{border-right:2.5px solid var(--navy);border-top:2.5px solid var(--navy);border-bottom:2.5px solid var(--navy);border-radius:0 4px 4px 0;width:7px;}
+  .mat-grid{display:grid;gap:3px;padding:4px 3px;}
+  .mat-grid input{width:56px;padding:0.3rem 0.15rem;border:1px solid var(--border);border-radius:3px;font-family:var(--font-mono);font-size:0.82rem;text-align:center;background:#fff;transition:var(--transition);}
+  .mat-grid input:focus{outline:none;border-color:var(--gmitblue);box-shadow:0 0 0 2px rgba(90,138,168,0.15);}
+  .btn{display:inline-flex;align-items:center;gap:0.3rem;padding:0.4rem 0.75rem;border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.78rem;font-weight:600;cursor:pointer;transition:var(--transition);}
+  .btn-primary{background:var(--forest);color:#fff;}.btn-primary:hover{background:#2eb82e;}
+  .btn-accent{background:var(--brick);color:#fff;}
+  .btn-row{display:flex;gap:0.4rem;flex-wrap:wrap;}
+  /* Property cards */
+  .props-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:0.5rem;}
+  .prop-card{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;transition:var(--transition);animation:propIn 0.3s ease;}
+  @keyframes propIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .prop-card.yes{border-color:rgba(34,139,34,0.4);background:rgba(34,139,34,0.03);}
+  .prop-card.no{border-color:var(--border);background:var(--surface);}
+  .prop-head{display:flex;align-items:center;gap:0.4rem;padding:0.45rem 0.65rem;border-bottom:1px solid var(--border);font-size:0.82rem;font-weight:700;}
+  .prop-head .badge{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:#fff;flex-shrink:0;}
+  .prop-head .badge.yes{background:var(--forest);}.prop-head .badge.no{background:var(--text-muted);}
+  .prop-body{padding:0.35rem 0.65rem;font-size:0.73rem;line-height:1.5;color:var(--text-secondary);}
+  .prop-body .def{font-family:var(--font-mono);font-size:0.72rem;color:var(--navy);margin-bottom:0.15rem;}
+  .prop-body .reason{font-style:italic;}
+  /* Summary tags */
+  .summary-tags{display:flex;flex-wrap:wrap;gap:0.3rem;margin-bottom:0.7rem;}
+  .stag{display:inline-flex;align-items:center;gap:0.25rem;padding:0.25rem 0.65rem;border-radius:20px;font-size:0.75rem;font-weight:700;}
+  .stag.yes{background:rgba(34,139,34,0.1);color:var(--forest);border:1px solid rgba(34,139,34,0.25);}
+  .stag.no-tag{display:none;}
+  .lab-footer{max-width:900px;margin:0 auto;padding:0.5rem 1rem;text-align:center;font-size:0.68rem;color:var(--text-muted);}
+  @media(max-width:600px){.main{padding:0.4rem;}.mat-grid input{width:42px;font-size:0.78rem;}.props-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">🏷️</div><div><h1><span class="lab-badge">Cap 2</span>Identificador de Tipos de Matrices</h1><div class="lab-subtitle">Verificador Interactivo · Matrices</div></div></div></header>
+<div class="main">
+  <div class="panel">
+    <div class="panel-head">📝 Ingresa una Matriz</div>
+    <div class="panel-body">
+      <div class="context-box">Ingresa cualquier matriz y el sistema verificará <strong>automáticamente</strong> todas las propiedades especiales definidas en el libro: identidad, diagonal, triangular, simétrica, antisimétrica, escalonada, idempotente, involutiva y más.</div>
+      <div class="preset-scroll" id="presets"></div>
+      <div class="size-row">
+        <label>Filas:</label><select id="selR" onchange="rebuild()"><option>2</option><option selected>3</option><option>4</option></select>
+        <label>Columnas:</label><select id="selC" onchange="rebuild()"><option>2</option><option selected>3</option><option>4</option></select>
+      </div>
+      <div style="overflow-x:auto;" id="matWrap"></div>
+      <div class="btn-row" style="margin-top:0.5rem;">
+        <button class="btn btn-primary" onclick="analyze()">▶ Identificar Tipo</button>
+        <button class="btn btn-accent" onclick="clearMat()">Limpiar</button>
+      </div>
+    </div>
+  </div>
+  <div id="resultArea"></div>
+</div>
+<footer class="lab-footer">Álgebra Lineal con Abordaje Tecnológico · Verificador 2.2 · Tipos de Matrices</footer>
+
+<script>
+let R=3,C=3;
+
+const PRESETS=[
+  {name:'Identidad 3×3',r:3,c:3,d:[[1,0,0],[0,1,0],[0,0,1]]},
+  {name:'Diagonal [2,0;0,3]',r:2,c:2,d:[[2,0],[0,3]]},
+  {name:'Libro: Triang. sup.',r:3,c:3,d:[[2,3,0],[0,4,5],[0,0,-1]]},
+  {name:'Libro: Triang. inf.',r:3,c:3,d:[[2,0,0],[-1,5,0],[4,6,8]]},
+  {name:'Simétrica',r:3,c:3,d:[[1,2,3],[2,4,5],[3,5,6]]},
+  {name:'Antisimétrica',r:3,c:3,d:[[0,2,-3],[-2,0,5],[3,-5,0]]},
+  {name:'Libro: Idempotente',r:2,c:2,d:[[1,1],[0,0]]},
+  {name:'Libro: Involutiva',r:2,c:2,d:[[1,-1],[0,-1]]},
+  {name:'Escalonada',r:3,c:3,d:[[1,2,0],[0,1,3],[0,0,0]]},
+  {name:'No cuadrada 2×3',r:2,c:3,d:[[1,2,3],[4,5,6]]},
+  {name:'Nula 2×2',r:2,c:2,d:[[0,0],[0,0]]},
+  {name:'Con fracciones [1/2, 3/4; -1/3, 2/5]',r:2,c:2,d:[['1/2','3/4'],['-1/3','2/5']]},
+  {name:'Inversa del libro [-5/2,-3/2;-2,-1]',r:2,c:2,d:[['-5/2','-3/2'],[-2,-1]]},
+];
+
+window.addEventListener('DOMContentLoaded',()=>{buildPresets();rebuild();loadPreset(0);});
+function buildPresets(){const g=document.getElementById('presets');PRESETS.forEach((p,i)=>{const b=document.createElement('button');b.className='preset-pill';b.textContent=p.name;b.onclick=()=>loadPreset(i);g.appendChild(b);});}
+function loadPreset(i){const p=PRESETS[i];document.getElementById('selR').value=p.r;document.getElementById('selC').value=p.c;R=p.r;C=p.c;rebuild();for(let r=0;r<p.r;r++)for(let c=0;c<p.c;c++){const el=document.getElementById(`m_${r}_${c}`);if(el)el.value=p.d[r][c];}document.querySelectorAll('.preset-pill').forEach((b,j)=>b.classList.toggle('active',j===i));document.getElementById('resultArea').innerHTML='';analyze();}
+function rebuild(){R=parseInt(document.getElementById('selR').value);C=parseInt(document.getElementById('selC').value);const w=document.getElementById('matWrap');let h=`<div class="mat-wrap"><div class="mat-bk left"></div><div class="mat-grid" style="grid-template-columns:repeat(${C},1fr);">`;for(let i=0;i<R;i++)for(let j=0;j<C;j++)h+=`<input type="text" id="m_${i}_${j}" value="0" inputmode="numeric" onfocus="this.select()">`;h+=`</div><div class="mat-bk right"></div></div>`;w.innerHTML=h;document.getElementById('resultArea').innerHTML='';}
+function clearMat(){for(let i=0;i<R;i++)for(let j=0;j<C;j++)document.getElementById(`m_${i}_${j}`).value=0;document.getElementById('resultArea').innerHTML='';}
+function parseFrac(s){
+  s=(s||'').toString().trim();if(!s||s==='0')return 0;
+  // Handle negative
+  const neg=s.startsWith('-');if(neg)s=s.substring(1).trim();
+  let val=0;
+  if(s.includes('/')){
+    const parts=s.split('/');
+    const num=parseFloat(parts[0])||0;const den=parseFloat(parts[1])||1;
+    val=den!==0?num/den:0;
+  } else {val=parseFloat(s)||0;}
+  return neg?-val:val;
+}
+function readMat(){const M=[];for(let i=0;i<R;i++){const r=[];for(let j=0;j<C;j++)r.push(parseFrac(document.getElementById(`m_${i}_${j}`).value));M.push(r);}return M;}
+function r2(x){return Math.round(x*1000)/1000;}
+function fmtVal(x){
+  if(Number.isInteger(x)||Math.abs(x-Math.round(x))<1e-9)return''+Math.round(x);
+  // Try common fractions
+  for(let d=2;d<=12;d++){const n=Math.round(x*d);if(Math.abs(n/d-x)<1e-9)return n+'/'+d;}
+  return r2(x).toString();
+}
+
+// Matrix ops
+function matMul(A,B){const m=A.length,n=B[0].length,p=A[0].length,R=[];for(let i=0;i<m;i++){const row=[];for(let j=0;j<n;j++){let s=0;for(let k=0;k<p;k++)s+=A[i][k]*B[k][j];row.push(s);}R.push(row);}return R;}
+function matT(A){const R=[];for(let j=0;j<A[0].length;j++){const row=[];for(let i=0;i<A.length;i++)row.push(A[i][j]);R.push(row);}return R;}
+function matEq(A,B){if(A.length!==B.length||A[0].length!==B[0].length)return false;for(let i=0;i<A.length;i++)for(let j=0;j<A[0].length;j++)if(Math.abs(A[i][j]-B[i][j])>1e-9)return false;return true;}
+function eye(n){return Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>i===j?1:0));}
+function matNeg(A){return A.map(r=>r.map(v=>-v));}
+function isZeroMat(A){return A.every(r=>r.every(v=>Math.abs(v)<1e-9));}
+
+// ---- PROPERTY CHECKS ----
+function checkAll(M){
+  const m=M.length,n=M[0].length;
+  const sq=m===n;
+  const props=[];
+
+  // 1. Cuadrada
+  props.push({name:'Cuadrada',def:`${m}×${n}`,yes:sq,reason:sq?`Es ${m}×${m}.`:`Es ${m}×${n}, no es cuadrada.`});
+
+  // 2. Nula
+  const isZero=isZeroMat(M);
+  props.push({name:'Nula (cero)',def:'Todas las entradas son 0',yes:isZero,reason:isZero?'Todas las entradas son 0.':'Tiene entradas no nulas.'});
+
+  // 3. Identidad
+  if(sq){const isId=matEq(M,eye(m));props.push({name:'Identidad',def:'A = Iₙ',yes:isId,reason:isId?`Es la identidad I${m}.`:'No coincide con Iₙ.'});}
+
+  // 4. Diagonal
+  if(sq){let isDiag=true,allDiagNonZero=true;for(let i=0;i<m;i++)for(let j=0;j<n;j++){if(i!==j&&Math.abs(M[i][j])>1e-9)isDiag=false;if(i===j&&Math.abs(M[i][j])<1e-9)allDiagNonZero=false;}
+    props.push({name:'Diagonal',def:'aᵢⱼ = 0 si i ≠ j',yes:isDiag&&allDiagNonZero,reason:isDiag?(allDiagNonZero?'Ceros fuera de la diagonal, diag. no nula.':'Ceros fuera de diagonal pero algún aᵢᵢ=0.'):'Tiene entradas no nulas fuera de la diagonal.'});}
+
+  // 5. Triangular superior
+  if(sq){let isUp=true;for(let i=1;i<m;i++)for(let j=0;j<i;j++)if(Math.abs(M[i][j])>1e-9)isUp=false;
+    props.push({name:'Triangular Superior',def:'aᵢⱼ = 0 si i > j',yes:isUp,reason:isUp?'Todas las entradas debajo de la diagonal son 0.':'Hay entradas no nulas debajo de la diagonal.'});}
+
+  // 6. Triangular inferior
+  if(sq){let isLow=true;for(let i=0;i<m;i++)for(let j=i+1;j<n;j++)if(Math.abs(M[i][j])>1e-9)isLow=false;
+    props.push({name:'Triangular Inferior',def:'aᵢⱼ = 0 si i < j',yes:isLow,reason:isLow?'Todas las entradas arriba de la diagonal son 0.':'Hay entradas no nulas arriba de la diagonal.'});}
+
+  // 7. Simétrica
+  if(sq){const T=matT(M);const isSym=matEq(M,T);
+    props.push({name:'Simétrica',def:'A = Aᵀ',yes:isSym,reason:isSym?'aᵢⱼ = aⱼᵢ para todo i,j.':'Existe algún par (i,j) donde aᵢⱼ ≠ aⱼᵢ.'});}
+
+  // 8. Antisimétrica
+  if(sq){const negT=matNeg(matT(M));const isAnti=matEq(M,negT);
+    props.push({name:'Antisimétrica',def:'A = −Aᵀ',yes:isAnti,reason:isAnti?'aᵢⱼ = −aⱼᵢ para todo i,j (diagonal es 0).':'No cumple A = −Aᵀ.'});}
+
+  // 9. Escalonada
+  {let isEch=true,lastPivot=-1,reason='';
+    for(let i=0;i<m;i++){let pivotJ=-1;for(let j=0;j<n;j++){if(Math.abs(M[i][j])>1e-9){pivotJ=j;break;}}
+      if(pivotJ===-1){for(let ii=i+1;ii<m;ii++){let hasNZ=false;for(let j=0;j<n;j++)if(Math.abs(M[ii][j])>1e-9)hasNZ=true;if(hasNZ){isEch=false;reason='Fila nula no está al final.';break;}}continue;}
+      if(Math.abs(M[i][pivotJ]-1)>1e-9){isEch=false;reason=`Pivote de fila ${i+1} no es 1 (es ${fmtVal(M[i][pivotJ])}).`;break;}
+      if(pivotJ<=lastPivot){isEch=false;reason=`Pivote de fila ${i+1} no está a la derecha del anterior.`;break;}
+      lastPivot=pivotJ;}
+    props.push({name:'Escalonada',def:'Pivotes son 1, escalonados, filas nulas al final',yes:isEch,reason:isEch?'Cumple las 3 condiciones de la Definición.':reason});}
+
+  // 10. Escalonada reducida
+  {let isRref=true,pivots=[];
+    for(let i=0;i<m;i++){let pj=-1;for(let j=0;j<n;j++){if(Math.abs(M[i][j])>1e-9){pj=j;break;}}if(pj===-1)continue;
+      if(Math.abs(M[i][pj]-1)>1e-9){isRref=false;break;}
+      for(let ii=0;ii<m;ii++){if(ii!==i&&Math.abs(M[ii][pj])>1e-9){isRref=false;break;}}
+      if(!isRref)break;if(pivots.length>0&&pj<=pivots[pivots.length-1]){isRref=false;break;}pivots.push(pj);}
+    props.push({name:'Escalonada Reducida',def:'Escalonada + única entrada no nula en columnas pivote',yes:isRref,reason:isRref?'Cumple: pivotes 1, escalonados, ceros arriba y abajo de cada pivote.':'No cumple todas las condiciones de escalonada reducida.'});}
+
+  // 11. Idempotente (A²=A)
+  if(sq){const A2=matMul(M,M);const isIdem=matEq(A2,M);
+    props.push({name:'Idempotente',def:'A² = A',yes:isIdem,reason:isIdem?'Se verificó: A·A = A.':'A² ≠ A.'});}
+
+  // 12. Involutiva (A²=I)
+  if(sq){const A2=matMul(M,M);const isInv=matEq(A2,eye(m));
+    props.push({name:'Involutiva',def:'A² = Iₙ',yes:isInv,reason:isInv?'Se verificó: A·A = I.':'A² ≠ I.'});}
+
+  // 13. Ortogonal (AᵀA=I)
+  if(sq){const AtA=matMul(matT(M),M);const isOrth=matEq(AtA,eye(m));
+    props.push({name:'Ortogonal',def:'AᵀA = Iₙ',yes:isOrth,reason:isOrth?'Se verificó: Aᵀ·A = I (columnas ortonormales).':'AᵀA ≠ I.'});}
+
+  // 14. Nilpotente (A^k=0 for some k≤n)
+  if(sq){let isNil=false,nilK=0;let Ak=M;for(let k=2;k<=m+1;k++){Ak=matMul(Ak,M);if(isZeroMat(Ak)){isNil=true;nilK=k;break;}}
+    props.push({name:'Nilpotente',def:'Aᵏ = 0 para algún k',yes:isNil,reason:isNil?`A${nilK>2?'⁺':'²'} = 0 (índice de nilpotencia = ${nilK}).`:`A^k ≠ 0 para k = 2,...,${m+1}.`});}
+
+  return props;
+}
+
+// ---- ANALYZE ----
+function analyze(){
+  const M=readMat();
+  const props=checkAll(M);
+  const yesProps=props.filter(p=>p.yes);
+
+  let html=`<div class="panel"><div class="panel-head">🏷️ Clasificación de la Matriz ${R}×${C}</div><div class="panel-body">`;
+
+  // Summary tags
+  html+=`<div class="summary-tags">`;
+  if(yesProps.length===0)html+=`<span class="stag yes">Ninguna propiedad especial</span>`;
+  else yesProps.forEach(p=>{html+=`<span class="stag yes">✓ ${p.name}</span>`;});
+  html+=`</div>`;
+
+  // Property cards
+  html+=`<div class="props-grid">`;
+  props.forEach((p,i)=>{
+    html+=`<div class="prop-card ${p.yes?'yes':'no'}" style="animation-delay:${i*0.04}s;">
+      <div class="prop-head"><span class="badge ${p.yes?'yes':'no'}">${p.yes?'✓':'✗'}</span>${p.name}</div>
+      <div class="prop-body"><div class="def">${p.def}</div><div class="reason">${p.reason}</div></div></div>`;
+  });
+  html+=`</div></div></div>`;
+
+  document.getElementById('resultArea').innerHTML=html;
+}
+</script>
+</body>
+</html>
