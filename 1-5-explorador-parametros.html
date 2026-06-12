@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Explorador de Sistemas con Parámetros — Álgebra Lineal</title>
+<style>
+  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#888;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
+  .lab-header{background:linear-gradient(135deg,var(--navy) 0%,var(--gmitblue) 100%);color:#fff;padding:0.7rem 1.5rem;position:relative;overflow:hidden;}
+  .lab-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none;}
+  .lab-header-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:0.8rem;position:relative;z-index:1;}
+  .lab-icon{width:38px;height:38px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+  .lab-header h1{font-family:var(--font-display);font-size:clamp(0.9rem,2vw,1.25rem);font-weight:700;line-height:1.2;}
+  .lab-subtitle{font-size:0.72rem;opacity:0.75;}
+  .lab-badge{display:inline-block;background:var(--brick);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15em 0.5em;border-radius:3px;letter-spacing:0.05em;text-transform:uppercase;margin-right:0.35rem;vertical-align:middle;}
+  .main{max-width:960px;margin:0 auto;padding:0.6rem 0.8rem 1.5rem;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:0.7rem;}
+  .panel-head{padding:0.5rem 0.9rem;font-family:var(--font-display);font-size:0.85rem;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.4rem;background:var(--surface-alt);flex-wrap:wrap;}
+  .panel-body{padding:0.7rem 0.9rem;}
+  .context-box{background:linear-gradient(135deg,var(--gmitblue-pale),rgba(90,138,168,0.04));border-left:3px solid var(--gmitblue);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:0.5rem 0.7rem;font-size:0.74rem;line-height:1.5;color:var(--text-secondary);margin-bottom:0.5rem;}.context-box strong{color:var(--navy);}
+  .preset-scroll{display:flex;gap:0.25rem;flex-wrap:wrap;margin-bottom:0.5rem;}
+  .preset-pill{padding:0.22rem 0.5rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);cursor:pointer;transition:var(--transition);font-size:0.67rem;font-weight:600;white-space:nowrap;}
+  .preset-pill:hover{border-color:var(--navy);background:var(--gmitblue-pale);}
+  .preset-pill.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .size-row{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;font-size:0.8rem;}
+  .size-row label{font-weight:600;color:var(--text-secondary);}
+  .size-row select{padding:0.25rem 0.4rem;border:1px solid var(--border);border-radius:4px;font-family:var(--font-mono);font-size:0.82rem;background:#fff;}
+  .grid-wrap{overflow-x:auto;padding:0.2rem 0;}
+  .coef-grid{display:inline-grid;gap:4px;align-items:center;}
+  .coef-grid input{width:84px;padding:0.3rem 0.3rem;border:1px solid var(--border);border-radius:3px;font-family:var(--font-mono);font-size:0.8rem;text-align:center;background:#fff;transition:var(--transition);}
+  .coef-grid input:focus{outline:none;border-color:var(--gmitblue);box-shadow:0 0 0 2px rgba(90,138,168,0.15);}
+  .coef-grid input.bcol{border-left:3px solid var(--gmitblue);}
+  .coef-grid .chead{font-family:var(--font-mono);font-size:0.68rem;color:var(--text-muted);text-align:center;}
+  .btn{display:inline-flex;align-items:center;gap:0.3rem;padding:0.4rem 0.75rem;border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.78rem;font-weight:600;cursor:pointer;transition:var(--transition);}
+  .btn-primary{background:var(--forest);color:#fff;}.btn-secondary{background:var(--gmitblue-pale);color:var(--gmitblue);border:1px solid rgba(90,138,168,0.3);}
+  .btn-accent{background:var(--brick);color:#fff;}
+  .btn-row{display:flex;gap:0.4rem;flex-wrap:wrap;}
+  /* sistema simbólico */
+  .sys-box{font-family:var(--font-mono);font-size:0.92rem;line-height:2;background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.6rem 1rem;display:inline-block;margin:0.3rem 0;}
+  /* explorador */
+  .kbar{display:flex;align-items:center;gap:0.7rem;flex-wrap:wrap;margin-bottom:0.4rem;}
+  .kval{font-family:var(--font-mono);font-weight:700;font-size:1.05rem;color:var(--navy);background:var(--gmitblue-pale);padding:0.15em 0.6em;border-radius:6px;min-width:90px;text-align:center;}
+  input[type=range]{flex:1;min-width:200px;accent-color:var(--navy);height:6px;}
+  #mapCv{width:100%;height:64px;display:block;background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);touch-action:none;cursor:pointer;}
+  .map-legend{display:flex;gap:0.8rem;flex-wrap:wrap;font-size:0.7rem;margin-top:0.3rem;font-family:var(--font-mono);}
+  .map-legend .dot{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:3px;vertical-align:middle;}
+  .crit-row{display:flex;gap:0.3rem;flex-wrap:wrap;margin-top:0.45rem;}
+  .crit-chip{font-family:var(--font-mono);font-size:0.7rem;font-weight:600;padding:0.2rem 0.55rem;border-radius:20px;border:1.5px solid;cursor:pointer;background:var(--surface);transition:var(--transition);}
+  .crit-chip:hover{transform:translateY(-1px);}
+  /* clasificación */
+  .result-box{border:2px solid;border-radius:var(--radius);padding:0.6rem 0.85rem;margin-top:0.55rem;}
+  .result-box.unica{border-color:var(--forest);background:rgba(34,139,34,0.04);}
+  .result-box.infinitas{border-color:var(--gmitblue);background:rgba(90,138,168,0.06);}
+  .result-box.inconsistente{border-color:var(--brick);background:rgba(178,34,34,0.04);}
+  .result-title{font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:0.2rem;}
+  .result-box.unica .result-title{color:var(--forest);}
+  .result-box.infinitas .result-title{color:var(--gmitblue);}
+  .result-box.inconsistente .result-title{color:var(--brick);}
+  .result-body{font-size:0.78rem;line-height:1.7;}
+  .result-body .mono{font-family:var(--font-mono);}
+  .teo-note{font-size:0.73rem;color:var(--text-secondary);border:1px dashed var(--gmitblue);border-radius:var(--radius-sm);padding:0.45rem 0.6rem;margin-top:0.5rem;line-height:1.55;background:rgba(90,138,168,0.04);}
+  .teo-note strong{color:var(--navy);}
+  /* steps */
+  @keyframes stepIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  details.redsteps{margin-top:0.5rem;}
+  details.redsteps summary{cursor:pointer;font-size:0.74rem;font-weight:700;color:var(--navy);}
+  .step-card{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin:0.5rem 0;animation:stepIn 0.25s ease;}
+  .step-head{display:flex;align-items:center;gap:0.4rem;padding:0.4rem 0.7rem;background:var(--surface-alt);border-bottom:1px solid var(--border);font-size:0.78rem;font-weight:600;}
+  .step-head .snum{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;font-size:0.68rem;color:#fff;flex-shrink:0;}
+  .step-body{padding:0.45rem 0.7rem;overflow-x:auto;}
+  .smat{display:inline-flex;align-items:stretch;vertical-align:middle;}
+  .smat-bk{display:flex;flex-direction:column;justify-content:center;}
+  .smat-bk.left{border-left:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);border-radius:3px 0 0 3px;width:5px;}
+  .smat-bk.right{border-right:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);border-radius:0 3px 3px 0;width:5px;}
+  .smat-grid{display:inline-grid;gap:1px 5px;padding:3px 2px;}
+  .smat-cell{font-family:var(--font-mono);font-size:0.78rem;text-align:center;padding:2px 3px;min-width:30px;border-radius:2px;}
+  .smat-cell.aug{border-left:1.5px solid var(--gmitblue);padding-left:8px;}
+  .smat-cell.pivot{background:#FF8C00;color:#fff;font-weight:700;border-radius:3px;}
+  .lab-footer{max-width:960px;margin:0 auto;padding:0.5rem 1rem;text-align:center;font-size:0.68rem;color:var(--text-muted);}
+  @media(max-width:600px){.main{padding:0.4rem;}.coef-grid input{width:70px;}}
+</style>
+</head>
+<body>
+<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">🎚️</div><div><h1><span class="lab-badge">Cap 1</span>Explorador de Sistemas con Parámetros</h1><div class="lab-subtitle">Laboratorio de Exploración · Sistemas de Ecuaciones Lineales</div></div></div></header>
+<div class="main">
+  <div class="panel">
+    <div class="panel-head">📝 Define el sistema con parámetro</div>
+    <div class="panel-body">
+      <div class="context-box">Escribe los coeficientes de la matriz aumentada (A|B) usando el parámetro elegido: por ejemplo <strong>a</strong>, <strong>a^2</strong>, <strong>5a+4</strong>, <strong>1-a</strong>, <strong>p^2+4p</strong>. Mueve el deslizador para variar el valor del parámetro y observa <strong>en tiempo real</strong> cómo cambia la clasificación del sistema (única / infinitas / inconsistente) según el Teorema del Rango, calculada con <strong>fracciones exactas</strong>. El <strong>mapa de clasificación</strong> pinta cada valor del parámetro con un color y detecta los <strong>valores críticos</strong> donde la clasificación cambia — exactamente el análisis por casos de la sección "Sistemas con parámetros" del libro.</div>
+      <div class="preset-scroll" id="presets"></div>
+      <div class="size-row">
+        <label>Parámetro:</label>
+        <select id="selLetter" onchange="letterChanged()"><option>a</option><option>k</option><option>p</option><option>α</option><option>λ</option></select>
+        <label>Ecuaciones:</label>
+        <select id="selM" onchange="resizeGrid()"><option>2</option><option selected>3</option><option>4</option></select>
+        <label>Incógnitas:</label>
+        <select id="selN" onchange="resizeGrid()"><option>2</option><option selected>3</option><option>4</option></select>
+      </div>
+      <div class="grid-wrap"><div class="coef-grid" id="coefGrid"></div></div>
+      <div class="btn-row" style="margin-top:0.5rem;">
+        <button class="btn btn-primary" onclick="analyze()">▶ Analizar sistema</button>
+        <button class="btn btn-accent" onclick="clearAll()">Limpiar</button>
+      </div>
+      <div id="errBox"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="explorePanel" style="display:none;">
+    <div class="panel-head">🎚️ Explorador — mueve el parámetro<span style="margin-left:auto;font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);" id="sysTag"></span></div>
+    <div class="panel-body">
+      <div id="symSys"></div>
+      <div class="kbar">
+        <span class="kval" id="kVal">a = 0</span>
+        <input type="range" id="kSlider" min="-6" max="6" step="0.25" value="0" oninput="kChanged()">
+      </div>
+      <canvas id="mapCv"></canvas>
+      <div class="map-legend">
+        <span><span class="dot" style="background:#228B22"></span>Solución única</span>
+        <span><span class="dot" style="background:#5A8AA8"></span>Infinitas (1 parám.)</span>
+        <span><span class="dot" style="background:#2F5D7C"></span>Infinitas (2+ parám.)</span>
+        <span><span class="dot" style="background:#B22222"></span>Inconsistente</span>
+      </div>
+      <div class="crit-row" id="critRow"></div>
+      <div id="classArea"></div>
+      <div class="teo-note"><strong>Nota:</strong> el mapa evalúa el parámetro en una malla de paso 1/4 dentro del rango del deslizador. Los valores críticos que no caen en la malla (por ejemplo irracionales) no se detectan automáticamente: el análisis algebraico por casos del libro sigue siendo indispensable para justificar <em>por qué</em> cambia la clasificación.</div>
+    </div>
+  </div>
+</div>
+<footer class="lab-footer">Álgebra Lineal con Abordaje Tecnológico · Laboratorio 1.5 · Sistemas con Parámetros</footer>
+
+<script>
+// ---- FRACTION ARITHMETIC ----
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a||1;}
+function fr(n,d){if(!d)d=1;if(!n)return{n:0,d:1};const g=gcd(Math.abs(n),Math.abs(d));n/=g;d/=g;if(d<0){n=-n;d=-d;}return{n,d};}
+function frN(x){if(Number.isInteger(x))return fr(x,1);for(let d=1;d<=4096;d++){const n=Math.round(x*d);if(Math.abs(n/d-x)<1e-9)return fr(n,d);}return fr(Math.round(x*10000),10000);}
+function fAdd(a,b){return fr(a.n*b.d+b.n*a.d,a.d*b.d);}
+function fMul(a,b){return fr(a.n*b.n,a.d*b.d);}
+function fDiv(a,b){return fr(a.n*b.d,a.d*b.n);}
+function fIsZ(a){return a.n===0;}
+function fStr(f){return f.d===1?''+f.n:f.n+'/'+f.d;}
+function sub(n){const s='₀₁₂₃₄₅₆₇₈₉';return(''+n).split('').map(c=>s[parseInt(c)]||c).join('');}
+
+// ---- GAUSS-JORDAN (fracciones) ----
+function gaussReduce(rows){
+  const m=rows.length,n=rows[0].length;
+  const M=rows.map(r=>r.map(f=>({...f})));
+  const steps=[];let pivotRow=0;const pivotCols=[];
+  for(let col=0;col<n&&pivotRow<m;col++){
+    let maxIdx=-1,maxVal=0;
+    for(let i=pivotRow;i<m;i++){const v=Math.abs(M[i][col].n/M[i][col].d);if(v>maxVal){maxVal=v;maxIdx=i;}}
+    if(maxVal<1e-12)continue;
+    if(maxIdx!==pivotRow){
+      [M[pivotRow],M[maxIdx]]=[M[maxIdx],M[pivotRow]];
+      steps.push({op:`f${sub(pivotRow+1)} ↔ f${sub(maxIdx+1)}`,type:'swap',mat:M.map(r=>r.map(f=>({...f}))),piv:[pivotRow,col]});
+    }
+    const pv=M[pivotRow][col];
+    if(pv.n!==pv.d){
+      const inv=fDiv(fr(1,1),pv);
+      for(let j=0;j<n;j++)M[pivotRow][j]=fMul(M[pivotRow][j],inv);
+      steps.push({op:`f${sub(pivotRow+1)} → ${fStr(inv)}·f${sub(pivotRow+1)}`,type:'scale',mat:M.map(r=>r.map(f=>({...f}))),piv:[pivotRow,col]});
+    }
+    for(let i=0;i<m;i++){
+      if(i===pivotRow||fIsZ(M[i][col]))continue;
+      const factor=fMul(fr(-1,1),M[i][col]);
+      for(let j=0;j<n;j++)M[i][j]=fAdd(M[i][j],fMul(factor,M[pivotRow][j]));
+      steps.push({op:`f${sub(i+1)} → ${fStr(factor)}·f${sub(pivotRow+1)} + f${sub(i+1)}`,type:'elim',mat:M.map(r=>r.map(f=>({...f}))),piv:[pivotRow,col]});
+    }
+    pivotCols.push(col);
+    pivotRow++;
+  }
+  return{steps,rref:M,rank:pivotRow,pivotCols};
+}
+function classifyF(augF){
+  const n=augF[0].length-1;
+  const res=gaussReduce(augF);
+  const rAB=res.rank;
+  const rA=res.pivotCols.filter(c=>c<n).length;
+  let tipo,params=0,sol=null;
+  if(rA<rAB)tipo='inconsistente';
+  else if(rA===n){
+    tipo='unica';
+    sol=new Array(n).fill(fr(0,1));
+    res.pivotCols.forEach((c,i)=>{sol[c]=res.rref[i][n];});
+  }else{tipo='infinitas';params=n-rA;}
+  return{tipo,params,rA,rAB,n,sol,res};
+}
+
+// ---- COMPILADOR DE COEFICIENTES (expresiones en el parámetro) ----
+function compileCoef(src){
+  let s=(src||'').toString().toLowerCase().replace(/\s+/g,'');
+  if(s==='')s='0';
+  s=s.replace(/α|λ/g,'k').replace(/[ap]/g,'k'); // el parámetro siempre es k internamente
+  const stripped=s.replace(/[k0-9+\-*/().^]/g,'');
+  if(stripped!=='')throw new Error('Símbolos no permitidos: "'+stripped+'"');
+  // menos unario → (0-1)* para evitar el conflicto "-x**2" de JS (y respetar −a² = −(a²))
+  for(let t=0;t<3;t++)s=s.replace(/(^|[(+\-*/])-/g,'$1(0-1)*');
+  s=s.replace(/\^/g,'**');
+  s=s.replace(/(\d)([k(])/g,'$1*$2');
+  s=s.replace(/(\))([k0-9(])/g,'$1*$2');
+  s=s.replace(/(k)(\()/g,'$1*$2');
+  s=s.replace(/(k)(k)/g,'$1*$2');
+  s=s.replace(/(k)(k)/g,'$1*$2');
+  s=s.replace(/(k)(\d)/g,'$1*$2');
+  const fn=new Function('k','"use strict";return ('+s+');');
+  const t=fn(1);
+  if(typeof t!=='number'||!isFinite(t))throw new Error('La expresión no produce un número');
+  return fn;
+}
+
+// ---- ESTADO ----
+let M=3,N=3,letter='a';
+let coefSrc=[];   // strings m×(n+1)
+let coefFn=null;  // funciones compiladas
+let mapData=null; // {ks:[], cls:[{tipo,params}]}
+const KMIN=-6,KMAX=6,KSTEP=0.25;
+
+const PRESETS=[
+  {name:'Libro: ax+y+z=1, x+ay+z=1, x+y+az=1',letter:'a',m:3,n:3,
+   g:[['a','1','1','1'],['1','a','1','1'],['1','1','a','1']]},
+  {name:'Libro: sistema con α (casos 0, −4, −1)',letter:'α',m:3,n:3,
+   g:[['-a','-a^2','5a+4','-16'],['1','a','a','a'],['-a','4a','4a','4a']]},
+  {name:'Libro: sistema con p (4 incógnitas, nunca única)',letter:'p',m:3,n:4,
+   g:[['1','2','4','4','-2'],['1','3','6','5','-3'],['p','p','2p','p^2+4p','1']]},
+  {name:'Libro Ej.7: homogéneo con λ (nunca inconsistente)',letter:'λ',m:3,n:3,
+   g:[['1-a','1','1','0'],['2','2-a','2','0'],['1','1','1-a','0']]},
+];
+
+window.addEventListener('DOMContentLoaded',()=>{
+  buildPresets();
+  coefSrc=Array.from({length:M},()=>new Array(N+1).fill('0'));
+  buildGrid();
+});
+function buildPresets(){const g=document.getElementById('presets');PRESETS.forEach((p,i)=>{const b=document.createElement('button');b.className='preset-pill';b.textContent=p.name;b.onclick=()=>loadPreset(i);g.appendChild(b);});}
+function loadPreset(i){
+  const p=PRESETS[i];
+  letter=p.letter;document.getElementById('selLetter').value=letter;
+  M=p.m;N=p.n;
+  document.getElementById('selM').value=M;
+  document.getElementById('selN').value=N;
+  coefSrc=p.g.map(r=>r.map(c=>c.replace(/a/g,displayLetter())));
+  buildGrid();
+  document.querySelectorAll('.preset-pill').forEach((b,j)=>b.classList.toggle('active',j===i));
+  analyze();
+}
+function displayLetter(){return letter;}
+function letterChanged(){
+  const old=letter;
+  letter=document.getElementById('selLetter').value;
+  syncGrid();
+  // reemplazar la letra vieja por la nueva en las celdas
+  const rx=new RegExp(old.replace(/[αλ]/g,m=>'\\'+m),'g');
+  coefSrc=coefSrc.map(r=>r.map(c=>c.replace(new RegExp(old,'g'),letter)));
+  buildGrid();
+  document.getElementById('explorePanel').style.display='none';
+}
+function resizeGrid(){
+  syncGrid();
+  M=parseInt(document.getElementById('selM').value);
+  N=parseInt(document.getElementById('selN').value);
+  coefSrc=Array.from({length:M},(_,i)=>Array.from({length:N+1},(_,j)=>(coefSrc[i]&&coefSrc[i][j]!==undefined)?coefSrc[i][j]:'0'));
+  buildGrid();
+  document.getElementById('explorePanel').style.display='none';
+  document.querySelectorAll('.preset-pill').forEach(b=>b.classList.remove('active'));
+}
+const VARSN=['x','y','z','w'];
+function buildGrid(){
+  const g=document.getElementById('coefGrid');
+  g.style.gridTemplateColumns=`repeat(${N+1},auto)`;
+  let h='';
+  for(let j=0;j<N;j++)h+=`<div class="chead">${VARSN[j]}</div>`;
+  h+=`<div class="chead">= b</div>`;
+  for(let i=0;i<M;i++)for(let j=0;j<=N;j++){
+    h+=`<input type="text" id="c_${i}_${j}" class="${j===N?'bcol':''}" value="${(coefSrc[i][j]||'0').replace(/"/g,'&quot;')}" spellcheck="false" onfocus="this.select()">`;
+  }
+  g.innerHTML=h;
+}
+function syncGrid(){
+  for(let i=0;i<M;i++)for(let j=0;j<=N;j++){
+    const el=document.getElementById(`c_${i}_${j}`);
+    if(el)coefSrc[i][j]=el.value;
+  }
+}
+function clearAll(){
+  coefSrc=Array.from({length:M},()=>new Array(N+1).fill('0'));
+  buildGrid();
+  document.getElementById('explorePanel').style.display='none';
+  document.getElementById('errBox').innerHTML='';
+  document.querySelectorAll('.preset-pill').forEach(b=>b.classList.remove('active'));
+}
+
+// ---- ANÁLISIS ----
+function analyze(){
+  syncGrid();
+  document.getElementById('errBox').innerHTML='';
+  try{
+    coefFn=coefSrc.map((row,i)=>row.map((c,j)=>{
+      try{return compileCoef(c);}catch(err){throw new Error(`Fila ${i+1}, columna ${j+1}: ${err.message}`);}
+    }));
+  }catch(err){
+    coefFn=null;
+    document.getElementById('errBox').innerHTML=`<div class="result-box inconsistente" style="margin-top:0.5rem;"><div class="result-title inconsistente">⚠ Error en los coeficientes</div><div class="result-body mono">${err.message}</div></div>`;
+    document.getElementById('explorePanel').style.display='none';
+    return;
+  }
+  // mapa de clasificación
+  mapData={ks:[],cls:[]};
+  for(let k=KMIN;k<=KMAX+1e-9;k+=KSTEP){
+    const kk=Math.round(k*4)/4;
+    mapData.ks.push(kk);
+    mapData.cls.push(classAtNum(kk));
+  }
+  document.getElementById('explorePanel').style.display='';
+  document.getElementById('sysTag').textContent=`${M} ecuaciones · ${N} incógnitas · parámetro ${letter}`;
+  renderSymbolic();
+  drawMap();
+  renderCriticals();
+  initMapPointer();
+  kChanged();
+}
+function augAt(kNum){
+  return coefFn.map(row=>row.map(f=>frN(f(kNum))));
+}
+function classAtNum(kNum){
+  const c=classifyF(augAt(kNum));
+  return{tipo:c.tipo,params:c.params};
+}
+function clsColor(c){
+  if(c.tipo==='unica')return '#228B22';
+  if(c.tipo==='inconsistente')return '#B22222';
+  return c.params>=2?'#2F5D7C':'#5A8AA8';
+}
+function clsLabel(c){
+  if(c.tipo==='unica')return 'Solución única';
+  if(c.tipo==='inconsistente')return 'Inconsistente (S = ∅)';
+  return `Infinitas soluciones (${c.params} parámetro${c.params===1?'':'s'})`;
+}
+
+// ---- SISTEMA SIMBÓLICO ----
+function prettyExpr(src){
+  let s=(src||'0').toString().replace(/\s+/g,'');
+  s=s.replace(/\^2/g,'²').replace(/\^3/g,'³').replace(/\*/g,'·');
+  return s;
+}
+function renderSymbolic(){
+  let h='<div class="sys-box">';
+  for(let i=0;i<M;i++){
+    let line='',first=true;
+    for(let j=0;j<N;j++){
+      const raw=(coefSrc[i][j]||'0').replace(/\s+/g,'');
+      if(raw==='0')continue;
+      let term;
+      const v=VARSN[j];
+      if(raw==='1')term=v;
+      else if(raw==='-1')term='−'+v;
+      else{
+        const needsPar=/[+\-]/.test(raw.slice(1)); // signo interno
+        term=(needsPar?'('+prettyExpr(raw)+')':prettyExpr(raw))+v;
+      }
+      if(first){line+=term.replace(/^-/,'−');first=false;}
+      else{
+        if(term.startsWith('−')||term.startsWith('-'))line+=' − '+term.replace(/^[−-]/,'');
+        else line+=' + '+term;
+      }
+    }
+    if(first)line='0';
+    line+=' = '+prettyExpr(coefSrc[i][N]||'0');
+    h+=line+'<br>';
+  }
+  h+='</div>';
+  document.getElementById('symSys').innerHTML=h;
+}
+
+// ---- MAPA ----
+function drawMap(){
+  const cv=document.getElementById('mapCv');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.clientWidth||700,H=64;
+  cv.width=W*dpr;cv.height=H*dpr;
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  const x=k=>(k-KMIN)/(KMAX-KMIN)*W;
+  const segW=W/(mapData.ks.length);
+  // franja de clasificación
+  mapData.ks.forEach((k,i)=>{
+    ctx.fillStyle=clsColor(mapData.cls[i]);
+    ctx.fillRect(x(k)-segW/2,14,segW+0.7,26);
+  });
+  // ticks enteros
+  ctx.fillStyle='#666';ctx.font="10px 'JetBrains Mono',monospace";ctx.textAlign='center';
+  for(let k=Math.ceil(KMIN);k<=KMAX;k++){
+    ctx.fillRect(x(k)-0.5,40,1,5);
+    ctx.fillText(k,x(k),56);
+  }
+  // marcador del valor actual
+  const kc=parseFloat(document.getElementById('kSlider').value);
+  ctx.fillStyle='#000080';
+  ctx.beginPath();
+  ctx.moveTo(x(kc),12);ctx.lineTo(x(kc)-6,2);ctx.lineTo(x(kc)+6,2);
+  ctx.closePath();ctx.fill();
+  ctx.fillRect(x(kc)-1,12,2,30);
+}
+let mapPointerOn=false;
+function initMapPointer(){
+  if(mapPointerOn)return;
+  const cv=document.getElementById('mapCv');
+  const setK=e=>{
+    const r=cv.getBoundingClientRect();
+    let k=KMIN+(e.clientX-r.left)/r.width*(KMAX-KMIN);
+    k=Math.round(k/KSTEP)*KSTEP;
+    k=Math.max(KMIN,Math.min(KMAX,k));
+    document.getElementById('kSlider').value=k;
+    kChanged();
+  };
+  let down=false;
+  cv.addEventListener('pointerdown',e=>{down=true;cv.setPointerCapture(e.pointerId);setK(e);e.preventDefault();});
+  cv.addEventListener('pointermove',e=>{if(down){setK(e);e.preventDefault();}});
+  cv.addEventListener('pointerup',()=>{down=false;});
+  cv.addEventListener('pointercancel',()=>{down=false;});
+  window.addEventListener('resize',()=>{if(mapData)drawMap();});
+  mapPointerOn=true;
+}
+
+// ---- VALORES CRÍTICOS ----
+function renderCriticals(){
+  const row=document.getElementById('critRow');
+  const crits=[];
+  for(let i=0;i<mapData.ks.length;i++){
+    const c=mapData.cls[i];
+    const prev=mapData.cls[i-1],next=mapData.cls[i+1];
+    const diffPrev=prev&&(prev.tipo!==c.tipo||prev.params!==c.params);
+    const diffNext=next&&(next.tipo!==c.tipo||next.params!==c.params);
+    // punto aislado distinto a ambos vecinos = valor crítico clásico
+    if(diffPrev&&diffNext&&prev.tipo===next.tipo&&prev.params===next.params){
+      crits.push({k:mapData.ks[i],c});
+    }else if((diffPrev&&!prev)||(diffNext&&!next)){
+      // bordes: ignorar
+    }else if(diffNext&&!diffPrev&&next&&i+2<mapData.cls.length){
+      // frontera de región: marcar el primer punto de la región nueva si es aislado se captura arriba; regiones extensas se ven en el mapa
+    }
+  }
+  // también detectar fronteras de regiones extensas (cambio sostenido)
+  for(let i=1;i<mapData.ks.length;i++){
+    const a=mapData.cls[i-1],b=mapData.cls[i];
+    if((a.tipo!==b.tipo||a.params!==b.params)&&!crits.some(cr=>Math.abs(cr.k-mapData.ks[i])<1e-9||Math.abs(cr.k-mapData.ks[i-1])<1e-9)){
+      crits.push({k:mapData.ks[i],c:b,border:true});
+    }
+  }
+  crits.sort((u,v)=>u.k-v.k);
+  if(crits.length===0){
+    row.innerHTML=`<span style="font-size:0.72rem;color:var(--text-muted);">La clasificación no cambia en el rango [${KMIN}, ${KMAX}].</span>`;
+    return;
+  }
+  let h=`<span style="font-size:0.72rem;color:var(--text-secondary);font-weight:600;align-self:center;">Valores críticos detectados:</span>`;
+  crits.forEach(cr=>{
+    const col=clsColor(cr.c);
+    h+=`<button class="crit-chip" style="color:${col};border-color:${col};" onclick="jumpTo(${cr.k})">${letter} = ${fStr(frN(cr.k))}${cr.border?' (frontera)':''}</button>`;
+  });
+  row.innerHTML=h;
+}
+function jumpTo(k){
+  document.getElementById('kSlider').value=k;
+  kChanged();
+}
+
+// ---- ACTUALIZACIÓN AL MOVER EL PARÁMETRO ----
+function kChanged(){
+  if(!coefFn)return;
+  const k=parseFloat(document.getElementById('kSlider').value);
+  const kF=frN(k);
+  document.getElementById('kVal').textContent=`${letter} = ${fStr(kF)}`;
+  drawMap();
+  const aug=augAt(k);
+  const c=classifyF(aug);
+  let h=`<div class="result-box ${c.tipo}">`;
+  h+=`<div class="result-title ${c.tipo}">${letter} = ${fStr(kF)} &nbsp;→&nbsp; ${clsLabel(c)}</div>`;
+  h+=`<div class="result-body">`;
+  h+=`<div class="mono">R(A) = ${c.rA} &nbsp;|&nbsp; R(A|B) = ${c.rAB} &nbsp;|&nbsp; n = ${c.n}</div>`;
+  if(c.tipo==='unica'){
+    h+=`R(A) = R(A|B) = n: solución única &nbsp;<span class="mono">S = {(${c.sol.map(fStr).join(', ')})}</span>`;
+  }else if(c.tipo==='infinitas'){
+    h+=`R(A) = R(A|B) = ${c.rA} &lt; n = ${c.n}: infinitas soluciones con <strong>n − R(A) = ${c.params} parámetro${c.params===1?'':'s'}</strong>.`;
+  }else{
+    h+=`R(A) = ${c.rA} &lt; R(A|B) = ${c.rAB}: aparece una fila <span class="mono">0 = c</span> con c ≠ 0 ⇒ <span class="mono">S = ∅</span>.`;
+  }
+  h+=`<br>Escalonada reducida de (A|B) para este valor: &nbsp;${renderFrMat(c.res.rref,null,c.n)}`;
+  h+=`</div>`;
+  h+=`<details class="redsteps"><summary>📋 Ver la reducción completa para ${letter} = ${fStr(kF)} (${c.res.steps.length} operaciones)</summary>`;
+  h+=`<div class="step-card"><div class="step-head"><span class="snum" style="background:var(--navy);">0</span>Matriz aumentada (A|B) con ${letter} = ${fStr(kF)}</div><div class="step-body">${renderFrMat(aug,null,c.n)}</div></div>`;
+  c.res.steps.forEach((s,i)=>{
+    const color=s.type==='swap'?'var(--gmitblue)':s.type==='scale'?'var(--forest)':'var(--brick)';
+    h+=`<div class="step-card"><div class="step-head"><span class="snum" style="background:${color};">${i+1}</span>${s.op}</div><div class="step-body">${renderFrMat(s.mat,s.piv,c.n)}</div></div>`;
+  });
+  h+=`</details></div>`;
+  document.getElementById('classArea').innerHTML=h;
+}
+function renderFrMat(Mx,piv,augCol){
+  const m=Mx.length,n=Mx[0].length;
+  let h='<div class="smat"><div class="smat-bk left"></div>';
+  h+=`<div class="smat-grid" style="grid-template-columns:repeat(${n},1fr);">`;
+  for(let i=0;i<m;i++)for(let j=0;j<n;j++){
+    const isZero=fIsZ(Mx[i][j]);
+    const isPiv=piv&&piv[0]===i&&piv[1]===j;
+    const cls=['smat-cell'];
+    if(isPiv)cls.push('pivot');
+    if(j===augCol)cls.push('aug');
+    h+=`<span class="${cls.join(' ')}" style="${(!isPiv&&isZero)?'color:var(--text-muted);':''}">${fStr(Mx[i][j])}</span>`;
+  }
+  h+='</div><div class="smat-bk right"></div></div>';
+  return h;
+}
+</script>
+</body>
+</html>
