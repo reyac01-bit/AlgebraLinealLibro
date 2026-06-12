@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verificador de Base y Dimensión — Álgebra Lineal</title>
+<style>
+  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#888;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
+  .lab-header{background:linear-gradient(135deg,var(--navy) 0%,var(--gmitblue) 100%);color:#fff;padding:0.7rem 1.5rem;position:relative;overflow:hidden;}
+  .lab-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none;}
+  .lab-header-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:0.8rem;position:relative;z-index:1;}
+  .lab-icon{width:38px;height:38px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+  .lab-header h1{font-family:var(--font-display);font-size:clamp(0.9rem,2vw,1.25rem);font-weight:700;line-height:1.2;}
+  .lab-subtitle{font-size:0.72rem;opacity:0.75;}
+  .lab-badge{display:inline-block;background:var(--brick);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15em 0.5em;border-radius:3px;letter-spacing:0.05em;text-transform:uppercase;margin-right:0.35rem;vertical-align:middle;}
+  .main{max-width:960px;margin:0 auto;padding:0.6rem 0.8rem 1.5rem;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:0.7rem;}
+  .panel-head{padding:0.5rem 0.9rem;font-family:var(--font-display);font-size:0.85rem;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.4rem;background:var(--surface-alt);flex-wrap:wrap;}
+  .panel-body{padding:0.7rem 0.9rem;}
+  .context-box{background:linear-gradient(135deg,var(--gmitblue-pale),rgba(90,138,168,0.04));border-left:3px solid var(--gmitblue);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:0.5rem 0.7rem;font-size:0.74rem;line-height:1.5;color:var(--text-secondary);margin-bottom:0.5rem;}.context-box strong{color:var(--navy);}
+  .preset-scroll{display:flex;gap:0.25rem;flex-wrap:wrap;margin-bottom:0.5rem;}
+  .preset-pill{padding:0.22rem 0.5rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);cursor:pointer;transition:var(--transition);font-size:0.67rem;font-weight:600;white-space:nowrap;}
+  .preset-pill:hover{border-color:var(--navy);background:var(--gmitblue-pale);}
+  .preset-pill.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .vec-row{display:flex;align-items:center;gap:0.35rem;margin-bottom:0.35rem;flex-wrap:wrap;}
+  .vec-row .vlabel{font-family:var(--font-mono);font-weight:700;font-size:0.8rem;min-width:1.6rem;}
+  .vec-row input{width:52px;padding:0.3rem 0.15rem;border:1px solid var(--border);border-radius:3px;font-family:var(--font-mono);font-size:0.82rem;text-align:center;background:#fff;transition:var(--transition);}
+  .vec-row input:focus{outline:none;border-color:var(--gmitblue);box-shadow:0 0 0 2px rgba(90,138,168,0.15);}
+  .vec-row .remove-btn{width:22px;height:22px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:4px;font-size:0.9rem;display:flex;align-items:center;justify-content:center;}
+  .vec-row .remove-btn:hover{background:rgba(178,34,34,0.1);color:var(--brick);}
+  .vec-row .plbl{font-family:var(--font-mono);font-size:0.72rem;color:var(--text-muted);}
+  .mat2x2{display:inline-grid;grid-template-columns:repeat(2,52px);gap:3px;border-left:2px solid var(--navy);border-right:2px solid var(--navy);border-radius:3px;padding:3px 4px;}
+  .mat2x2 input{width:52px;}
+  .size-row{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;font-size:0.8rem;}
+  .size-row label{font-weight:600;color:var(--text-secondary);}
+  .size-row select{padding:0.25rem 0.4rem;border:1px solid var(--border);border-radius:4px;font-family:var(--font-mono);font-size:0.82rem;background:#fff;}
+  .dim-tag{font-family:var(--font-mono);font-size:0.72rem;background:var(--gmitblue-pale);color:var(--navy);padding:0.15em 0.5em;border-radius:3px;font-weight:600;}
+  .btn{display:inline-flex;align-items:center;gap:0.3rem;padding:0.4rem 0.75rem;border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.78rem;font-weight:600;cursor:pointer;transition:var(--transition);}
+  .btn-primary{background:var(--forest);color:#fff;}.btn-secondary{background:var(--gmitblue-pale);color:var(--gmitblue);border:1px solid rgba(90,138,168,0.3);}
+  .btn-accent{background:var(--brick);color:#fff;}
+  .btn-row{display:flex;gap:0.4rem;flex-wrap:wrap;}
+  /* Result */
+  .result-box{border:2px solid var(--forest);border-radius:var(--radius);padding:0.7rem 0.9rem;margin-bottom:0.7rem;}
+  .result-box.li{border-color:var(--forest);background:rgba(34,139,34,0.04);}
+  .result-box.ld{border-color:var(--brick);background:rgba(178,34,34,0.04);}
+  .result-title{font-family:var(--font-display);font-size:1.05rem;font-weight:700;margin-bottom:0.3rem;}
+  .result-title.li{color:var(--forest);}.result-title.ld{color:var(--brick);}
+  .check-grid{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.4rem;}
+  .check-chip{font-size:0.72rem;font-weight:600;padding:0.25rem 0.55rem;border-radius:20px;border:1px solid;}
+  .check-chip.ok{color:var(--forest);border-color:var(--forest);background:rgba(34,139,34,0.07);}
+  .check-chip.bad{color:var(--brick);border-color:var(--brick);background:rgba(178,34,34,0.07);}
+  .check-chip.info{color:var(--navy);border-color:var(--gmitblue);background:var(--gmitblue-pale);}
+  .teo-note{font-size:0.73rem;color:var(--text-secondary);border:1px dashed var(--gmitblue);border-radius:var(--radius-sm);padding:0.45rem 0.6rem;margin-top:0.5rem;line-height:1.55;background:rgba(90,138,168,0.04);}
+  .teo-note strong{color:var(--navy);}
+  /* Steps */
+  .step-card{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:0.5rem;animation:stepIn 0.25s ease;}
+  @keyframes stepIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .step-head{display:flex;align-items:center;gap:0.4rem;padding:0.4rem 0.7rem;background:var(--surface-alt);border-bottom:1px solid var(--border);font-size:0.78rem;font-weight:600;}
+  .step-head .snum{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;font-size:0.68rem;color:#fff;flex-shrink:0;}
+  .step-body{padding:0.45rem 0.7rem;overflow-x:auto;}
+  .smat{display:inline-flex;align-items:stretch;vertical-align:middle;}
+  .smat-bk{display:flex;flex-direction:column;justify-content:center;}
+  .smat-bk.left{border-left:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);border-radius:3px 0 0 3px;width:5px;}
+  .smat-bk.right{border-right:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);border-radius:0 3px 3px 0;width:5px;}
+  .smat-grid{display:inline-grid;gap:1px 5px;padding:3px 2px;}
+  .smat-cell{font-family:var(--font-mono);font-size:0.78rem;text-align:center;padding:2px 3px;min-width:30px;border-radius:2px;}
+  .smat-cell.pivot{background:#FF8C00;color:#fff;font-weight:700;border-radius:3px;}
+  /* Viz */
+  #viz2d{width:100%;max-width:480px;height:340px;display:block;margin:0 auto;background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);touch-action:none;}
+  #viz3d{width:100%;height:360px;background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;touch-action:none;}
+  #viz3d canvas{display:block;}
+  .viz-cap{font-size:0.7rem;color:var(--text-muted);text-align:center;margin-top:0.35rem;}
+  .viz-legend{display:flex;flex-wrap:wrap;gap:0.7rem;justify-content:center;font-size:0.7rem;margin-top:0.35rem;font-family:var(--font-mono);}
+  .viz-legend .dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:3px;vertical-align:middle;}
+  .lab-footer{max-width:960px;margin:0 auto;padding:0.5rem 1rem;text-align:center;font-size:0.68rem;color:var(--text-muted);}
+  @media(max-width:600px){.main{padding:0.4rem;}.vec-row input{width:44px;}.mat2x2{grid-template-columns:repeat(2,44px);}.mat2x2 input{width:44px;}}
+</style>
+</head>
+<body>
+<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">🧭</div><div><h1><span class="lab-badge">Cap 5</span>Verificador de Base y Dimensión</h1><div class="lab-subtitle">Verificador Interactivo · Espacios Vectoriales</div></div></div></header>
+<div class="main">
+  <div class="panel">
+    <div class="panel-head">📝 Elige el espacio V e ingresa los vectores de S</div>
+    <div class="panel-body">
+      <div class="context-box">Ingresa un conjunto S = {v₁, …, vₖ} en ℝⁿ, P₂, P₃ o M(2,ℝ). El sistema aplica primero los <strong>teoremas de conteo</strong> (si k &gt; dim V, S es LD; si k &lt; dim V, S no genera), arma la matriz de coordenadas con los vectores como filas y la reduce por Gauss con <strong>fracciones exactas</strong>. Entonces: S es <strong>LI</strong> ⟺ rango = k, S <strong>genera V</strong> ⟺ rango = dim V, y S es <strong>BASE</strong> ⟺ ambas. Además, <strong>dim Cl(S) = rango</strong>. Acepta fracciones como <strong>1/2, -3/4</strong>.</div>
+      <div class="preset-scroll" id="presets"></div>
+      <div class="size-row">
+        <label>Espacio V:</label>
+        <select id="selSpace" onchange="changeSpace()">
+          <option value="R2">ℝ²</option>
+          <option value="R3" selected>ℝ³</option>
+          <option value="R4">ℝ⁴</option>
+          <option value="P2">P₂</option>
+          <option value="P3">P₃</option>
+          <option value="M2">M(2,ℝ)</option>
+        </select>
+        <span class="dim-tag" id="dimTag">dim V = 3</span>
+        <span style="font-size:0.7rem;color:var(--text-muted);" id="spaceDesc"></span>
+      </div>
+      <div id="vecInputs"></div>
+      <div class="btn-row" style="margin-top:0.5rem;">
+        <button class="btn btn-secondary" onclick="addVec()">+ Vector</button>
+        <button class="btn btn-primary" onclick="verify()">▶ Verificar Base</button>
+        <button class="btn btn-accent" onclick="clearAll()">Limpiar</button>
+      </div>
+    </div>
+  </div>
+  <div id="outputArea"></div>
+  <div class="panel" id="vizPanel" style="display:none;">
+    <div class="panel-head">🧊 Visualización de Cl(S)</div>
+    <div class="panel-body">
+      <canvas id="viz2d" style="display:none;"></canvas>
+      <div id="viz3d" style="display:none;"></div>
+      <div class="viz-legend" id="vizLegend"></div>
+      <div class="viz-cap" id="vizCap"></div>
+    </div>
+  </div>
+</div>
+<footer class="lab-footer">Álgebra Lineal con Abordaje Tecnológico · Verificador 5.3 · Bases y Dimensión</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ---- FRACTION ARITHMETIC ----
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a||1;}
+function fr(n,d){if(!d)d=1;if(!n)return{n:0,d:1};const g=gcd(Math.abs(n),Math.abs(d));n/=g;d/=g;if(d<0){n=-n;d=-d;}return{n,d};}
+function frN(x){if(Number.isInteger(x))return fr(x,1);for(let d=1;d<=1000;d++){const n=Math.round(x*d);if(Math.abs(n/d-x)<1e-10)return fr(n,d);}return fr(Math.round(x*10000),10000);}
+function fAdd(a,b){return fr(a.n*b.d+b.n*a.d,a.d*b.d);}
+function fMul(a,b){return fr(a.n*b.n,a.d*b.d);}
+function fDiv(a,b){return fr(a.n*b.d,a.d*b.n);}
+function fIsZ(a){return a.n===0;}
+function fNum(a){return a.n/a.d;}
+function fStr(f){return f.d===1?''+f.n:f.n+'/'+f.d;}
+
+function parseFrac(s){
+  s=(s||'').toString().trim();if(!s||s==='0')return 0;
+  const neg=s.startsWith('-');if(neg)s=s.substring(1).trim();
+  let val=0;
+  if(s.includes('/')){const p=s.split('/');val=(parseFloat(p[0])||0)/(parseFloat(p[1])||1);}
+  else val=parseFloat(s)||0;
+  return neg?-val:val;
+}
+function sub(n){const s='₀₁₂₃₄₅₆₇₈₉';return(''+n).split('').map(c=>s[parseInt(c)]||c).join('');}
+
+// ---- SPACES ----
+const SPACES={
+  R2:{label:'ℝ²',dim:2,kind:'Rn',desc:'Base canónica {(1,0),(0,1)}'},
+  R3:{label:'ℝ³',dim:3,kind:'Rn',desc:'Base canónica {e₁,e₂,e₃}'},
+  R4:{label:'ℝ⁴',dim:4,kind:'Rn',desc:'Base canónica {e₁,e₂,e₃,e₄}'},
+  P2:{label:'P₂',dim:3,kind:'poly',desc:'p(x) = a₀ + a₁x + a₂x² · base {1, x, x²}'},
+  P3:{label:'P₃',dim:4,kind:'poly',desc:'p(x) = a₀ + a₁x + a₂x² + a₃x³'},
+  M2:{label:'M(2,ℝ)',dim:4,kind:'mat',desc:'Matrices 2×2 · base canónica de 4 matrices'}
+};
+let space='R3',vecs=[];
+const VCOLORS=['#2980B9','#E67E22','#8E44AD','#16A085','#C0392B','#2C3E50'];
+const POLYLBL=['','x','x²','x³'];
+
+const PRESETS=[
+  {name:'Libro: canónica ℝ³ → BASE',sp:'R3',v:[[1,0,0],[0,1,0],[0,0,1]]},
+  {name:'Libro: {(1,0),(1,1)} en ℝ² → BASE',sp:'R2',v:[[1,0],[1,1]]},
+  {name:'Libro: S={(2,3),(0,4),(0,5)} → LD, no base',sp:'R2',v:[[2,3],[0,4],[0,5]]},
+  {name:'Libro: {1, x, x²} en P₂ → BASE',sp:'P2',v:[[1,0,0],[0,1,0],[0,0,1]]},
+  {name:'Plano en ℝ³: 2 vectores → no genera',sp:'R3',v:[[1,0,1],[0,1,1]]},
+  {name:'3 vectores coplanares en ℝ³ → LD',sp:'R3',v:[[1,0,1],[0,1,1],[1,1,2]]},
+  {name:'Con fracciones en ℝ³ → BASE',sp:'R3',v:[['1/2',0,1],[0,'2/3',1],[1,1,'-1/2']]},
+  {name:'Libro: canónica M(2,ℝ) → BASE',sp:'M2',v:[[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]},
+];
+
+window.addEventListener('DOMContentLoaded',()=>{buildPresets();vecs=[[1,0,0],[0,1,0],[0,0,1]];buildInputs();});
+function buildPresets(){const g=document.getElementById('presets');PRESETS.forEach((p,i)=>{const b=document.createElement('button');b.className='preset-pill';b.textContent=p.name;b.onclick=()=>loadPreset(i);g.appendChild(b);});}
+function loadPreset(i){const p=PRESETS[i];document.getElementById('selSpace').value=p.sp;space=p.sp;vecs=p.v.map(v=>[...v]);buildInputs();document.querySelectorAll('.preset-pill').forEach((b,j)=>b.classList.toggle('active',j===i));clearOutput();}
+
+function changeSpace(){
+  space=document.getElementById('selSpace').value;
+  const d=SPACES[space].dim;
+  vecs.forEach(v=>{while(v.length<d)v.push(0);while(v.length>d)v.pop();});
+  buildInputs();clearOutput();
+  document.querySelectorAll('.preset-pill').forEach(b=>b.classList.remove('active'));
+}
+
+function vecRowHTML(v,i){
+  const sp=SPACES[space],c=VCOLORS[i%6];
+  let h=`<div class="vec-row"><span class="vlabel" style="color:${c}">v${sub(i+1)}</span>`;
+  if(sp.kind==='Rn'){
+    h+=`<span class="plbl">(</span>`;
+    for(let j=0;j<sp.dim;j++){h+=`<input type="text" id="v_${i}_${j}" value="${v[j]}" inputmode="numeric" onfocus="this.select()">`;if(j<sp.dim-1)h+=`<span class="plbl">,</span>`;}
+    h+=`<span class="plbl">)</span>`;
+  }else if(sp.kind==='poly'){
+    for(let j=0;j<sp.dim;j++){h+=`<input type="text" id="v_${i}_${j}" value="${v[j]}" inputmode="numeric" onfocus="this.select()">`;if(POLYLBL[j])h+=`<span class="plbl">${POLYLBL[j]}</span>`;if(j<sp.dim-1)h+=`<span class="plbl">+</span>`;}
+  }else{
+    h+=`<span class="mat2x2">`;
+    for(let j=0;j<4;j++)h+=`<input type="text" id="v_${i}_${j}" value="${v[j]}" inputmode="numeric" onfocus="this.select()">`;
+    h+=`</span>`;
+  }
+  h+=`<button class="remove-btn" onclick="removeVec(${i})" title="Eliminar">✕</button></div>`;
+  return h;
+}
+function buildInputs(){
+  const sp=SPACES[space];
+  document.getElementById('dimTag').textContent='dim V = '+sp.dim;
+  document.getElementById('spaceDesc').textContent=sp.desc;
+  let html='';
+  vecs.forEach((v,i)=>{html+=vecRowHTML(v,i);});
+  document.getElementById('vecInputs').innerHTML=html;
+}
+function addVec(){syncVecs();vecs.push(new Array(SPACES[space].dim).fill(0));buildInputs();}
+function removeVec(i){if(vecs.length<=1)return;syncVecs();vecs.splice(i,1);buildInputs();}
+function clearAll(){vecs=vecs.map(v=>v.map(()=>0));buildInputs();clearOutput();document.querySelectorAll('.preset-pill').forEach(b=>b.classList.remove('active'));}
+function clearOutput(){document.getElementById('outputArea').innerHTML='';document.getElementById('vizPanel').style.display='none';}
+
+function syncVecs(){
+  const d=SPACES[space].dim;
+  vecs=vecs.map((v,i)=>{const row=[];for(let j=0;j<d;j++){const el=document.getElementById(`v_${i}_${j}`);row.push(el?el.value:v[j]);}return row;});
+}
+function readVecs(){
+  syncVecs();
+  return vecs.map(v=>v.map(x=>parseFrac(x)));
+}
+
+// ---- GAUSS-JORDAN WITH FRACTIONS ----
+function gaussReduce(vectors){
+  const m=vectors.length,n=vectors[0].length;
+  const M=vectors.map(r=>r.map(v=>frN(v)));
+  const steps=[];let pivotRow=0;const pivotCols=[];
+  for(let col=0;col<n&&pivotRow<m;col++){
+    let maxIdx=-1,maxVal=0;
+    for(let i=pivotRow;i<m;i++){const v=Math.abs(M[i][col].n/M[i][col].d);if(v>maxVal){maxVal=v;maxIdx=i;}}
+    if(maxVal<1e-12)continue;
+    if(maxIdx!==pivotRow){
+      [M[pivotRow],M[maxIdx]]=[M[maxIdx],M[pivotRow]];
+      steps.push({op:`f${sub(pivotRow+1)} ↔ f${sub(maxIdx+1)}`,type:'swap',mat:M.map(r=>r.map(f=>({...f}))),piv:[pivotRow,col]});
+    }
+    const pv=M[pivotRow][col];
+    if(pv.n!==pv.d){
+      const inv=fDiv(fr(1,1),pv);
+      for(let j=0;j<n;j++)M[pivotRow][j]=fMul(M[pivotRow][j],inv);
+      steps.push({op:`f${sub(pivotRow+1)} → ${fStr(inv)}·f${sub(pivotRow+1)}`,type:'scale',mat:M.map(r=>r.map(f=>({...f}))),piv:[pivotRow,col]});
+    }
+    for(let i=0;i<m;i++){
+      if(i===pivotRow||fIsZ(M[i][col]))continue;
+      const factor=fMul(fr(-1,1),M[i][col]);
+      for(let j=0;j<n;j++)M[i][j]=fAdd(M[i][j],fMul(factor,M[pivotRow][j]));
+      steps.push({op:`f${sub(i+1)} → ${fStr(factor)}·f${sub(pivotRow+1)} + f${sub(i+1)}`,type:'elim',mat:M.map(r=>r.map(f=>({...f}))),piv:[pivotRow,col]});
+    }
+    pivotCols.push(col);
+    pivotRow++;
+  }
+  return{steps,rref:M,rank:pivotRow,pivotCols,m,n};
+}
+
+// ---- DESCRIPCIÓN GEOMÉTRICA DE Cl(S) ----
+function spanDesc(r,n){
+  const sp=SPACES[space];
+  if(sp.kind!=='Rn')return r===n?`Cl(S) = ${sp.label}`:`Cl(S) es un subespacio de dimensión ${r} de ${sp.label}`;
+  if(r===0)return 'Cl(S) = {0} (solo el origen)';
+  if(r===1)return 'Cl(S) es una recta por el origen';
+  if(r===2)return n===2?'Cl(S) = ℝ² (todo el plano)':'Cl(S) es un plano por el origen';
+  if(r===3)return n===3?'Cl(S) = ℝ³ (todo el espacio)':'Cl(S) es un subespacio 3-dimensional';
+  return `Cl(S) = ${sp.label}`;
+}
+
+// ---- VERIFY ----
+function verify(){
+  const vectors=readVecs();
+  const sp=SPACES[space];
+  const k=vectors.length,n=sp.dim;
+  const result=gaussReduce(vectors);
+  const r=result.rank;
+  const isLI=r===k, genera=r===n, esBase=isLI&&genera;
+
+  let html='';
+
+  // Result badge
+  html+=`<div class="result-box ${esBase?'li':'ld'}">`;
+  html+=`<div class="result-title ${esBase?'li':'ld'}">${esBase?`✓ S ES UNA BASE de ${sp.label}`:`✗ S NO es una base de ${sp.label}`}</div>`;
+  html+=`<div style="font-family:var(--font-mono);font-size:0.82rem;line-height:1.8;">`;
+  html+=`<div>Vectores: k = ${k} &nbsp;|&nbsp; dim ${sp.label} = ${n} &nbsp;|&nbsp; Rango: ${r} &nbsp;|&nbsp; <strong>dim Cl(S) = ${r}</strong></div>`;
+  if(esBase){
+    html+=`<div>S es LI y Cl(S) = ${sp.label}. Como S tiene ${n} elementos, se confirma dim ${sp.label} = ${n}.</div>`;
+  }else{
+    const raz=[];
+    if(!isLI)raz.push(`rango = ${r} &lt; k = ${k} ⇒ S es LD`);
+    if(!genera)raz.push(`rango = ${r} &lt; n = ${n} ⇒ Cl(S) ≠ ${sp.label}`);
+    html+=`<div>${raz.join(' &nbsp;·&nbsp; ')}</div>`;
+  }
+  html+=`</div>`;
+  // chips
+  html+=`<div class="check-grid">`;
+  html+=`<span class="check-chip ${isLI?'ok':'bad'}">${isLI?'✓':'✗'} Linealmente independiente</span>`;
+  html+=`<span class="check-chip ${genera?'ok':'bad'}">${genera?'✓':'✗'} Genera ${sp.label}</span>`;
+  html+=`<span class="check-chip info">${spanDesc(r,n)}</span>`;
+  html+=`</div>`;
+  // teorema de conteo
+  if(k>n){
+    html+=`<div class="teo-note"><strong>Atajo por conteo:</strong> k = ${k} &gt; dim V = ${n}. Por el teorema <em>«todo subconjunto LI de V tiene a lo sumo n elementos»</em>, S es necesariamente LD y no puede ser base. La reducción solo determina dim Cl(S).</div>`;
+  }else if(k<n){
+    html+=`<div class="teo-note"><strong>Atajo por conteo:</strong> k = ${k} &lt; dim V = ${n}. Por el teorema <em>«ningún subconjunto con menos de n elementos puede generar V»</em>, Cl(S) ≠ ${sp.label} y S no puede ser base. La reducción determina si S es LI.</div>`;
+  }else{
+    html+=`<div class="teo-note"><strong>Conteo correcto (k = n = ${n}):</strong> basta verificar una sola condición — S es base ⟺ S es LI ⟺ Cl(S) = ${sp.label} ⟺ rango = ${n}.</div>`;
+  }
+  html+=`</div>`;
+
+  // Steps panel
+  html+=`<div class="panel"><div class="panel-head">📋 Reducción por Filas — Matriz de coordenadas<span style="margin-left:auto;font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);">${result.steps.length} operaciones</span></div><div class="panel-body">`;
+  html+=`<div class="step-card"><div class="step-head"><span class="snum" style="background:var(--navy);">0</span>Matriz inicial (vectores de coordenadas como filas)</div><div class="step-body">${renderFrMat(vectors.map(rr=>rr.map(v=>frN(v))))}</div></div>`;
+  result.steps.forEach((s,i)=>{
+    const color=s.type==='swap'?'var(--gmitblue)':s.type==='scale'?'var(--forest)':'var(--brick)';
+    html+=`<div class="step-card" style="animation-delay:${(i+1)*0.05}s;"><div class="step-head"><span class="snum" style="background:${color};">${i+1}</span>${s.op}</div><div class="step-body">${renderFrMat(s.mat,s.piv)}</div></div>`;
+  });
+  html+=`<div style="font-family:var(--font-mono);font-size:0.78rem;margin-top:0.4rem;"><strong>Rango = ${r}</strong> (pivotes en columnas ${result.pivotCols.map(c=>c+1).join(', ')||'ninguna'}) &nbsp;⇒&nbsp; <strong>dim Cl(S) = ${r}</strong></div>`;
+  html+=`</div></div>`;
+
+  document.getElementById('outputArea').innerHTML=html;
+
+  // viz
+  if(space==='R2'){showViz('2d');drawViz2D(vectors,result);}
+  else if(space==='R3'){showViz('3d');drawViz3D(vectors,result);}
+  else document.getElementById('vizPanel').style.display='none';
+}
+
+function renderFrMat(M,piv){
+  const m=M.length,n=M[0].length;
+  let h='<div class="smat"><div class="smat-bk left"></div>';
+  h+=`<div class="smat-grid" style="grid-template-columns:repeat(${n},1fr);">`;
+  for(let i=0;i<m;i++)for(let j=0;j<n;j++){
+    const isZero=fIsZ(M[i][j]);
+    const isPiv=piv&&piv[0]===i&&piv[1]===j;
+    h+=`<span class="smat-cell${isPiv?' pivot':''}" style="${(!isPiv&&isZero)?'color:var(--text-muted);':''}">${fStr(M[i][j])}</span>`;
+  }
+  h+='</div><div class="smat-bk right"></div></div>';
+  return h;
+}
+
+// ---- VIZ helpers ----
+function showViz(which){
+  document.getElementById('vizPanel').style.display='';
+  document.getElementById('viz2d').style.display=which==='2d'?'block':'none';
+  document.getElementById('viz3d').style.display=which==='3d'?'block':'none';
+}
+function setLegend(items,cap){
+  const lg=document.getElementById('vizLegend');lg.innerHTML='';
+  items.forEach(it=>{const s=document.createElement('span');s.innerHTML=`<span class="dot" style="background:${it.c}"></span>${it.t}`;lg.appendChild(s);});
+  document.getElementById('vizCap').textContent=cap||'';
+}
+
+// ---- VIZ 2D ----
+function drawViz2D(vectors,result){
+  const cv=document.getElementById('viz2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.clientWidth||480,H=340;
+  cv.width=W*dpr;cv.height=H*dpr;
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  let maxA=1;vectors.forEach(v=>v.forEach(x=>maxA=Math.max(maxA,Math.abs(x))));
+  const u=Math.min(W,H)/(2*maxA*1.3),cx=W/2,cy=H/2;
+  const X=x=>cx+x*u,Y=y=>cy-y*u;
+  ctx.strokeStyle='#eee';ctx.lineWidth=1;
+  const gmax=Math.ceil(maxA*1.3);
+  for(let i=-gmax;i<=gmax;i++){
+    ctx.beginPath();ctx.moveTo(X(i),0);ctx.lineTo(X(i),H);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,Y(i));ctx.lineTo(W,Y(i));ctx.stroke();
+  }
+  ctx.strokeStyle='#999';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();
+  if(result.rank===1){
+    const b=result.rref[0].map(fNum);
+    ctx.strokeStyle='rgba(178,34,34,.25)';ctx.lineWidth=8;
+    const L=Math.max(W,H);
+    ctx.beginPath();ctx.moveTo(X(-b[0]*L),Y(-b[1]*L));ctx.lineTo(X(b[0]*L),Y(b[1]*L));ctx.stroke();
+  }
+  if(result.rank===2){ctx.fillStyle='rgba(34,139,34,.06)';ctx.fillRect(0,0,W,H);}
+  const leg=[];
+  vectors.forEach((v,i)=>{
+    const col=VCOLORS[i%6];
+    arrow2d(ctx,X(0),Y(0),X(v[0]),Y(v[1]),col);
+    ctx.fillStyle=col;ctx.font="600 12px 'JetBrains Mono',monospace";
+    ctx.fillText('v'+sub(i+1),X(v[0])+6,Y(v[1])-6);
+    leg.push({c:col,t:`v${sub(i+1)}=(${fStr(frN(v[0]))}, ${fStr(frN(v[1]))})`});
+  });
+  setLegend(leg,result.rank===1?'La franja roja es Cl(S): una recta por el origen.':result.rank===2?'El fondo verde indica Cl(S) = ℝ² (todo el plano).':'Cl(S) = {0}.');
+}
+function arrow2d(ctx,x0,y0,x1,y1,col){
+  ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();
+  const a=Math.atan2(y1-y0,x1-x0),s=10;
+  ctx.beginPath();ctx.moveTo(x1,y1);
+  ctx.lineTo(x1-s*Math.cos(a-0.4),y1-s*Math.sin(a-0.4));
+  ctx.lineTo(x1-s*Math.cos(a+0.4),y1-s*Math.sin(a+0.4));
+  ctx.closePath();ctx.fill();
+}
+
+// ---- VIZ 3D (Three.js r128, órbita manual mouse+touch) ----
+const three={inited:false,theta:0.7,phi:1.1,dist:9};
+function toThree(v){return new THREE.Vector3(v[0],v[2],v[1]);}
+function init3D(){
+  if(three.inited)return;
+  const holder=document.getElementById('viz3d');
+  const W=holder.clientWidth||600,H=360;
+  three.scene=new THREE.Scene();
+  three.scene.background=new THREE.Color(0xffffff);
+  three.camera=new THREE.PerspectiveCamera(45,W/H,0.1,200);
+  three.renderer=new THREE.WebGLRenderer({antialias:true});
+  three.renderer.setPixelRatio(window.devicePixelRatio||1);
+  three.renderer.setSize(W,H);
+  holder.appendChild(three.renderer.domElement);
+  three.scene.add(new THREE.AmbientLight(0xffffff,0.8));
+  const dl=new THREE.DirectionalLight(0xffffff,0.5);dl.position.set(5,8,6);three.scene.add(dl);
+  three.group=new THREE.Group();three.scene.add(three.group);
+  let dragging=false,px=0,py=0;
+  const down=(x,y)=>{dragging=true;px=x;py=y;};
+  const move=(x,y)=>{if(!dragging)return;three.theta-=(x-px)*0.008;three.phi=Math.min(Math.PI-0.15,Math.max(0.15,three.phi-(y-py)*0.008));px=x;py=y;render3D();};
+  const up=()=>{dragging=false;};
+  const el=three.renderer.domElement;
+  el.addEventListener('mousedown',e=>down(e.clientX,e.clientY));
+  window.addEventListener('mousemove',e=>move(e.clientX,e.clientY));
+  window.addEventListener('mouseup',up);
+  el.addEventListener('touchstart',e=>{if(e.touches.length===1){down(e.touches[0].clientX,e.touches[0].clientY);e.preventDefault();}},{passive:false});
+  el.addEventListener('touchmove',e=>{if(e.touches.length===1){move(e.touches[0].clientX,e.touches[0].clientY);e.preventDefault();}},{passive:false});
+  el.addEventListener('touchend',up);
+  el.addEventListener('wheel',e=>{three.dist=Math.min(25,Math.max(4,three.dist+e.deltaY*0.01));render3D();e.preventDefault();},{passive:false});
+  window.addEventListener('resize',()=>{
+    if(document.getElementById('viz3d').style.display==='none')return;
+    const W2=document.getElementById('viz3d').clientWidth;
+    three.camera.aspect=W2/360;three.camera.updateProjectionMatrix();
+    three.renderer.setSize(W2,360);render3D();
+  });
+  three.inited=true;
+}
+function render3D(){
+  const r=three.dist;
+  three.camera.position.set(r*Math.sin(three.phi)*Math.cos(three.theta),r*Math.cos(three.phi),r*Math.sin(three.phi)*Math.sin(three.theta));
+  three.camera.lookAt(0,0,0);
+  three.renderer.render(three.scene,three.camera);
+}
+function drawViz3D(vectors,result){
+  init3D();
+  while(three.group.children.length)three.group.remove(three.group.children[0]);
+  let maxA=1;vectors.forEach(v=>v.forEach(x=>maxA=Math.max(maxA,Math.abs(x))));
+  const s=2.5/maxA;
+  const axLen=3.4;
+  [[1,0,0],[0,1,0],[0,0,1]].forEach(a=>{
+    const d=toThree(a);
+    three.group.add(new THREE.ArrowHelper(d.clone().normalize(),new THREE.Vector3(0,0,0),axLen,0x888888,0.18,0.1));
+    const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),d.clone().multiplyScalar(-axLen)]);
+    three.group.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:0xdddddd})));
+  });
+  three.group.add(new THREE.GridHelper(7,14,0xeeeeee,0xf3f3f3));
+  const leg=[];
+  vectors.forEach((v,i)=>{
+    const dir=toThree(v),len=dir.length()*s;
+    const col=VCOLORS[i%6];
+    if(len>1e-9)three.group.add(new THREE.ArrowHelper(dir.clone().normalize(),new THREE.Vector3(0,0,0),len,new THREE.Color(col).getHex(),Math.min(0.3,len*0.25),Math.min(0.16,len*0.12)));
+    leg.push({c:col,t:`v${sub(i+1)}=(${v.map(x=>fStr(frN(x))).join(', ')})`});
+  });
+  let cap;
+  if(result.rank===1){
+    const d1=toThree(result.rref[0].map(fNum)).normalize();
+    const g1=new THREE.BufferGeometry().setFromPoints([d1.clone().multiplyScalar(-3.2),d1.clone().multiplyScalar(3.2)]);
+    three.group.add(new THREE.Line(g1,new THREE.LineBasicMaterial({color:0xB22222})));
+    cap='Cl(S) es la recta roja por el origen (dim 1). Arrastra para rotar · rueda para zoom.';
+  }else if(result.rank===2){
+    const b1=toThree(result.rref[0].map(fNum)).normalize();
+    const b2raw=toThree(result.rref[1].map(fNum));
+    const b2=b2raw.clone().sub(b1.clone().multiplyScalar(b2raw.dot(b1))).normalize();
+    const normal=new THREE.Vector3().crossVectors(b1,b2).normalize();
+    const plane=new THREE.Mesh(new THREE.PlaneGeometry(6.4,6.4),new THREE.MeshBasicMaterial({color:0x228B22,transparent:true,opacity:0.16,side:THREE.DoubleSide}));
+    plane.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),normal);
+    three.group.add(plane);
+    cap='Cl(S) es el plano verde por el origen (dim 2): S no genera ℝ³. Arrastra para rotar.';
+  }else if(result.rank===3){
+    cap='Cl(S) = ℝ³: los vectores generan todo el espacio. Arrastra para rotar · rueda para zoom.';
+  }else cap='Cl(S) = {0}.';
+  setLegend(leg,cap);
+  render3D();
+}
+</script>
+</body>
+</html>
