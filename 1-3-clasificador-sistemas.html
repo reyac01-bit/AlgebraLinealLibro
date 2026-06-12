@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clasificador de Sistemas — Álgebra Lineal</title>
+<style>
+  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#888;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
+  .lab-header{background:linear-gradient(135deg,var(--navy) 0%,var(--gmitblue) 100%);color:#fff;padding:0.7rem 1.5rem;position:relative;overflow:hidden;}
+  .lab-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none;}
+  .lab-header-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:0.8rem;position:relative;z-index:1;}
+  .lab-icon{width:38px;height:38px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+  .lab-header h1{font-family:var(--font-display);font-size:clamp(0.9rem,2vw,1.25rem);font-weight:700;line-height:1.2;}
+  .lab-subtitle{font-size:0.72rem;opacity:0.75;}
+  .lab-badge{display:inline-block;background:var(--brick);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15em 0.5em;border-radius:3px;letter-spacing:0.05em;text-transform:uppercase;margin-right:0.35rem;vertical-align:middle;}
+  .main{max-width:960px;margin:0 auto;padding:0.6rem 0.8rem 1.5rem;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:0.7rem;}
+  .panel-head{padding:0.5rem 0.9rem;font-family:var(--font-display);font-size:0.85rem;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.4rem;background:var(--surface-alt);flex-wrap:wrap;}
+  .panel-body{padding:0.7rem 0.9rem;}
+  .context-box{background:linear-gradient(135deg,var(--gmitblue-pale),rgba(90,138,168,0.04));border-left:3px solid var(--gmitblue);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:0.5rem 0.7rem;font-size:0.74rem;line-height:1.5;color:var(--text-secondary);margin-bottom:0.5rem;}.context-box strong{color:var(--navy);}
+  /* quiz HUD */
+  .hud{display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.55rem;font-size:0.74rem;}
+  .hud-chip{font-family:var(--font-mono);font-weight:600;background:var(--gmitblue-pale);color:var(--navy);padding:0.18em 0.6em;border-radius:20px;}
+  .hud-chip.good{background:rgba(34,139,34,0.1);color:var(--forest);}
+  .hud-chip.streak{background:rgba(178,34,34,0.08);color:var(--brick);}
+  .progress{flex:1;min-width:120px;height:8px;background:var(--surface-alt);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+  .progress>div{height:100%;background:linear-gradient(90deg,var(--gmitblue),var(--navy));width:0%;transition:width 0.35s ease;}
+  /* sistema */
+  .sys-box{font-family:var(--font-mono);font-size:0.95rem;line-height:2;background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.7rem 1rem;display:inline-block;margin:0.3rem 0 0.6rem;}
+  .sys-tag{font-size:0.68rem;color:var(--text-muted);margin-left:0.5rem;font-family:var(--font-body);}
+  /* opciones */
+  .opt-grid{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.4rem;}
+  .opt-btn{flex:1;min-width:170px;padding:0.6rem 0.8rem;border:2px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;transition:var(--transition);font-family:var(--font-body);font-size:0.82rem;font-weight:600;text-align:center;}
+  .opt-btn:hover:not(:disabled){border-color:var(--navy);background:var(--gmitblue-pale);}
+  .opt-btn:disabled{cursor:default;opacity:0.85;}
+  .opt-btn.correct{border-color:var(--forest);background:rgba(34,139,34,0.1);color:var(--forest);}
+  .opt-btn.wrong{border-color:var(--brick);background:rgba(178,34,34,0.08);color:var(--brick);}
+  .opt-btn .sub{display:block;font-size:0.66rem;font-weight:400;color:var(--text-muted);font-family:var(--font-mono);}
+  /* feedback */
+  .fb-box{border:2px solid;border-radius:var(--radius);padding:0.6rem 0.85rem;margin-top:0.6rem;animation:stepIn 0.25s ease;}
+  .fb-box.ok{border-color:var(--forest);background:rgba(34,139,34,0.04);}
+  .fb-box.bad{border-color:var(--brick);background:rgba(178,34,34,0.04);}
+  .fb-title{font-family:var(--font-display);font-size:0.95rem;font-weight:700;margin-bottom:0.25rem;}
+  .fb-box.ok .fb-title{color:var(--forest);}.fb-box.bad .fb-title{color:var(--brick);}
+  .fb-body{font-size:0.78rem;line-height:1.7;}
+  .fb-body .mono{font-family:var(--font-mono);}
+  .teo-note{font-size:0.73rem;color:var(--text-secondary);border:1px dashed var(--gmitblue);border-radius:var(--radius-sm);padding:0.45rem 0.6rem;margin-top:0.5rem;line-height:1.55;background:rgba(90,138,168,0.04);}
+  .teo-note strong{color:var(--navy);}
+  /* steps */
+  @keyframes stepIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  details.redsteps{margin-top:0.5rem;}
+  details.redsteps summary{cursor:pointer;font-size:0.74rem;font-weight:700;color:var(--navy);}
+  .step-card{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin:0.5rem 0;animation:stepIn 0.25s ease;}
+  .step-head{display:flex;align-items:center;gap:0.4rem;padding:0.4rem 0.7rem;background:var(--surface-alt);border-bottom:1px solid var(--border);font-size:0.78rem;font-weight:600;}
+  .step-head .snum{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;font-size:0.68rem;color:#fff;flex-shrink:0;}
+  .step-body{padding:0.45rem 0.7rem;overflow-x:auto;}
+  .smat{display:inline-flex;align-items:stretch;vertical-align:middle;}
+  .smat-bk{display:flex;flex-direction:column;justify-content:center;}
+  .smat-bk.left{border-left:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);border-radius:3px 0 0 3px;width:5px;}
+  .smat-bk.right{border-right:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);border-radius:0 3px 3px 0;width:5px;}
+  .smat-grid{display:inline-grid;gap:1px 5px;padding:3px 2px;}
+  .smat-cell{font-family:var(--font-mono);font-size:0.78rem;text-align:center;padding:2px 3px;min-width:30px;border-radius:2px;}
+  .smat-cell.aug{border-left:1.5px solid var(--gmitblue);padding-left:8px;}
+  .smat-cell.pivot{background:#FF8C00;color:#fff;font-weight:700;border-radius:3px;}
+  .btn{display:inline-flex;align-items:center;gap:0.3rem;padding:0.4rem 0.75rem;border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.78rem;font-weight:600;cursor:pointer;transition:var(--transition);}
+  .btn-primary{background:var(--forest);color:#fff;}
+  .btn-secondary{background:var(--gmitblue-pale);color:var(--gmitblue);border:1px solid rgba(90,138,168,0.3);}
+  .btn-accent{background:var(--brick);color:#fff;}
+  /* final */
+  .final-box{text-align:center;padding:1.1rem 0.9rem;}
+  .final-score{font-family:var(--font-display);font-size:2.2rem;font-weight:700;color:var(--navy);}
+  .final-msg{font-size:0.85rem;color:var(--text-secondary);margin:0.3rem 0 0.7rem;}
+  .final-bar{display:flex;gap:0.25rem;justify-content:center;margin-bottom:0.7rem;flex-wrap:wrap;}
+  .final-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#fff;font-family:var(--font-mono);font-weight:700;}
+  .lab-footer{max-width:960px;margin:0 auto;padding:0.5rem 1rem;text-align:center;font-size:0.68rem;color:var(--text-muted);}
+  @media(max-width:600px){.main{padding:0.4rem;}.opt-btn{min-width:130px;}}
+</style>
+</head>
+<body>
+<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">🧮</div><div><h1><span class="lab-badge">Cap 1</span>Clasificador de Sistemas de Ecuaciones</h1><div class="lab-subtitle">Quiz Interactivo · Sistemas de Ecuaciones Lineales</div></div></div></header>
+<div class="main">
+  <div class="panel">
+    <div class="panel-head">🎯 Clasifica cada sistema<span style="margin-left:auto;font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);" id="roundTag"></span></div>
+    <div class="panel-body">
+      <div class="context-box">Para cada sistema, decide si tiene <strong>solución única</strong>, <strong>infinitas soluciones</strong> o si es <strong>inconsistente</strong> (sin solución). La retroalimentación aplica el <strong>Teorema del Rango</strong> del libro: si R(A) = R(A|B) = n hay solución única; si R(A) = R(A|B) &lt; n hay infinitas soluciones con n − R(A) parámetros; si R(A) &lt; R(A|B) el sistema es inconsistente y S = ∅. Incluye dos ejemplos resueltos del libro. 10 preguntas por ronda, dificultad progresiva.</div>
+      <div class="hud">
+        <span class="hud-chip" id="qChip">Pregunta 1/10</span>
+        <span class="hud-chip good" id="scoreChip">Aciertos: 0</span>
+        <span class="hud-chip streak" id="streakChip">Racha: 0</span>
+        <div class="progress"><div id="progBar"></div></div>
+      </div>
+      <div id="quizArea"></div>
+    </div>
+  </div>
+</div>
+<footer class="lab-footer">Álgebra Lineal con Abordaje Tecnológico · Quiz 1.3 · Clasificación de Sistemas de Ecuaciones Lineales</footer>
+
+<script>
+// ---- FRACTION ARITHMETIC ----
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a||1;}
+function fr(n,d){if(!d)d=1;if(!n)return{n:0,d:1};const g=gcd(Math.abs(n),Math.abs(d));n/=g;d/=g;if(d<0){n=-n;d=-d;}return{n,d};}
+function frN(x){if(Number.isInteger(x))return fr(x,1);for(let d=1;d<=1000;d++){const n=Math.round(x*d);if(Math.abs(n/d-x)<1e-10)return fr(n,d);}return fr(Math.round(x*10000),10000);}
+function fAdd(a,b){return fr(a.n*b.d+b.n*a.d,a.d*b.d);}
+function fMul(a,b){return fr(a.n*b.n,a.d*b.d);}
+function fDiv(a,b){return fr(a.n*b.d,a.d*b.n);}
+function fIsZ(a){return a.n===0;}
+function fStr(f){return f.d===1?''+f.n:f.n+'/'+f.d;}
+function sub(n){const s='₀₁₂₃₄₅₆₇₈₉';return(''+n).split('').map(c=>s[parseInt(c)]||c).join('');}
+
+// ---- GAUSS-JORDAN (matriz aumentada m×(n+1)) ----
+function gaussReduce(rows){
+  const m=rows.length,n=rows[0].length;
+  const M=rows.map(r=>r.map(v=>frN(v)));
+  const steps=[];let pivotRow=0;const pivotCols=[];
+  for(let col=0;col<n&&pivotRow<m;col++){
+    let maxIdx=-1,maxVal=0;
+    for(let i=pivotRow;i<m;i++){const v=Math.abs(M[i][col].n/M[i][col].d);if(v>maxVal){maxVal=v;maxIdx=i;}}
+    if(maxVal<1e-12)continue;
+    if(maxIdx!==pivotRow){
+      [M[pivotRow],M[maxIdx]]=[M[maxIdx],M[pivotRow]];
+      steps.push({op:`f${sub(pivotRow+1)} ↔ f${sub(maxIdx+1)}`,type:'swap',mat:M.map(r=>r.map(f=>({...f}))),piv:[pivotRow,col]});
+    }
+    const pv=M[pivotRow][col];
+    if(pv.n!==pv.d){
+      const inv=fDiv(fr(1,1),pv);
+      for(let j=0;j<n;j++)M[pivotRow][j]=fMul(M[pivotRow][j],inv);
+      steps.push({op:`f${sub(pivotRow+1)} → ${fStr(inv)}·f${sub(pivotRow+1)}`,type:'scale',mat:M.map(r=>r.map(f=>({...f}))),piv:[pivotRow,col]});
+    }
+    for(let i=0;i<m;i++){
+      if(i===pivotRow||fIsZ(M[i][col]))continue;
+      const factor=fMul(fr(-1,1),M[i][col]);
+      for(let j=0;j<n;j++)M[i][j]=fAdd(M[i][j],fMul(factor,M[pivotRow][j]));
+      steps.push({op:`f${sub(i+1)} → ${fStr(factor)}·f${sub(pivotRow+1)} + f${sub(i+1)}`,type:'elim',mat:M.map(r=>r.map(f=>({...f}))),piv:[pivotRow,col]});
+    }
+    pivotCols.push(col);
+    pivotRow++;
+  }
+  return{steps,rref:M,rank:pivotRow,pivotCols};
+}
+
+// ---- CLASIFICACIÓN (teorema del rango) ----
+// aug: matriz m×(n+1). Devuelve {tipo, rA, rAB, n, params, sol}
+function classify(aug){
+  const m=aug.length,nc=aug[0].length,n=nc-1;
+  const res=gaussReduce(aug);
+  const rAB=res.rank;
+  const rA=res.pivotCols.filter(c=>c<n).length;
+  let tipo,params=0,sol=null;
+  if(rA<rAB){tipo='inconsistente';}
+  else if(rA===n){
+    tipo='unica';
+    // solución: en RREF, fila i con pivote en col j → x_j = última col
+    sol=new Array(n).fill(fr(0,1));
+    res.pivotCols.forEach((c,i)=>{sol[c]=res.rref[i][n];});
+  }else{tipo='infinitas';params=n-rA;}
+  return{tipo,rA,rAB,n,m,params,sol,res};
+}
+
+// ---- GENERADOR DE SISTEMAS ----
+let seed=Date.now()%2147483647;
+function rnd(){seed=(seed*48271)%2147483647;return seed/2147483647;}
+function ri(a,b){return a+Math.floor(rnd()*(b-a+1));}
+function pick(arr){return arr[Math.floor(rnd()*arr.length)];}
+function maxAbs(M){let m=0;M.forEach(r=>r.forEach(x=>m=Math.max(m,Math.abs(x))));return m;}
+
+// mezcla filas con operaciones enteras manteniendo equivalencia
+function scramble(M,ops){
+  const m=M.length,nc=M[0].length;
+  for(let t=0;t<ops;t++){
+    const kind=rnd();
+    if(kind<0.2&&m>1){
+      const i=ri(0,m-1);let j=ri(0,m-1);if(j===i)j=(j+1)%m;
+      [M[i],M[j]]=[M[j],M[i]];
+    }else{
+      const i=ri(0,m-1);let j=ri(0,m-1);if(j===i)j=(j+1)%m;
+      const c=pick([-2,-1,1,2]);
+      const trial=M[i].map((x,k)=>x+c*M[j][k]);
+      if(Math.max(...trial.map(Math.abs))<=9)M[i]=trial;
+    }
+  }
+  return M;
+}
+// genera sistema m×n con clase deseada: 'unica' | 'infinitas' | 'inconsistente'
+function genSystem(tipo,n,m,params){
+  for(let attempt=0;attempt<60;attempt++){
+    let aug=[];
+    if(tipo==='unica'){
+      const x=Array.from({length:n},()=>ri(-4,4));
+      // A = identidad revuelta
+      const A=Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>i===j?1:0));
+      scramble(A,3*n+2);
+      aug=A.map(row=>{
+        const b=row.reduce((s,a,j)=>s+a*x[j],0);
+        return [...row,b];
+      });
+      if(m>n){ // filas extra dependientes pero consistentes
+        for(let e=n;e<m;e++){
+          const i=ri(0,n-1),j=ri(0,n-1),c=pick([-1,1,2]);
+          aug.push(aug[i].map((v,k)=>v+c*aug[j][k]));
+        }
+      }
+    }else{
+      const r=n-(tipo==='infinitas'?params:1); // rango de A deseado
+      // construir RREF base: r filas pivote + (m−r) filas cero
+      aug=[];
+      for(let i=0;i<r;i++){
+        const row=new Array(n+1).fill(0);
+        row[i]=1;
+        for(let j=r;j<n;j++)row[j]=ri(-3,3);
+        row[n]=ri(-4,4);
+        aug.push(row);
+      }
+      for(let i=r;i<m;i++){
+        const row=new Array(n+1).fill(0);
+        if(tipo==='inconsistente'&&i===r)row[n]=pick([-3,-2,-1,1,2,3]); // 0 = c
+        aug.push(row);
+      }
+      scramble(aug,3*m+4);
+      // re-scramble si quedó alguna fila completamente nula (delata la respuesta)
+      if(aug.some(row=>row.every(x=>x===0)))continue;
+    }
+    if(maxAbs(aug)>9)continue;
+    // verificación con el clasificador exacto
+    const c=classify(aug);
+    if(c.tipo!==tipo)continue;
+    if(tipo==='infinitas'&&c.params!==params)continue;
+    // evitar sistemas con demasiados ceros (poco interesantes)
+    const zeros=aug.flat().filter(x=>x===0).length;
+    if(zeros>aug.length*(n+1)*0.5)continue;
+    return aug;
+  }
+  // respaldo determinista
+  if(tipo==='unica')return [[1,1,2],[1,-1,0]].slice(0,m||2);
+  if(tipo==='infinitas')return [[1,1,2],[2,2,4]];
+  return [[1,1,2],[1,1,3]];
+}
+
+// ---- RENDER DE SISTEMA Y MATRICES ----
+const VARSN=['x','y','z','w'];
+function sysHTML(aug){
+  const n=aug[0].length-1;
+  let h='<div class="sys-box">';
+  aug.forEach(row=>{
+    let line='',first=true;
+    for(let j=0;j<n;j++){
+      const c=row[j];
+      if(c===0)continue;
+      const v=VARSN[j];
+      const a=Math.abs(c);
+      const coef=a===1?'':a;
+      if(first){line+=(c<0?'−':'')+coef+v;first=false;}
+      else line+=' '+(c<0?'−':'+')+' '+coef+v;
+    }
+    if(first)line='0';
+    line+=' = '+(row[n]<0?'−'+Math.abs(row[n]):row[n]);
+    h+=line+'<br>';
+  });
+  h+='</div>';
+  return h;
+}
+function renderFrMat(M,piv,augCol){
+  const m=M.length,n=M[0].length;
+  let h='<div class="smat"><div class="smat-bk left"></div>';
+  h+=`<div class="smat-grid" style="grid-template-columns:repeat(${n},1fr);">`;
+  for(let i=0;i<m;i++)for(let j=0;j<n;j++){
+    const isZero=fIsZ(M[i][j]);
+    const isPiv=piv&&piv[0]===i&&piv[1]===j;
+    const cls=['smat-cell'];
+    if(isPiv)cls.push('pivot');
+    if(j===augCol)cls.push('aug');
+    h+=`<span class="${cls.join(' ')}" style="${(!isPiv&&isZero)?'color:var(--text-muted);':''}">${fStr(M[i][j])}</span>`;
+  }
+  h+='</div><div class="smat-bk right"></div></div>';
+  return h;
+}
+
+// ---- BANCO DE PREGUNTAS (ejemplos y ejercicios del libro) ----
+const LIBRO=[
+  {aug:[[1,0,1,1],[0,8,-4,2]],tag:'Ejemplo del libro'},                              // infinitas, 1 parámetro
+  {aug:[[0,2,3,4],[2,-6,7,15],[1,-2,5,10]],tag:'Ejemplo del libro'},                 // inconsistente (0 = −1)
+  {aug:[[-2,6,-4,-28],[-1,3,-1,-8],[5,-15,10,70],[1,3,0,2]],tag:'Ejercicio 6 del libro'}, // única (2,0,6) pese a 4 ecuaciones
+];
+function buildRound(){
+  // plan: 10 preguntas — 4 únicas, 3 infinitas, 3 inconsistentes (3 fijas del libro + 7 generadas)
+  const qs=[];
+  // 2 del libro fijas para abrir
+  qs.push({aug:LIBRO[0].aug.map(r=>[...r]),tag:LIBRO[0].tag});
+  qs.push({aug:LIBRO[1].aug.map(r=>[...r]),tag:LIBRO[1].tag});
+  // generadas + el sobredeterminado del libro, mezcladas
+  qs.push({aug:genSystem('unica',2,2)});
+  qs.push({aug:genSystem('inconsistente',2,2)});
+  qs.push({aug:genSystem('infinitas',2,2,1)});
+  qs.push({aug:genSystem('unica',3,3)});
+  qs.push({aug:genSystem('inconsistente',3,3)});
+  qs.push({aug:genSystem('infinitas',3,3,1)});
+  qs.push({aug:genSystem('unica',3,3)});
+  qs.push({aug:LIBRO[2].aug.map(r=>[...r]),tag:LIBRO[2].tag});
+  // barajar 3..10 (las dos del libro quedan en posiciones 1–2 para abrir suave)
+  for(let i=qs.length-1;i>2;i--){
+    const j=2+Math.floor(rnd()*(i-1));
+    [qs[i],qs[j]]=[qs[j],qs[i]];
+  }
+  return qs;
+}
+
+// ---- ESTADO DEL QUIZ ----
+let round=[],qi=0,score=0,streak=0,results=[];
+const TIPOLBL={unica:'Solución única',infinitas:'Infinitas soluciones',inconsistente:'Inconsistente (S = ∅)'};
+
+window.addEventListener('DOMContentLoaded',startRound);
+function startRound(){
+  round=buildRound();qi=0;score=0;streak=0;results=[];
+  document.getElementById('roundTag').textContent='Teorema del Rango en acción';
+  showQuestion();
+}
+function updateHUD(){
+  document.getElementById('qChip').textContent=`Pregunta ${Math.min(qi+1,10)}/10`;
+  document.getElementById('scoreChip').textContent=`Aciertos: ${score}`;
+  document.getElementById('streakChip').textContent=`Racha: ${streak}`;
+  document.getElementById('progBar').style.width=(qi/10*100)+'%';
+}
+function showQuestion(){
+  updateHUD();
+  const q=round[qi];
+  const n=q.aug[0].length-1;
+  let h='';
+  h+=`<div style="font-size:0.78rem;color:var(--text-secondary);">Sistema de ${q.aug.length} ecuaciones con ${n} incógnitas (${VARSN.slice(0,n).join(', ')})${q.tag?`<span class="sys-tag">📖 ${q.tag}</span>`:''}</div>`;
+  h+=sysHTML(q.aug);
+  h+=`<div style="font-size:0.8rem;font-weight:600;color:var(--navy);">¿Cómo se clasifica este sistema?</div>`;
+  h+=`<div class="opt-grid">`;
+  h+=`<button class="opt-btn" onclick="answer('unica')">✅ Solución única<span class="sub">R(A) = R(A|B) = n</span></button>`;
+  h+=`<button class="opt-btn" onclick="answer('infinitas')">♾️ Infinitas soluciones<span class="sub">R(A) = R(A|B) &lt; n</span></button>`;
+  h+=`<button class="opt-btn" onclick="answer('inconsistente')">🚫 Inconsistente<span class="sub">R(A) &lt; R(A|B)</span></button>`;
+  h+=`</div>`;
+  h+=`<div id="fbArea"></div>`;
+  document.getElementById('quizArea').innerHTML=h;
+}
+function answer(elegida){
+  const q=round[qi];
+  const c=classify(q.aug);
+  const ok=elegida===c.tipo;
+  if(ok){score++;streak++;}else streak=0;
+  results.push(ok);
+  // marcar botones
+  document.querySelectorAll('.opt-btn').forEach(b=>{
+    b.disabled=true;
+    const t=b.getAttribute('onclick').match(/'(\w+)'/)[1];
+    if(t===c.tipo)b.classList.add('correct');
+    else if(t===elegida&&!ok)b.classList.add('wrong');
+  });
+  updateHUD();
+  // feedback
+  const n=c.n;
+  let fb=`<div class="fb-box ${ok?'ok':'bad'}">`;
+  fb+=`<div class="fb-title">${ok?'✓ ¡Correcto!':'✗ Incorrecto'} — ${TIPOLBL[c.tipo]}</div>`;
+  fb+=`<div class="fb-body">`;
+  fb+=`<div class="mono">R(A) = ${c.rA} &nbsp;|&nbsp; R(A|B) = ${c.rAB} &nbsp;|&nbsp; n = ${n} incógnitas</div>`;
+  if(c.tipo==='inconsistente'){
+    fb+=`Como R(A) = ${c.rA} &lt; R(A|B) = ${c.rAB}, en la forma escalonada aparece una fila del tipo <span class="mono">0 = c</span> con c ≠ 0. No existe ningún valor que la satisfaga: el sistema es inconsistente y <span class="mono">S = ∅</span>.`;
+  }else if(c.tipo==='unica'){
+    fb+=`Como R(A) = R(A|B) = n = ${n}, el sistema tiene solución única: <span class="mono">S = {(${c.sol.map(fStr).join(', ')})}</span>.`;
+  }else{
+    fb+=`Como R(A) = R(A|B) = ${c.rA} &lt; n = ${n}, hay infinitas soluciones que dependen de <strong>n − R(A) = ${c.params} parámetro${c.params===1?'':'s'}</strong>.`;
+  }
+  fb+=`<br>Forma escalonada reducida de (A|B): &nbsp;${renderFrMat(c.res.rref,null,n)}`;
+  fb+=`</div>`;
+  // reducción completa colapsable
+  fb+=`<details class="redsteps"><summary>📋 Ver la reducción completa (${c.res.steps.length} operaciones)</summary>`;
+  fb+=`<div class="step-card"><div class="step-head"><span class="snum" style="background:var(--navy);">0</span>Matriz aumentada (A|B)</div><div class="step-body">${renderFrMat(q.aug.map(r=>r.map(frN)),null,n)}</div></div>`;
+  c.res.steps.forEach((s,i)=>{
+    const color=s.type==='swap'?'var(--gmitblue)':s.type==='scale'?'var(--forest)':'var(--brick)';
+    fb+=`<div class="step-card"><div class="step-head"><span class="snum" style="background:${color};">${i+1}</span>${s.op}</div><div class="step-body">${renderFrMat(s.mat,s.piv,n)}</div></div>`;
+  });
+  fb+=`</details>`;
+  fb+=`<div style="margin-top:0.6rem;"><button class="btn btn-primary" onclick="next()">${qi<9?'Siguiente pregunta ▶':'Ver resultado final 🏁'}</button></div>`;
+  fb+=`</div>`;
+  document.getElementById('fbArea').innerHTML=fb;
+  document.getElementById('fbArea').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function next(){
+  qi++;
+  if(qi<10)showQuestion();
+  else showFinal();
+}
+function showFinal(){
+  document.getElementById('progBar').style.width='100%';
+  document.getElementById('qChip').textContent='Ronda completa';
+  let msg;
+  if(score===10)msg='¡Perfecto! Dominas el Teorema del Rango. 🏆';
+  else if(score>=8)msg='Excelente clasificación. Revisa los casos fallados en la retroalimentación.';
+  else if(score>=6)msg='Buen trabajo. Repasa la relación entre R(A), R(A|B) y n.';
+  else msg='Sigue practicando: la clave está en comparar R(A), R(A|B) y el número de incógnitas n.';
+  let dots='';
+  results.forEach((r,i)=>{dots+=`<span class="final-dot" style="background:${r?'var(--forest)':'var(--brick)'}" title="Pregunta ${i+1}">${i+1}</span>`;});
+  document.getElementById('quizArea').innerHTML=`
+    <div class="final-box">
+      <div class="final-score">${score} / 10</div>
+      <div class="final-msg">${msg}</div>
+      <div class="final-bar">${dots}</div>
+      <button class="btn btn-primary" onclick="startRound()">🔄 Jugar otra ronda (sistemas nuevos)</button>
+    </div>
+    <div class="teo-note"><strong>Teorema del Rango (resumen del libro):</strong> sea AX = B un sistema con n incógnitas. Si R(A) &lt; R(A|B), el sistema es inconsistente (S = ∅). Si R(A) = R(A|B) = n, tiene solución única. Si R(A) = R(A|B) &lt; n, tiene infinitas soluciones que dependen de n − R(A) parámetros. El teorema no dice cuál es el conjunto solución: solo clasifica; para hallar S se despeja desde la forma escalonada reducida.</div>`;
+}
+</script>
+</body>
+</html>
