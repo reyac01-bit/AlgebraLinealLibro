@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laboratorio de Transpuesta — Álgebra Lineal</title>
+<style>
+  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#888;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
+  .lab-header{background:linear-gradient(135deg,var(--navy) 0%,var(--gmitblue) 100%);color:#fff;padding:0.7rem 1.5rem;position:relative;overflow:hidden;}
+  .lab-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none;}
+  .lab-header-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:0.8rem;position:relative;z-index:1;}
+  .lab-icon{width:38px;height:38px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+  .lab-header h1{font-family:var(--font-display);font-size:clamp(0.9rem,2vw,1.25rem);font-weight:700;line-height:1.2;}
+  .lab-subtitle{font-size:0.72rem;opacity:0.75;}
+  .lab-badge{display:inline-block;background:var(--brick);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15em 0.5em;border-radius:3px;letter-spacing:0.05em;text-transform:uppercase;margin-right:0.35rem;vertical-align:middle;}
+  .main{max-width:960px;margin:0 auto;padding:0.6rem 0.8rem 1.5rem;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:0.7rem;}
+  .panel-head{padding:0.5rem 0.9rem;font-family:var(--font-display);font-size:0.85rem;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.4rem;background:var(--surface-alt);flex-wrap:wrap;}
+  .panel-body{padding:0.7rem 0.9rem;}
+  .context-box{background:linear-gradient(135deg,var(--gmitblue-pale),rgba(90,138,168,0.04));border-left:3px solid var(--gmitblue);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:0.5rem 0.7rem;font-size:0.74rem;line-height:1.5;color:var(--text-secondary);margin-bottom:0.5rem;}.context-box strong{color:var(--navy);}
+  .preset-scroll{display:flex;gap:0.25rem;flex-wrap:wrap;margin-bottom:0.5rem;}
+  .preset-pill{padding:0.22rem 0.5rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);cursor:pointer;transition:var(--transition);font-size:0.67rem;font-weight:600;white-space:nowrap;}
+  .preset-pill:hover{border-color:var(--navy);background:var(--gmitblue-pale);}
+  .preset-pill.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .size-row{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;font-size:0.8rem;}
+  .size-row label{font-weight:600;color:var(--text-secondary);}
+  .size-row select,.size-row input[type=text]{padding:0.25rem 0.4rem;border:1px solid var(--border);border-radius:4px;font-family:var(--font-mono);font-size:0.82rem;background:#fff;}
+  .size-row input[type=text]{width:54px;text-align:center;}
+  .mat-pair{display:flex;gap:1.4rem;flex-wrap:wrap;}
+  .mat-block{display:flex;flex-direction:column;gap:0.3rem;}
+  .mat-block .mlabel{font-family:var(--font-mono);font-weight:700;font-size:0.85rem;color:var(--navy);display:flex;align-items:center;gap:0.4rem;}
+  .dimtag{font-family:var(--font-mono);font-size:0.66rem;color:var(--text-muted);font-weight:400;}
+  .mat-input-wrap{display:flex;align-items:stretch;}
+  .mat-bk{width:7px;border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);}
+  .mat-bk.l{border-left:2px solid var(--navy);border-radius:4px 0 0 4px;}
+  .mat-bk.r{border-right:2px solid var(--navy);border-radius:0 4px 4px 0;}
+  .mat-grid{display:grid;gap:4px;padding:5px 6px;}
+  .mat-grid input{width:52px;padding:0.32rem 0.2rem;border:1px solid var(--border);border-radius:3px;font-family:var(--font-mono);font-size:0.82rem;text-align:center;background:#fff;transition:var(--transition);}
+  .mat-grid input:focus{outline:none;border-color:var(--gmitblue);box-shadow:0 0 0 2px rgba(90,138,168,0.15);}
+  .prop-row{display:flex;gap:0.3rem;flex-wrap:wrap;margin-bottom:0.5rem;}
+  .prop-pill{font-family:var(--font-mono);font-size:0.72rem;padding:0.28rem 0.6rem;border:1.5px solid var(--gmitblue);border-radius:20px;background:var(--surface);color:var(--navy);cursor:pointer;transition:var(--transition);font-weight:600;}
+  .prop-pill:hover{background:var(--gmitblue-pale);}
+  .prop-pill.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .prop-pill.trap{border-color:var(--brick);color:var(--brick);}
+  .prop-pill.trap.active{background:var(--brick);color:#fff;}
+  .btn{display:inline-flex;align-items:center;gap:0.3rem;padding:0.4rem 0.75rem;border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.78rem;font-weight:600;cursor:pointer;transition:var(--transition);}
+  .btn-primary{background:var(--forest);color:#fff;}.btn-secondary{background:var(--gmitblue-pale);color:var(--gmitblue);border:1px solid rgba(90,138,168,0.3);}
+  .btn-accent{background:var(--brick);color:#fff;}
+  .btn-row{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.5rem;}
+  /* Result */
+  .result-box{border:2px solid;border-radius:var(--radius);padding:0.7rem 0.9rem;margin-bottom:0.7rem;}
+  .result-box.ok{border-color:var(--forest);background:rgba(34,139,34,0.04);}
+  .result-box.no{border-color:var(--brick);background:rgba(178,34,34,0.04);}
+  .result-title{font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:0.25rem;}
+  .result-box.ok .result-title{color:var(--forest);}.result-box.no .result-title{color:var(--brick);}
+  .result-body{font-size:0.79rem;line-height:1.7;}
+  .result-body .mono{font-family:var(--font-mono);}
+  .teo-note{font-size:0.73rem;color:var(--text-secondary);border:1px dashed var(--gmitblue);border-radius:var(--radius-sm);padding:0.45rem 0.6rem;margin-top:0.5rem;line-height:1.55;background:rgba(90,138,168,0.04);}
+  .teo-note strong{color:var(--navy);}
+  /* side comparison */
+  @keyframes stepIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .cmp-card{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:0.55rem;animation:stepIn 0.25s ease;}
+  .cmp-head{padding:0.4rem 0.7rem;background:var(--surface-alt);border-bottom:1px solid var(--border);font-size:0.8rem;font-weight:700;color:var(--navy);}
+  .cmp-body{padding:0.6rem 0.7rem;overflow-x:auto;}
+  .eqline{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;}
+  .op{font-family:var(--font-mono);font-size:1.05rem;color:var(--text-muted);font-weight:700;}
+  .op.eq{color:var(--forest);}.op.neq{color:var(--brick);}
+  .smat{display:inline-flex;align-items:stretch;vertical-align:middle;}
+  .smat-bk{display:flex;flex-direction:column;justify-content:center;}
+  .smat-bk.left{border-left:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);border-radius:3px 0 0 3px;width:5px;}
+  .smat-bk.right{border-right:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);border-radius:0 3px 3px 0;width:5px;}
+  .smat-grid{display:inline-grid;gap:2px 6px;padding:4px 3px;}
+  .smat-cell{font-family:var(--font-mono);font-size:0.82rem;text-align:center;padding:2px 4px;min-width:32px;border-radius:2px;}
+  .smat-cell.diff{background:rgba(178,34,34,0.14);color:var(--brick);font-weight:700;}
+  .smat-lbl{font-family:var(--font-mono);font-size:0.72rem;color:var(--text-secondary);text-align:center;margin-bottom:2px;}
+  .lab-footer{max-width:960px;margin:0 auto;padding:0.5rem 1rem;text-align:center;font-size:0.68rem;color:var(--text-muted);}
+  @media(max-width:600px){.main{padding:0.4rem;}.mat-grid input{width:44px;}}
+</style>
+</head>
+<body>
+<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">↹</div><div><h1><span class="lab-badge">Cap 2</span>Laboratorio de Transpuesta</h1><div class="lab-subtitle">Laboratorio de Exploración · Matrices</div></div></div></header>
+<div class="main">
+  <div class="panel">
+    <div class="panel-head">📝 Ingresa A y B y elige la propiedad a verificar</div>
+    <div class="panel-body">
+      <div class="context-box">Explora las propiedades de la transpuesta enunciadas como teoremas en el libro: <strong>(A+B)ᵀ = Aᵀ+Bᵀ</strong>, <strong>(kA)ᵀ = kAᵀ</strong>, <strong>(Aᵀ)ᵀ = A</strong> y <strong>(AB)ᵀ = BᵀAᵀ</strong>. El laboratorio calcula ambos lados de la igualdad con fracciones exactas y los compara entrada por entrada. Incluye además la <strong>trampa</strong> (AB)ᵀ =? AᵀBᵀ para que veas que en general es falsa: el orden se invierte. Acepta enteros, decimales y fracciones como <strong>1/2, -3/4</strong>.</div>
+      <div class="preset-scroll" id="presets"></div>
+      <div class="size-row">
+        <label>A es</label>
+        <select id="selMA" onchange="resize()"><option selected>2</option><option>3</option></select>×
+        <select id="selNA" onchange="resize()"><option selected>2</option><option>3</option></select>
+        <label>k =</label><input type="text" id="kVal" value="2">
+        <span class="dimtag" id="dimNote"></span>
+      </div>
+      <div class="prop-row" id="propRow"></div>
+      <div class="mat-pair">
+        <div class="mat-block"><span class="mlabel">Matriz A <span class="dimtag" id="dimA"></span></span><div class="mat-input-wrap"><div class="mat-bk l"></div><div class="mat-grid" id="gridA"></div><div class="mat-bk r"></div></div></div>
+        <div class="mat-block" id="blockB"><span class="mlabel">Matriz B <span class="dimtag" id="dimB"></span></span><div class="mat-input-wrap"><div class="mat-bk l"></div><div class="mat-grid" id="gridB"></div><div class="mat-bk r"></div></div></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="verify()">▶ Verificar propiedad</button>
+        <button class="btn btn-accent" onclick="clearAll()">Limpiar</button>
+      </div>
+      <div id="errBox"></div>
+    </div>
+  </div>
+  <div id="outputArea"></div>
+</div>
+<footer class="lab-footer">Álgebra Lineal con Abordaje Tecnológico · Laboratorio 2.5 · Matriz Transpuesta</footer>
+
+<script>
+// ---- FRACTION ARITHMETIC ----
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a||1;}
+function fr(n,d){if(!d)d=1;if(!n)return{n:0,d:1};const g=gcd(Math.abs(n),Math.abs(d));n/=g;d/=g;if(d<0){n=-n;d=-d;}return{n,d};}
+function fAdd(a,b){return fr(a.n*b.d+b.n*a.d,a.d*b.d);}
+function fMul(a,b){return fr(a.n*b.n,a.d*b.d);}
+function fIsZ(a){return a.n===0;}
+function fStr(f){return f.d===1?''+f.n:f.n+'/'+f.d;}
+function fEq(a,b){return a.n===b.n&&a.d===b.d;}
+function parseFrac(s){
+  s=(s||'').toString().trim().replace(/,/g,'.');
+  if(s===''||s==='-')return null;
+  let m=s.match(/^(-?\d+)\s*\/\s*(-?\d+)$/);
+  if(m){const d=parseInt(m[2],10);if(d===0)return null;return fr(parseInt(m[1],10),d);}
+  if(/^-?\d+$/.test(s))return fr(parseInt(s,10),1);
+  if(/^-?\d*\.\d+$/.test(s)){const dec=s.split('.')[1].length;const den=Math.pow(10,dec);return fr(Math.round(parseFloat(s)*den),den);}
+  return null;
+}
+
+// ---- OPERACIONES MATRICIALES (fracciones) ----
+function transpose(M){const r=M.length,c=M[0].length,T=[];for(let j=0;j<c;j++){const row=[];for(let i=0;i<r;i++)row.push(M[i][j]);T.push(row);}return T;}
+function addM(A,B){return A.map((r,i)=>r.map((x,j)=>fAdd(x,B[i][j])));}
+function scaleM(k,A){return A.map(r=>r.map(x=>fMul(k,x)));}
+function mulM(A,B){const r=A.length,n=A[0].length,c=B[0].length,C=[];for(let i=0;i<r;i++){const row=[];for(let j=0;j<c;j++){let s=fr(0,1);for(let t=0;t<n;t++)s=fAdd(s,fMul(A[i][t],B[t][j]));row.push(s);}C.push(row);}return C;}
+function eqM(A,B){if(A.length!==B.length||A[0].length!==B[0].length)return false;for(let i=0;i<A.length;i++)for(let j=0;j<A[0].length;j++)if(!fEq(A[i][j],B[i][j]))return false;return true;}
+
+// ---- PROPIEDADES ----
+const PROPS={
+  sum:{label:'(A+B)ᵀ = Aᵀ+Bᵀ',needB:true,sameDim:true,trap:false,
+       lhs:(A,B,k)=>({m:transpose(addM(A,B)),tex:'(A+B)ᵀ'}),
+       rhs:(A,B,k)=>({m:addM(transpose(A),transpose(B)),tex:'Aᵀ+Bᵀ'})},
+  scale:{label:'(kA)ᵀ = kAᵀ',needB:false,sameDim:false,trap:false,
+       lhs:(A,B,k)=>({m:transpose(scaleM(k,A)),tex:'(kA)ᵀ'}),
+       rhs:(A,B,k)=>({m:scaleM(k,transpose(A)),tex:'kAᵀ'})},
+  double:{label:'(Aᵀ)ᵀ = A',needB:false,sameDim:false,trap:false,
+       lhs:(A,B,k)=>({m:transpose(transpose(A)),tex:'(Aᵀ)ᵀ'}),
+       rhs:(A,B,k)=>({m:A,tex:'A'})},
+  prod:{label:'(AB)ᵀ = BᵀAᵀ',needB:true,sameDim:false,mulDim:true,trap:false,
+       lhs:(A,B,k)=>({m:transpose(mulM(A,B)),tex:'(AB)ᵀ'}),
+       rhs:(A,B,k)=>({m:mulM(transpose(B),transpose(A)),tex:'BᵀAᵀ'})},
+  trap:{label:'(AB)ᵀ =? AᵀBᵀ',needB:true,sameDim:false,mulDim:true,squareAB:true,trap:true,
+       lhs:(A,B,k)=>({m:transpose(mulM(A,B)),tex:'(AB)ᵀ'}),
+       rhs:(A,B,k)=>({m:mulM(transpose(A),transpose(B)),tex:'AᵀBᵀ'})},
+};
+let curProp='sum';
+
+// ---- ESTADO ----
+let mA=2,nA=2,dataA=[],dataB=[];
+const PRESETS=[
+  {name:'Libro: (A+B)ᵀ = Aᵀ+Bᵀ',prop:'sum',ma:2,na:2,a:[['1','2'],['3','4']],b:[['0','1'],['2','5']]},
+  {name:'Libro: (kA)ᵀ = kAᵀ con k=3',prop:'scale',k:'3',ma:2,na:2,a:[['1','-2'],['0','4']]},
+  {name:'(Aᵀ)ᵀ = A (3×2)',prop:'double',ma:3,na:2,a:[['1','2'],['3','4'],['5','6']]},
+  {name:'Libro: (AB)ᵀ = BᵀAᵀ',prop:'prod',ma:2,na:3,a:[['1','2','0'],['3','1','4']],b:[['2','1'],['0','3'],['1','2']]},
+  {name:'Trampa: (AB)ᵀ ≠ AᵀBᵀ',prop:'trap',ma:2,na:2,a:[['1','2'],['3','4']],b:[['0','1'],['2','1']]},
+  {name:'Con fracciones',prop:'sum',ma:2,na:2,a:[['1/2','1/3'],['2','-1/2']],b:[['1/2','2/3'],['1','1/2']]},
+];
+
+window.addEventListener('DOMContentLoaded',()=>{buildPresets();buildProps();dataA=[['1','2'],['3','4']];dataB=[['0','1'],['2','5']];mA=2;nA=2;syncSelects();buildGrids();updateProps();});
+function buildPresets(){const g=document.getElementById('presets');PRESETS.forEach((p,i)=>{const b=document.createElement('button');b.className='preset-pill';b.textContent=p.name;b.onclick=()=>loadPreset(i);g.appendChild(b);});}
+function buildProps(){
+  const row=document.getElementById('propRow');row.innerHTML='';
+  Object.keys(PROPS).forEach(key=>{
+    const b=document.createElement('button');
+    b.className='prop-pill'+(PROPS[key].trap?' trap':'')+(key===curProp?' active':'');
+    b.textContent=PROPS[key].label;b.dataset.key=key;
+    b.onclick=()=>{curProp=key;buildProps();updateProps();clearOutput();};
+    row.appendChild(b);
+  });
+}
+function loadPreset(i){
+  const p=PRESETS[i];curProp=p.prop;mA=p.ma;nA=p.na;
+  dataA=p.a.map(r=>[...r]);
+  if(p.b)dataB=p.b.map(r=>[...r]);
+  if(p.k)document.getElementById('kVal').value=p.k;
+  syncSelects();buildProps();buildGrids();updateProps();clearOutput();
+  document.querySelectorAll('.preset-pill').forEach((b,j)=>b.classList.toggle('active',j===i));
+}
+function syncSelects(){document.getElementById('selMA').value=mA;document.getElementById('selNA').value=nA;}
+
+// dimensiones de B según la propiedad
+function dimsB(){
+  const pr=PROPS[curProp];
+  if(!pr.needB)return null;
+  if(pr.sameDim)return [mA,nA];        // suma: B misma dim que A
+  if(pr.squareAB)return [nA,mA];       // trampa: AᵀBᵀ exige B nA×mA (para que cuadre)
+  if(pr.mulDim)return [nA,2];          // producto: B es nA×p (p libre, usamos 2)
+  return [mA,nA];
+}
+function resize(){
+  sync();
+  mA=parseInt(document.getElementById('selMA').value);
+  nA=parseInt(document.getElementById('selNA').value);
+  dataA=fit(dataA,mA,nA);
+  const db=dimsB();
+  if(db)dataB=fit(dataB,db[0],db[1]);
+  buildGrids();updateProps();clearOutput();
+  document.querySelectorAll('.preset-pill').forEach(b=>b.classList.remove('active'));
+}
+function fit(M,r,c){const R=[];for(let i=0;i<r;i++){const row=[];for(let j=0;j<c;j++)row.push((M[i]&&M[i][j]!==undefined)?M[i][j]:'0');R.push(row);}return R;}
+function gridHTML(id,data,r,c){let h='';for(let i=0;i<r;i++)for(let j=0;j<c;j++)h+=`<input type="text" id="${id}_${i}_${j}" value="${(data[i][j]||'').replace(/"/g,'&quot;')}" onfocus="this.select()">`;return h;}
+function buildGrids(){
+  const ga=document.getElementById('gridA');
+  ga.style.gridTemplateColumns=`repeat(${nA},auto)`;
+  ga.innerHTML=gridHTML('A',dataA,mA,nA);
+  document.getElementById('dimA').textContent=`(${mA}×${nA})`;
+  const db=dimsB();
+  if(db){
+    dataB=fit(dataB,db[0],db[1]);
+    const gb=document.getElementById('gridB');
+    gb.style.gridTemplateColumns=`repeat(${db[1]},auto)`;
+    gb.innerHTML=gridHTML('B',dataB,db[0],db[1]);
+    document.getElementById('dimB').textContent=`(${db[0]}×${db[1]})`;
+  }
+}
+function updateProps(){
+  const pr=PROPS[curProp];
+  document.getElementById('blockB').style.display=pr.needB?'':'none';
+  let note='';
+  if(curProp==='scale')note='B no se usa en esta propiedad.';
+  else if(curProp==='double')note='Solo se usa A; puede ser de cualquier tamaño.';
+  else if(curProp==='sum')note='A y B deben tener la misma dimensión.';
+  else if(curProp==='prod')note='B debe tener tantas filas como columnas tiene A; (AB)ᵀ resulta de tamaño p×m.';
+  else if(curProp==='trap')note='Aquí B es n×m para que AᵀBᵀ tenga sentido — y aun así casi nunca coincide con (AB)ᵀ.';
+  document.getElementById('dimNote').textContent=note;
+  buildGrids();
+}
+function sync(){
+  for(let i=0;i<mA;i++)for(let j=0;j<nA;j++){const e=document.getElementById(`A_${i}_${j}`);if(e)dataA[i][j]=e.value;}
+  const db=dimsB();
+  if(db)for(let i=0;i<db[0];i++)for(let j=0;j<db[1];j++){const e=document.getElementById(`B_${i}_${j}`);if(e)dataB[i][j]=e.value;}
+}
+function clearAll(){dataA=fit([],mA,nA);const db=dimsB();if(db)dataB=fit([],db[0],db[1]);buildGrids();clearOutput();document.querySelectorAll('.preset-pill').forEach(b=>b.classList.remove('active'));}
+function clearOutput(){document.getElementById('outputArea').innerHTML='';document.getElementById('errBox').innerHTML='';}
+
+function readMat(id,r,c,data){
+  const M=[];
+  for(let i=0;i<r;i++){const row=[];for(let j=0;j<c;j++){const f=parseFrac(data[i][j]);if(f===null)throw new Error(`Entrada inválida en ${id}[${i+1},${j+1}].`);row.push(f);}M.push(row);}
+  return M;
+}
+
+// ---- VERIFY ----
+function verify(){
+  sync();clearOutput();
+  const pr=PROPS[curProp];
+  let A,B=null,k=fr(1,1);
+  try{
+    A=readMat('A',mA,nA,dataA);
+    if(pr.needB){const db=dimsB();B=readMat('B',db[0],db[1],dataB);}
+    if(curProp==='scale'){const kf=parseFrac(document.getElementById('kVal').value);if(kf===null)throw new Error('Valor de k inválido.');k=kf;}
+  }catch(err){
+    document.getElementById('errBox').innerHTML=`<div class="result-box no" style="margin-top:0.5rem;"><div class="result-title no">⚠ Error</div><div class="result-body mono">${err.message}</div></div>`;
+    return;
+  }
+  const L=pr.lhs(A,B,k), R=pr.rhs(A,B,k);
+  const igual=eqM(L.m,R.m);
+
+  let html='';
+  const isTrap=pr.trap;
+  // para la trampa, "ok" pedagógico = mostrar que son distintas
+  const goodResult=isTrap?!igual:igual;
+  html+=`<div class="result-box ${igual?'ok':'no'}">`;
+  if(isTrap){
+    html+=`<div class="result-title ${igual?'ok':'no'}">${igual?'⚠ Coinciden en este caso particular':'✓ Como esperábamos: (AB)ᵀ ≠ AᵀBᵀ'}</div>`;
+    html+=`<div class="result-body">`;
+    if(igual)html+=`En este ejemplo concreto resultaron iguales (puede pasar con matrices especiales), pero <strong>en general la igualdad (AB)ᵀ = AᵀBᵀ es FALSA</strong>. La propiedad correcta invierte el orden: <span class="mono">(AB)ᵀ = BᵀAᵀ</span>. Prueba con A = (1 2; 3 4), B = (0 1; 2 1).`;
+    else html+=`Los dos lados <strong>no coinciden</strong>: esto confirma que <span class="mono">(AB)ᵀ ≠ AᵀBᵀ</span> en general. La propiedad verdadera es <span class="mono">(AB)ᵀ = BᵀAᵀ</span> — el orden de los factores se invierte al transponer.`;
+    html+=`</div>`;
+  }else{
+    html+=`<div class="result-title ${igual?'ok':'no'}">${igual?'✓ La igualdad se cumple':'✗ Los lados no coinciden'}</div>`;
+    html+=`<div class="result-body">Se verificó <span class="mono">${pr.label}</span>: ambos lados ${igual?'producen la misma matriz':'difieren'}. ${igual?'Esto ilustra el teorema correspondiente del libro.':'Revisa las entradas resaltadas.'}</div>`;
+  }
+  html+=`</div>`;
+
+  // comparación lado a lado
+  html+=`<div class="cmp-card"><div class="cmp-head">Comparación lado a lado</div><div class="cmp-body">`;
+  html+=`<div class="eqline">${labeledMat(L.tex,L.m,R.m)}<span class="op ${igual?'eq':'neq'}">${igual?'=':'≠'}</span>${labeledMat(R.tex,R.m,L.m)}</div>`;
+  html+=`</div></div>`;
+
+  // pasos intermedios según propiedad
+  html+=intermedios(curProp,A,B,k);
+
+  // nota teórica
+  const notas={
+    sum:'<strong>Teorema (libro):</strong> (A+B)ᵀ = Aᵀ+Bᵀ. Transponer respeta la suma.',
+    scale:'<strong>Teorema (libro):</strong> (kA)ᵀ = kAᵀ para todo k ∈ ℝ. El escalar sale intacto.',
+    double:'<strong>Teorema (libro):</strong> (Aᵀ)ᵀ = A. Transponer dos veces devuelve la matriz original. En particular Iₙ = Iₙᵀ.',
+    prod:'<strong>Teorema (libro):</strong> (AB)ᵀ = BᵀAᵀ (no AᵀBᵀ). Al transponer un producto, el orden de los factores se invierte.',
+    trap:'<strong>Cuidado:</strong> el error más común es escribir (AB)ᵀ = AᵀBᵀ. La forma correcta invierte el orden: (AB)ᵀ = BᵀAᵀ. Además, AᵀBᵀ a veces ni siquiera está definido por incompatibilidad de dimensiones.'
+  };
+  html+=`<div class="teo-note">${notas[curProp]}</div>`;
+
+  document.getElementById('outputArea').innerHTML=html;
+  document.getElementById('outputArea').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function labeledMat(label,M,other){
+  return `<span style="display:inline-flex;flex-direction:column;align-items:center;"><span class="smat-lbl">${label}</span>${matSVG(M,other)}</span>`;
+}
+function matSVG(M,other){
+  const r=M.length,c=M[0].length;
+  let h='<span class="smat"><span class="smat-bk left"></span>';
+  h+=`<span class="smat-grid" style="grid-template-columns:repeat(${c},1fr);">`;
+  for(let i=0;i<r;i++)for(let j=0;j<c;j++){
+    let diff=false;
+    if(other&&other.length===r&&other[0].length===c)diff=!fEq(M[i][j],other[i][j]);
+    h+=`<span class="smat-cell ${diff?'diff':''}">${fStr(M[i][j])}</span>`;
+  }
+  h+='</span><span class="smat-bk right"></span></span>';
+  return h;
+}
+function intermedios(prop,A,B,k){
+  let h=`<div class="cmp-card"><div class="cmp-head">Matrices intermedias</div><div class="cmp-body"><div class="eqline" style="gap:1rem;">`;
+  h+=labeledMat('A',A,null);
+  if(prop==='sum'){h+=labeledMat('B',B,null);h+=labeledMat('Aᵀ',transpose(A),null);h+=labeledMat('Bᵀ',transpose(B),null);}
+  else if(prop==='scale'){h+=labeledMat('Aᵀ',transpose(A),null);h+=labeledMat('kA',scaleM(k,A),null);}
+  else if(prop==='double'){h+=labeledMat('Aᵀ',transpose(A),null);}
+  else if(prop==='prod'||prop==='trap'){h+=labeledMat('B',B,null);h+=labeledMat('Aᵀ',transpose(A),null);h+=labeledMat('Bᵀ',transpose(B),null);h+=labeledMat('AB',mulM(A,B),null);}
+  h+=`</div></div></div>`;
+  return h;
+}
+</script>
+</body>
+</html>
