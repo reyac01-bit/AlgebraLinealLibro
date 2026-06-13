@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Factorizador LU — Álgebra Lineal</title>
+<style>
+  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#888;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
+  .lab-header{background:linear-gradient(135deg,var(--navy) 0%,var(--gmitblue) 100%);color:#fff;padding:0.7rem 1.5rem;position:relative;overflow:hidden;}
+  .lab-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none;}
+  .lab-header-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:0.8rem;position:relative;z-index:1;}
+  .lab-icon{width:38px;height:38px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+  .lab-header h1{font-family:var(--font-display);font-size:clamp(0.9rem,2vw,1.25rem);font-weight:700;line-height:1.2;}
+  .lab-subtitle{font-size:0.72rem;opacity:0.75;}
+  .lab-badge{display:inline-block;background:var(--brick);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15em 0.5em;border-radius:3px;letter-spacing:0.05em;text-transform:uppercase;margin-right:0.35rem;vertical-align:middle;}
+  .main{max-width:960px;margin:0 auto;padding:0.6rem 0.8rem 1.5rem;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:0.7rem;}
+  .panel-head{padding:0.5rem 0.9rem;font-family:var(--font-display);font-size:0.85rem;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.4rem;background:var(--surface-alt);flex-wrap:wrap;}
+  .panel-body{padding:0.7rem 0.9rem;}
+  .context-box{background:linear-gradient(135deg,var(--gmitblue-pale),rgba(90,138,168,0.04));border-left:3px solid var(--gmitblue);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:0.5rem 0.7rem;font-size:0.74rem;line-height:1.5;color:var(--text-secondary);margin-bottom:0.5rem;}.context-box strong{color:var(--navy);}
+  .preset-scroll{display:flex;gap:0.25rem;flex-wrap:wrap;margin-bottom:0.5rem;}
+  .preset-pill{padding:0.22rem 0.5rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);cursor:pointer;transition:var(--transition);font-size:0.67rem;font-weight:600;white-space:nowrap;}
+  .preset-pill:hover{border-color:var(--navy);background:var(--gmitblue-pale);}
+  .preset-pill.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .size-row{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;font-size:0.8rem;}
+  .size-row label{font-weight:600;color:var(--text-secondary);}
+  .size-row select{padding:0.25rem 0.4rem;border:1px solid var(--border);border-radius:4px;font-family:var(--font-mono);font-size:0.82rem;background:#fff;}
+  .toggle{display:inline-flex;align-items:center;gap:0.35rem;font-size:0.76rem;font-weight:600;color:var(--text-secondary);cursor:pointer;}
+  .toggle input{accent-color:var(--navy);width:15px;height:15px;}
+  .mat-pair{display:flex;gap:1.2rem;flex-wrap:wrap;align-items:flex-end;}
+  .mat-block{display:flex;flex-direction:column;gap:0.3rem;}
+  .mat-block .mlabel{font-family:var(--font-mono);font-weight:700;font-size:0.85rem;color:var(--navy);}
+  .mat-input-wrap{display:flex;align-items:stretch;}
+  .mat-bk{width:7px;border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);}
+  .mat-bk.l{border-left:2px solid var(--navy);border-radius:4px 0 0 4px;}
+  .mat-bk.r{border-right:2px solid var(--navy);border-radius:0 4px 4px 0;}
+  .mat-grid{display:grid;gap:4px;padding:5px 6px;}
+  .mat-grid input{width:52px;padding:0.32rem 0.2rem;border:1px solid var(--border);border-radius:3px;font-family:var(--font-mono);font-size:0.82rem;text-align:center;background:#fff;transition:var(--transition);}
+  .mat-grid input:focus{outline:none;border-color:var(--gmitblue);box-shadow:0 0 0 2px rgba(90,138,168,0.15);}
+  .btn{display:inline-flex;align-items:center;gap:0.3rem;padding:0.4rem 0.75rem;border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.78rem;font-weight:600;cursor:pointer;transition:var(--transition);}
+  .btn-primary{background:var(--forest);color:#fff;}.btn-secondary{background:var(--gmitblue-pale);color:var(--gmitblue);border:1px solid rgba(90,138,168,0.3);}
+  .btn-accent{background:var(--brick);color:#fff;}
+  .btn-row{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.5rem;}
+  /* Result */
+  .result-box{border:2px solid;border-radius:var(--radius);padding:0.7rem 0.9rem;margin-bottom:0.7rem;}
+  .result-box.ok{border-color:var(--forest);background:rgba(34,139,34,0.04);}
+  .result-box.no{border-color:var(--brick);background:rgba(178,34,34,0.04);}
+  .result-title{font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:0.25rem;}
+  .result-box.ok .result-title{color:var(--forest);}.result-box.no .result-title{color:var(--brick);}
+  .result-body{font-size:0.79rem;line-height:1.7;}
+  .result-body .mono{font-family:var(--font-mono);}
+  .teo-note{font-size:0.73rem;color:var(--text-secondary);border:1px dashed var(--gmitblue);border-radius:var(--radius-sm);padding:0.45rem 0.6rem;margin-top:0.5rem;line-height:1.55;background:rgba(90,138,168,0.04);}
+  .teo-note strong{color:var(--navy);}
+  /* step cards */
+  @keyframes stepIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .step-card{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:0.55rem;animation:stepIn 0.25s ease;}
+  .step-head{display:flex;align-items:center;gap:0.4rem;padding:0.4rem 0.7rem;background:var(--surface-alt);border-bottom:1px solid var(--border);font-size:0.79rem;font-weight:600;}
+  .step-head .snum{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;font-size:0.68rem;color:#fff;flex-shrink:0;}
+  .step-body{padding:0.55rem 0.7rem;overflow-x:auto;}
+  .eqline{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;}
+  .op{font-family:var(--font-mono);font-size:1.05rem;color:var(--text-muted);font-weight:700;}
+  .subline{font-family:var(--font-mono);font-size:0.8rem;line-height:1.9;margin-top:0.3rem;}
+  .subline .hl{background:#fff3cd;padding:0 4px;border-radius:3px;font-weight:700;}
+  .subline .res{color:var(--forest);font-weight:700;}
+  .smat{display:inline-flex;align-items:stretch;vertical-align:middle;}
+  .smat-bk{display:flex;flex-direction:column;justify-content:center;}
+  .smat-bk.left{border-left:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);border-radius:3px 0 0 3px;width:5px;}
+  .smat-bk.right{border-right:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);border-radius:0 3px 3px 0;width:5px;}
+  .smat-grid{display:inline-grid;gap:2px 6px;padding:4px 3px;}
+  .smat-cell{font-family:var(--font-mono);font-size:0.82rem;text-align:center;padding:2px 4px;min-width:32px;border-radius:2px;}
+  .smat-cell.L{background:rgba(90,138,168,0.16);}
+  .smat-cell.U{background:rgba(34,139,34,0.12);}
+  .smat-cell.diag{background:#fff3cd;font-weight:700;}
+  .smat-lbl{font-family:var(--font-mono);font-size:0.74rem;color:var(--text-secondary);text-align:center;margin-bottom:2px;font-weight:600;}
+  .lab-footer{max-width:960px;margin:0 auto;padding:0.5rem 1rem;text-align:center;font-size:0.68rem;color:var(--text-muted);}
+  @media(max-width:600px){.main{padding:0.4rem;}.mat-grid input{width:44px;}}
+</style>
+</head>
+<body>
+<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">▟</div><div><h1><span class="lab-badge">Cap 2</span>Factorizador LU Interactivo</h1><div class="lab-subtitle">Calculadora Paso a Paso · Matrices</div></div></div></header>
+<div class="main">
+  <div class="panel">
+    <div class="panel-head">📝 Ingresa la matriz A (y el vector B opcional)</div>
+    <div class="panel-body">
+      <div class="context-box">La factorización <strong>A = LU</strong> escribe una matriz cuadrada como producto de una triangular <strong>inferior L</strong> (con unos en la diagonal) y una triangular <strong>superior U</strong>. Se obtiene reduciendo A a U <strong>sin intercambiar filas</strong>; cada multiplicador usado en la eliminación se guarda con signo opuesto en L. Si activas el vector B, se resuelve <strong>AX = B</strong> en dos pasos: <strong>LY = B</strong> (sustitución progresiva) y <strong>UX = Y</strong> (sustitución regresiva). Todo con fracciones exactas. Trae los ejemplos del libro precargados.</div>
+      <div class="preset-scroll" id="presets"></div>
+      <div class="size-row">
+        <label>Tamaño n:</label>
+        <select id="selN" onchange="resize()"><option>2</option><option selected>3</option><option>4</option></select>
+        <label class="toggle"><input type="checkbox" id="useB" onchange="toggleB()"> Resolver AX = B</label>
+      </div>
+      <div class="mat-pair">
+        <div class="mat-block"><span class="mlabel">Matriz A</span><div class="mat-input-wrap"><div class="mat-bk l"></div><div class="mat-grid" id="gridA"></div><div class="mat-bk r"></div></div></div>
+        <div class="mat-block" id="blockB" style="display:none;"><span class="mlabel">Vector B</span><div class="mat-input-wrap"><div class="mat-bk l"></div><div class="mat-grid" id="gridB"></div><div class="mat-bk r"></div></div></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="factorize()">▶ Factorizar</button>
+        <button class="btn btn-accent" onclick="clearAll()">Limpiar</button>
+      </div>
+      <div id="errBox"></div>
+    </div>
+  </div>
+  <div id="outputArea"></div>
+</div>
+<footer class="lab-footer">Álgebra Lineal con Abordaje Tecnológico · Calculadora 2.6 · Factorización LU</footer>
+
+<script>
+// ---- FRACTION ARITHMETIC ----
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a||1;}
+function fr(n,d){if(!d)d=1;if(!n)return{n:0,d:1};const g=gcd(Math.abs(n),Math.abs(d));n/=g;d/=g;if(d<0){n=-n;d=-d;}return{n,d};}
+function fAdd(a,b){return fr(a.n*b.d+b.n*a.d,a.d*b.d);}
+function fSub(a,b){return fr(a.n*b.d-b.n*a.d,a.d*b.d);}
+function fMul(a,b){return fr(a.n*b.n,a.d*b.d);}
+function fDiv(a,b){return fr(a.n*b.d,a.d*b.n);}
+function fNeg(a){return fr(-a.n,a.d);}
+function fIsZ(a){return a.n===0;}
+function fStr(f){return f.d===1?''+f.n:f.n+'/'+f.d;}
+function sub(n){const s='₀₁₂₃₄₅₆₇₈₉';return(''+n).split('').map(c=>s[parseInt(c)]||c).join('');}
+function parseFrac(s){
+  s=(s||'').toString().trim().replace(/,/g,'.');
+  if(s===''||s==='-')return null;
+  let m=s.match(/^(-?\d+)\s*\/\s*(-?\d+)$/);
+  if(m){const d=parseInt(m[2],10);if(d===0)return null;return fr(parseInt(m[1],10),d);}
+  if(/^-?\d+$/.test(s))return fr(parseInt(s,10),1);
+  if(/^-?\d*\.\d+$/.test(s)){const dec=s.split('.')[1].length;const den=Math.pow(10,dec);return fr(Math.round(parseFloat(s)*den),den);}
+  return null;
+}
+function clone(M){return M.map(r=>r.map(f=>({...f})));}
+
+// ---- FACTORIZACIÓN LU (sin pivoteo, método del libro) ----
+function luFactor(Ain){
+  const n=Ain.length;
+  const U=clone(Ain);
+  const L=[];for(let i=0;i<n;i++){const row=[];for(let j=0;j<n;j++)row.push(i===j?fr(1,1):fr(0,1));L.push(row);}
+  const steps=[];
+  for(let col=0;col<n;col++){
+    if(fIsZ(U[col][col])){
+      return {ok:false,reason:`pivote nulo en la posición (${col+1},${col+1}). El método sin intercambios de fila no aplica a esta matriz.`,steps};
+    }
+    for(let i=col+1;i<n;i++){
+      if(fIsZ(U[i][col]))continue;
+      // multiplicador m = U[i][col]/U[col][col]; operación f_i → f_i − m·f_col
+      const m=fDiv(U[i][col],U[col][col]);
+      for(let j=0;j<n;j++)U[i][j]=fSub(U[i][j],fMul(m,U[col][j]));
+      L[i][col]=m; // en L se guarda el multiplicador positivo
+      steps.push({op:`f${sub(i+1)} → f${sub(i+1)} − (${fStr(m)})·f${sub(col+1)}`,U:clone(U),i,col,m});
+    }
+  }
+  return {ok:true,L,U,steps};
+}
+// sustitución progresiva LY=B (L triangular inferior, diag 1)
+function forwardSub(L,B){
+  const n=L.length,Y=[];const detail=[];
+  for(let i=0;i<n;i++){
+    let s=B[i];const terms=[];
+    for(let j=0;j<i;j++){s=fSub(s,fMul(L[i][j],Y[j]));if(!fIsZ(L[i][j]))terms.push(`(${fStr(L[i][j])})·${fStr(Y[j])}`);}
+    Y.push(s); // diag de L es 1
+    detail.push({i,val:s,terms,b:B[i]});
+  }
+  return {Y,detail};
+}
+// sustitución regresiva UX=Y
+function backSub(U,Y){
+  const n=U.length,X=new Array(n);const detail=[];
+  for(let i=n-1;i>=0;i--){
+    let s=Y[i];const terms=[];
+    for(let j=i+1;j<n;j++){s=fSub(s,fMul(U[i][j],X[j]));if(!fIsZ(U[i][j]))terms.push(`(${fStr(U[i][j])})·${fStr(X[j])}`);}
+    X[i]=fDiv(s,U[i][i]);
+    detail.push({i,val:X[i],terms,y:Y[i],piv:U[i][i]});
+  }
+  detail.reverse();
+  return {X,detail};
+}
+function mul(A,B){const n=A.length,p=B[0].length,m=B.length,C=[];for(let i=0;i<n;i++){const row=[];for(let j=0;j<p;j++){let s=fr(0,1);for(let k=0;k<m;k++)s=fAdd(s,fMul(A[i][k],B[k][j]));row.push(s);}C.push(row);}return C;}
+function eqM(A,B){for(let i=0;i<A.length;i++)for(let j=0;j<A[0].length;j++)if(A[i][j].n!==B[i][j].n||A[i][j].d!==B[i][j].d)return false;return true;}
+
+// ---- ESTADO ----
+let N=3,dataA=[],dataB=[];
+const PRESETS=[
+  {name:'Libro: A=(2 1; 8 7)',n:2,a:[['2','1'],['8','7']]},
+  {name:'Libro: A=(3 1 1; 1 3 1; 1 1 3)',n:3,a:[['3','1','1'],['1','3','1'],['1','1','3']]},
+  {name:'Libro: resolver AX=B (2x+3y+3z=2…)',n:3,a:[['2','3','3'],['0','5','7'],['6','9','8']],b:['2','2','-5'],useB:true},
+  {name:'Con fracciones',n:3,a:[['2','1','0'],['1','2','1'],['0','1','2']],b:['1','0','1'],useB:true},
+  {name:'Pivote nulo (requiere intercambio) → falla',n:2,a:[['0','1'],['1','0']]},
+];
+
+window.addEventListener('DOMContentLoaded',()=>{buildPresets();dataA=[['3','1','1'],['1','3','1'],['1','1','3']];dataB=['0','0','0'];buildGrids();});
+function buildPresets(){const g=document.getElementById('presets');PRESETS.forEach((p,i)=>{const b=document.createElement('button');b.className='preset-pill';b.textContent=p.name;b.onclick=()=>loadPreset(i);g.appendChild(b);});}
+function loadPreset(i){
+  const p=PRESETS[i];N=p.n;document.getElementById('selN').value=N;
+  dataA=p.a.map(r=>[...r]);
+  dataB=p.b?[...p.b]:new Array(N).fill('0');
+  document.getElementById('useB').checked=!!p.useB;
+  buildGrids();toggleB();clearOutput();
+  document.querySelectorAll('.preset-pill').forEach((b,j)=>b.classList.toggle('active',j===i));
+}
+function resize(){
+  sync();N=parseInt(document.getElementById('selN').value);
+  dataA=fit(dataA,N);dataB=fitV(dataB,N);
+  buildGrids();clearOutput();
+  document.querySelectorAll('.preset-pill').forEach(b=>b.classList.remove('active'));
+}
+function fit(M,n){const R=[];for(let i=0;i<n;i++){const row=[];for(let j=0;j<n;j++)row.push((M[i]&&M[i][j]!==undefined)?M[i][j]:'0');R.push(row);}return R;}
+function fitV(V,n){const R=[];for(let i=0;i<n;i++)R.push(V[i]!==undefined?V[i]:'0');return R;}
+function gridHTML(id,data){let h='';for(let i=0;i<N;i++)for(let j=0;j<N;j++)h+=`<input type="text" id="${id}_${i}_${j}" value="${(data[i][j]||'').replace(/"/g,'&quot;')}" onfocus="this.select()">`;return h;}
+function gridVHTML(id,data){let h='';for(let i=0;i<N;i++)h+=`<input type="text" id="${id}_${i}" value="${(data[i]||'').replace(/"/g,'&quot;')}" onfocus="this.select()">`;return h;}
+function buildGrids(){
+  const ga=document.getElementById('gridA');ga.style.gridTemplateColumns=`repeat(${N},auto)`;ga.innerHTML=gridHTML('A',dataA);
+  const gb=document.getElementById('gridB');gb.style.gridTemplateColumns='auto';gb.innerHTML=gridVHTML('B',dataB);
+}
+function toggleB(){document.getElementById('blockB').style.display=document.getElementById('useB').checked?'':'none';}
+function sync(){
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++){const e=document.getElementById(`A_${i}_${j}`);if(e)dataA[i][j]=e.value;}
+  for(let i=0;i<N;i++){const e=document.getElementById(`B_${i}`);if(e)dataB[i]=e.value;}
+}
+function clearAll(){dataA=fit([],N);dataB=fitV([],N);buildGrids();clearOutput();document.querySelectorAll('.preset-pill').forEach(b=>b.classList.remove('active'));}
+function clearOutput(){document.getElementById('outputArea').innerHTML='';document.getElementById('errBox').innerHTML='';}
+
+function readA(){const M=[];for(let i=0;i<N;i++){const row=[];for(let j=0;j<N;j++){const f=parseFrac(dataA[i][j]);if(f===null)throw new Error(`Entrada inválida en A[${i+1},${j+1}].`);row.push(f);}M.push(row);}return M;}
+function readB(){const V=[];for(let i=0;i<N;i++){const f=parseFrac(dataB[i]);if(f===null)throw new Error(`Entrada inválida en B[${i+1}].`);V.push(f);}return V;}
+
+// ---- FACTORIZE ----
+function factorize(){
+  sync();clearOutput();
+  let A,B=null;
+  const useB=document.getElementById('useB').checked;
+  try{A=readA();if(useB)B=readB();}catch(err){
+    document.getElementById('errBox').innerHTML=`<div class="result-box no" style="margin-top:0.5rem;"><div class="result-title no">⚠ Error</div><div class="result-body mono">${err.message}</div></div>`;
+    return;
+  }
+  const res=luFactor(A);
+  let html='';
+  if(!res.ok){
+    html+=`<div class="result-box no"><div class="result-title no">✗ No se puede factorizar sin intercambios</div><div class="result-body">Se encontró un ${res.reason} El teorema del libro garantiza A = LU solo cuando A se reduce a forma triangular superior <strong>sin intercambiar filas</strong>. Una permutación previa de filas (factorización PA = LU) resolvería el caso, pero queda fuera de este método.</div></div>`;
+    // mostrar pasos hasta donde llegó
+    if(res.steps.length){html+=stepsEliminacion(A,res.steps,null);}
+    document.getElementById('outputArea').innerHTML=html;
+    return;
+  }
+  const {L,U,steps}=res;
+
+  // 1) resultado L, U
+  html+=`<div class="result-box ok"><div class="result-title ok">✓ Factorización A = LU obtenida</div><div class="result-body">A se redujo a U sin intercambios de fila. Los multiplicadores de la eliminación forman L (con unos en la diagonal).</div>`;
+  html+=`<div class="eqline" style="margin-top:0.5rem;">${labeled('A',A,'')}<span class="op">=</span>${labeled('L',L,'L')}<span class="op">·</span>${labeled('U',U,'U')}</div></div>`;
+
+  // 2) pasos de eliminación
+  html+=stepsEliminacion(A,steps,U);
+
+  // 3) verificación LU = A
+  const prod=mul(L,U);
+  html+=`<div class="step-card"><div class="step-head"><span class="snum" style="background:var(--forest);">✓</span>Verificación: L · U = A</div><div class="step-body"><div class="eqline">${labeled('L',L,'L')}<span class="op">·</span>${labeled('U',U,'U')}<span class="op">=</span>${labeled('LU',prod,'')}</div><div class="subline ${eqM(prod,A)?'':''}" style="margin-top:0.3rem;">${eqM(prod,A)?'<span class="res">El producto coincide con A. ✓</span>':'<span style="color:var(--brick)">El producto NO coincide con A.</span>'}</div></div></div>`;
+
+  // 4) resolver el sistema si hay B
+  if(useB){
+    const fwd=forwardSub(L,B);
+    const bwd=backSub(U,fwd.Y);
+    html+=`<div class="step-card"><div class="step-head"><span class="snum" style="background:var(--navy);">①</span>Sustitución progresiva: resolver L·Y = B</div><div class="step-body">`;
+    html+=`<div class="eqline">${labeled('L',L,'L')}<span class="op">·</span>${vecLabeled('Y',fwd.Y.map(()=>null),'?')}<span class="op">=</span>${vecLabeled('B',B,'')}</div>`;
+    html+=`<div class="subline">`;
+    fwd.detail.forEach(d=>{
+      const t=d.terms.length?` − ${d.terms.join(' − ')}`:'';
+      html+=`y${sub(d.i+1)} = ${fStr(d.b)}${t} = <span class="res">${fStr(d.val)}</span><br>`;
+    });
+    html+=`</div><div class="eqline" style="margin-top:0.3rem;">Y =${vecLabeled('Y',fwd.Y,'')}</div></div></div>`;
+
+    html+=`<div class="step-card"><div class="step-head"><span class="snum" style="background:var(--navy);">②</span>Sustitución regresiva: resolver U·X = Y</div><div class="step-body">`;
+    html+=`<div class="eqline">${labeled('U',U,'U')}<span class="op">·</span>${vecLabeled('X',bwd.X.map(()=>null),'?')}<span class="op">=</span>${vecLabeled('Y',fwd.Y,'')}</div>`;
+    html+=`<div class="subline">`;
+    bwd.detail.slice().reverse().forEach(d=>{
+      const t=d.terms.length?` − ${d.terms.join(' − ')}`:'';
+      const div=(d.piv.n===d.piv.d)?'':` / ${fStr(d.piv)}`;
+      html+=`x${sub(d.i+1)} = (${fStr(d.y)}${t})${div} = <span class="res">${fStr(d.val)}</span><br>`;
+    });
+    html+=`</div></div></div>`;
+
+    // solución final + verificación AX=B
+    const AX=mul(A,bwd.X.map(x=>[x]));
+    const okSol=eqM(AX,B.map(b=>[b]));
+    html+=`<div class="result-box ${okSol?'ok':'no'}"><div class="result-title ${okSol?'ok':'no'}">Solución del sistema AX = B</div><div class="result-body"><span class="mono">X = (${bwd.X.map(fStr).join(', ')})</span><br>Comprobación: A·X ${okSol?'=':'≠'} B ${okSol?'✓':'✗'}</div></div>`;
+  }
+
+  html+=`<div class="teo-note"><strong>Teorema (libro):</strong> si una matriz cuadrada A se reduce a una triangular superior U sin intercambios de fila, existe una triangular inferior L tal que A = LU. Cada multiplicador de la eliminación (f_i → f_i − m·f_j) se coloca como entrada m en L. Para resolver AX = B se escribe (LU)X = B = L(UX), se hace UX = Y y se resuelven LY = B (hacia adelante) y UX = Y (hacia atrás).</div>`;
+
+  document.getElementById('outputArea').innerHTML=html;
+  document.getElementById('outputArea').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function stepsEliminacion(A,steps,U){
+  let h=`<div class="step-card"><div class="step-head"><span class="snum" style="background:var(--brick);">⇣</span>Eliminación: reducir A a U (guardando los multiplicadores en L)</div><div class="step-body">`;
+  h+=`<div class="eqline" style="margin-bottom:0.4rem;">${labeled('A',A,'')}</div>`;
+  steps.forEach((s,k)=>{
+    h+=`<div class="subline"><span class="hl">${s.op}</span> &nbsp; multiplicador m = ${fStr(s.m)} → se guarda en L[${s.i+1},${s.col+1}]</div>`;
+    h+=`<div class="eqline" style="margin:0.2rem 0 0.4rem;">${labeled('',s.U,'')}</div>`;
+  });
+  if(U)h+=`<div class="subline res">U obtenida (triangular superior). ✓</div>`;
+  h+=`</div></div>`;
+  return h;
+}
+function labeled(label,M,kind){
+  const lbl=label?`<span class="smat-lbl">${label}</span>`:'';
+  return `<span style="display:inline-flex;flex-direction:column;align-items:center;">${lbl}${matSVG(M,kind)}</span>`;
+}
+function matSVG(M,kind){
+  const r=M.length,c=M[0].length;
+  let h='<span class="smat"><span class="smat-bk left"></span>';
+  h+=`<span class="smat-grid" style="grid-template-columns:repeat(${c},1fr);">`;
+  for(let i=0;i<r;i++)for(let j=0;j<c;j++){
+    let cls='';
+    if(kind==='L'){if(i===j)cls='diag';else if(i>j)cls='L';}
+    else if(kind==='U'){if(i<=j&&!fIsZ(M[i][j]))cls='U';}
+    h+=`<span class="smat-cell ${cls}">${fStr(M[i][j])}</span>`;
+  }
+  h+='</span><span class="smat-bk right"></span></span>';
+  return h;
+}
+function vecLabeled(label,V,placeholder){
+  const lbl=label?`<span class="smat-lbl">${label}</span>`:'';
+  let h='<span class="smat"><span class="smat-bk left"></span><span class="smat-grid" style="grid-template-columns:1fr;">';
+  V.forEach(v=>{h+=`<span class="smat-cell">${v===null?placeholder:fStr(v)}</span>`;});
+  h+='</span><span class="smat-bk right"></span></span>';
+  return `<span style="display:inline-flex;flex-direction:column;align-items:center;">${lbl}${h}</span>`;
+}
+</script>
+</body>
+</html>
