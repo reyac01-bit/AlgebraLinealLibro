@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resolvedor de Ecuaciones Matriciales — Álgebra Lineal</title>
+<style>
+  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#888;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
+  .lab-header{background:linear-gradient(135deg,var(--navy) 0%,var(--gmitblue) 100%);color:#fff;padding:0.7rem 1.5rem;position:relative;overflow:hidden;}
+  .lab-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none;}
+  .lab-header-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:0.8rem;position:relative;z-index:1;}
+  .lab-icon{width:38px;height:38px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+  .lab-header h1{font-family:var(--font-display);font-size:clamp(0.9rem,2vw,1.25rem);font-weight:700;line-height:1.2;}
+  .lab-subtitle{font-size:0.72rem;opacity:0.75;}
+  .lab-badge{display:inline-block;background:var(--brick);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15em 0.5em;border-radius:3px;letter-spacing:0.05em;text-transform:uppercase;margin-right:0.35rem;vertical-align:middle;}
+  .main{max-width:960px;margin:0 auto;padding:0.6rem 0.8rem 1.5rem;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:0.7rem;}
+  .panel-head{padding:0.5rem 0.9rem;font-family:var(--font-display);font-size:0.85rem;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.4rem;background:var(--surface-alt);flex-wrap:wrap;}
+  .panel-body{padding:0.7rem 0.9rem;}
+  .context-box{background:linear-gradient(135deg,var(--gmitblue-pale),rgba(90,138,168,0.04));border-left:3px solid var(--gmitblue);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:0.5rem 0.7rem;font-size:0.74rem;line-height:1.5;color:var(--text-secondary);margin-bottom:0.5rem;}.context-box strong{color:var(--navy);}
+  .preset-scroll{display:flex;gap:0.25rem;flex-wrap:wrap;margin-bottom:0.5rem;}
+  .preset-pill{padding:0.22rem 0.5rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);cursor:pointer;transition:var(--transition);font-size:0.67rem;font-weight:600;white-space:nowrap;}
+  .preset-pill:hover{border-color:var(--navy);background:var(--gmitblue-pale);}
+  .preset-pill.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .eqtypes{display:flex;gap:0.3rem;flex-wrap:wrap;margin-bottom:0.5rem;}
+  .eqtype{font-family:var(--font-mono);font-size:0.82rem;padding:0.3rem 0.7rem;border:1.5px solid var(--gmitblue);border-radius:8px;background:var(--surface);color:var(--navy);cursor:pointer;transition:var(--transition);font-weight:600;}
+  .eqtype:hover{background:var(--gmitblue-pale);}
+  .eqtype.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .size-row{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;font-size:0.8rem;}
+  .size-row label{font-weight:600;color:var(--text-secondary);}
+  .size-row select{padding:0.25rem 0.4rem;border:1px solid var(--border);border-radius:4px;font-family:var(--font-mono);font-size:0.82rem;background:#fff;}
+  .mat-pair{display:flex;gap:1.1rem;flex-wrap:wrap;align-items:flex-start;}
+  .mat-block{display:flex;flex-direction:column;gap:0.3rem;}
+  .mat-block .mlabel{font-family:var(--font-mono);font-weight:700;font-size:0.85rem;color:var(--navy);}
+  .mat-input-wrap{display:flex;align-items:stretch;}
+  .mat-bk{width:7px;border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);}
+  .mat-bk.l{border-left:2px solid var(--navy);border-radius:4px 0 0 4px;}
+  .mat-bk.r{border-right:2px solid var(--navy);border-radius:0 4px 4px 0;}
+  .mat-grid{display:grid;gap:4px;padding:5px 6px;}
+  .mat-grid input{width:50px;padding:0.32rem 0.2rem;border:1px solid var(--border);border-radius:3px;font-family:var(--font-mono);font-size:0.82rem;text-align:center;background:#fff;transition:var(--transition);}
+  .mat-grid input:focus{outline:none;border-color:var(--gmitblue);box-shadow:0 0 0 2px rgba(90,138,168,0.15);}
+  .btn{display:inline-flex;align-items:center;gap:0.3rem;padding:0.4rem 0.75rem;border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.78rem;font-weight:600;cursor:pointer;transition:var(--transition);}
+  .btn-primary{background:var(--forest);color:#fff;}.btn-secondary{background:var(--gmitblue-pale);color:var(--gmitblue);border:1px solid rgba(90,138,168,0.3);}
+  .btn-accent{background:var(--brick);color:#fff;}
+  .btn-row{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.5rem;}
+  .eqshow{font-family:var(--font-mono);font-size:1.05rem;color:var(--navy);font-weight:700;background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.4rem 0.8rem;display:inline-block;margin-bottom:0.5rem;}
+  /* Result */
+  .result-box{border:2px solid;border-radius:var(--radius);padding:0.7rem 0.9rem;margin-bottom:0.7rem;}
+  .result-box.ok{border-color:var(--forest);background:rgba(34,139,34,0.04);}
+  .result-box.no{border-color:var(--brick);background:rgba(178,34,34,0.04);}
+  .result-title{font-family:var(--font-display);font-size:1rem;font-weight:700;margin-bottom:0.25rem;}
+  .result-box.ok .result-title{color:var(--forest);}.result-box.no .result-title{color:var(--brick);}
+  .result-body{font-size:0.79rem;line-height:1.7;}
+  .result-body .mono{font-family:var(--font-mono);}
+  .teo-note{font-size:0.73rem;color:var(--text-secondary);border:1px dashed var(--gmitblue);border-radius:var(--radius-sm);padding:0.45rem 0.6rem;margin-top:0.5rem;line-height:1.55;background:rgba(90,138,168,0.04);}
+  .teo-note strong{color:var(--navy);}
+  /* step cards */
+  @keyframes stepIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .step-card{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:0.55rem;animation:stepIn 0.25s ease;}
+  .step-head{display:flex;align-items:center;gap:0.4rem;padding:0.4rem 0.7rem;background:var(--surface-alt);border-bottom:1px solid var(--border);font-size:0.79rem;font-weight:600;}
+  .step-head .snum{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;font-size:0.68rem;color:#fff;flex-shrink:0;}
+  .step-body{padding:0.55rem 0.7rem;overflow-x:auto;}
+  .eqline{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;}
+  .op{font-family:var(--font-mono);font-size:1.05rem;color:var(--text-muted);font-weight:700;}
+  .strat{font-family:var(--font-mono);font-size:0.85rem;line-height:2;}
+  .strat .hl{background:#fff3cd;padding:0 4px;border-radius:3px;}
+  .smat{display:inline-flex;align-items:stretch;vertical-align:middle;}
+  .smat-bk{display:flex;flex-direction:column;justify-content:center;}
+  .smat-bk.left{border-left:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);border-radius:3px 0 0 3px;width:5px;}
+  .smat-bk.right{border-right:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);border-radius:0 3px 3px 0;width:5px;}
+  .smat-grid{display:inline-grid;gap:2px 6px;padding:4px 3px;}
+  .smat-cell{font-family:var(--font-mono);font-size:0.82rem;text-align:center;padding:2px 4px;min-width:32px;border-radius:2px;}
+  .smat-lbl{font-family:var(--font-mono);font-size:0.74rem;color:var(--text-secondary);text-align:center;margin-bottom:2px;font-weight:600;}
+  .lab-footer{max-width:960px;margin:0 auto;padding:0.5rem 1rem;text-align:center;font-size:0.68rem;color:var(--text-muted);}
+  @media(max-width:600px){.main{padding:0.4rem;}.mat-grid input{width:44px;}}
+</style>
+</head>
+<body>
+<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">🟰</div><div><h1><span class="lab-badge">Cap 2</span>Resolvedor de Ecuaciones Matriciales</h1><div class="lab-subtitle">Calculadora Paso a Paso · Matrices</div></div></div></header>
+<div class="main">
+  <div class="panel">
+    <div class="panel-head">📝 Elige el tipo de ecuación e ingresa las matrices</div>
+    <div class="panel-body">
+      <div class="context-box">Despeja la matriz incógnita <strong>X</strong> en ecuaciones matriciales. La clave, como insiste el libro, es <strong>respetar el lado</strong> donde se multiplica por la inversa, porque el producto de matrices <strong>no es conmutativo</strong>: si A está a la izquierda de X se multiplica por A⁻¹ por la izquierda; si está a la derecha, por la derecha. El resolvedor muestra la estrategia de despeje simbólico y luego calcula X con fracciones exactas, verificando el resultado. Acepta fracciones como <strong>1/2, -3/4</strong>.</div>
+      <div class="preset-scroll" id="presets"></div>
+      <div class="eqtypes" id="eqtypes"></div>
+      <div class="size-row"><label>Tamaño n:</label><select id="selN" onchange="resize()"><option selected>2</option><option>3</option></select></div>
+      <div class="eqshow" id="eqShow"></div>
+      <div class="mat-pair" id="matInputs"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="solve()">▶ Resolver para X</button>
+        <button class="btn btn-accent" onclick="clearAll()">Limpiar</button>
+      </div>
+      <div id="errBox"></div>
+    </div>
+  </div>
+  <div id="outputArea"></div>
+</div>
+<footer class="lab-footer">Álgebra Lineal con Abordaje Tecnológico · Calculadora 2.7 · Ecuaciones Matriciales</footer>
+
+<script>
+// ---- FRACTION ARITHMETIC ----
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a||1;}
+function fr(n,d){if(!d)d=1;if(!n)return{n:0,d:1};const g=gcd(Math.abs(n),Math.abs(d));n/=g;d/=g;if(d<0){n=-n;d=-d;}return{n,d};}
+function fAdd(a,b){return fr(a.n*b.d+b.n*a.d,a.d*b.d);}
+function fSub(a,b){return fr(a.n*b.d-b.n*a.d,a.d*b.d);}
+function fMul(a,b){return fr(a.n*b.n,a.d*b.d);}
+function fDiv(a,b){return fr(a.n*b.d,a.d*b.n);}
+function fIsZ(a){return a.n===0;}
+function fStr(f){return f.d===1?''+f.n:f.n+'/'+f.d;}
+function parseFrac(s){
+  s=(s||'').toString().trim().replace(/,/g,'.');
+  if(s===''||s==='-')return null;
+  let m=s.match(/^(-?\d+)\s*\/\s*(-?\d+)$/);
+  if(m){const d=parseInt(m[2],10);if(d===0)return null;return fr(parseInt(m[1],10),d);}
+  if(/^-?\d+$/.test(s))return fr(parseInt(s,10),1);
+  if(/^-?\d*\.\d+$/.test(s)){const dec=s.split('.')[1].length;const den=Math.pow(10,dec);return fr(Math.round(parseFloat(s)*den),den);}
+  return null;
+}
+
+// ---- OPERACIONES MATRICIALES ----
+function ident(n){const I=[];for(let i=0;i<n;i++){const r=[];for(let j=0;j<n;j++)r.push(i===j?fr(1,1):fr(0,1));I.push(r);}return I;}
+function mul(A,B){const n=A.length,p=B[0].length,m=B.length,C=[];for(let i=0;i<n;i++){const row=[];for(let j=0;j<p;j++){let s=fr(0,1);for(let k=0;k<m;k++)s=fAdd(s,fMul(A[i][k],B[k][j]));row.push(s);}C.push(row);}return C;}
+function eqM(A,B){for(let i=0;i<A.length;i++)for(let j=0;j<A[0].length;j++)if(A[i][j].n!==B[i][j].n||A[i][j].d!==B[i][j].d)return false;return true;}
+// inversa por Gauss-Jordan; devuelve null si singular
+function inverse(Ain){
+  const n=Ain.length;
+  const M=Ain.map((r,i)=>[...r.map(f=>({...f})),...ident(n)[i]]);
+  for(let col=0;col<n;col++){
+    let piv=-1;for(let i=col;i<n;i++)if(!fIsZ(M[i][col])){piv=i;break;}
+    if(piv===-1)return null;
+    if(piv!==col){const t=M[piv];M[piv]=M[col];M[col]=t;}
+    const p=M[col][col];
+    for(let j=0;j<2*n;j++)M[col][j]=fDiv(M[col][j],p);
+    for(let i=0;i<n;i++){if(i===col)continue;const f=M[i][col];if(fIsZ(f))continue;for(let j=0;j<2*n;j++)M[i][j]=fSub(M[i][j],fMul(f,M[col][j]));}
+  }
+  return M.map(r=>r.slice(n));
+}
+
+// ---- TIPOS DE ECUACIÓN ----
+// cada tipo declara: las matrices conocidas, la ecuación mostrada, la fórmula de X,
+// la estrategia textual y un solver(matrices)→{X, needInv:[...], steps}
+const TYPES={
+  AXB:{label:'A X = B', knowns:['A','B'],
+    eq:'A · X = B',
+    formula:'X = A⁻¹ B',
+    strat:p=>`A está <span class="hl">a la izquierda</span> de X ⇒ se multiplica por A⁻¹ por la izquierda:<br>A⁻¹(A X) = A⁻¹ B ⇒ (A⁻¹A) X = A⁻¹ B ⇒ X = A⁻¹ B`,
+    solve:(M)=>{const Ai=inverse(M.A);if(!Ai)return{err:'A no es invertible.'};return{X:mul(Ai,M.B),inv:[['A⁻¹',Ai]],check:(X)=>eqM(mul(M.A,X),M.B),checkTxt:'A·X = B'};}},
+  XAB:{label:'X A = B', knowns:['A','B'],
+    eq:'X · A = B',
+    formula:'X = B A⁻¹',
+    strat:p=>`A está <span class="hl">a la derecha</span> de X ⇒ se multiplica por A⁻¹ por la derecha:<br>(X A) A⁻¹ = B A⁻¹ ⇒ X (A A⁻¹) = B A⁻¹ ⇒ X = B A⁻¹`,
+    solve:(M)=>{const Ai=inverse(M.A);if(!Ai)return{err:'A no es invertible.'};return{X:mul(M.B,Ai),inv:[['A⁻¹',Ai]],check:(X)=>eqM(mul(X,M.A),M.B),checkTxt:'X·A = B'};}},
+  AXBC:{label:'A X B = C', knowns:['A','B','C'],
+    eq:'A · X · B = C',
+    formula:'X = A⁻¹ C B⁻¹',
+    strat:p=>`A está a la izquierda y B a la derecha de X ⇒ se multiplica por A⁻¹ por la izquierda y por B⁻¹ por la derecha:<br>A⁻¹(A X B)B⁻¹ = A⁻¹ C B⁻¹ ⇒ X = A⁻¹ C B⁻¹`,
+    solve:(M)=>{const Ai=inverse(M.A),Bi=inverse(M.B);if(!Ai)return{err:'A no es invertible.'};if(!Bi)return{err:'B no es invertible.'};return{X:mul(mul(Ai,M.C),Bi),inv:[['A⁻¹',Ai],['B⁻¹',Bi]],check:(X)=>eqM(mul(mul(M.A,X),M.B),M.C),checkTxt:'A·X·B = C'};}},
+  AXBeqC:{label:'A X + B = C', knowns:['A','B','C'],
+    eq:'A · X + B = C',
+    formula:'X = A⁻¹ (C − B)',
+    strat:p=>`Primero se resta B: A X = C − B. Luego A está a la izquierda ⇒ X = A⁻¹(C − B)`,
+    solve:(M)=>{const Ai=inverse(M.A);if(!Ai)return{err:'A no es invertible.'};const CB=M.C.map((r,i)=>r.map((x,j)=>fSub(x,M.B[i][j])));return{X:mul(Ai,CB),inv:[['A⁻¹',Ai]],pre:[['C − B',CB]],check:(X)=>{const AX=mul(M.A,X);return eqM(AX.map((r,i)=>r.map((x,j)=>fAdd(x,M.B[i][j]))),M.C);},checkTxt:'A·X + B = C'};}},
+};
+let curType='AXB';
+
+// ---- ESTADO ----
+let N=2,data={};
+const PRESETS=[
+  {name:'A X = B básico',t:'AXB',n:2,m:{A:[['2','1'],['1','1']],B:[['3','5'],['2','3']]}},
+  {name:'X A = B básico',t:'XAB',n:2,m:{A:[['2','1'],['1','1']],B:[['1','2'],['3','4']]}},
+  {name:'Libro: A X B = C (variante directa)',t:'AXBC',n:2,m:{A:[['1','-2'],['1','-3']],B:[['2','3'],['1','2']],C:[['1','2'],['3','4']]}},
+  {name:'A X + B = C',t:'AXBeqC',n:2,m:{A:[['2','0'],['0','2']],B:[['1','1'],['1','1']],C:[['5','3'],['3','5']]}},
+  {name:'Con fracciones (A X = B)',t:'AXB',n:2,m:{A:[['1/2','0'],['0','1/3']],B:[['1','2'],['3','3']]}},
+  {name:'A no invertible → falla',t:'AXB',n:2,m:{A:[['1','2'],['2','4']],B:[['1','0'],['0','1']]}},
+];
+
+window.addEventListener('DOMContentLoaded',()=>{buildPresets();buildTypes();loadDefault();});
+function buildPresets(){const g=document.getElementById('presets');PRESETS.forEach((p,i)=>{const b=document.createElement('button');b.className='preset-pill';b.textContent=p.name;b.onclick=()=>loadPreset(i);g.appendChild(b);});}
+function buildTypes(){
+  const g=document.getElementById('eqtypes');g.innerHTML='';
+  Object.keys(TYPES).forEach(k=>{
+    const b=document.createElement('button');b.className='eqtype'+(k===curType?' active':'');b.textContent=TYPES[k].label;b.dataset.k=k;
+    b.onclick=()=>{syncData();curType=k;buildTypes();buildInputs();clearOutput();};
+    g.appendChild(b);
+  });
+}
+function loadDefault(){data={A:[['2','1'],['1','1']],B:[['3','5'],['2','3']],C:[['0','0'],['0','0']]};buildInputs();}
+function loadPreset(i){
+  const p=PRESETS[i];curType=p.t;N=p.n;document.getElementById('selN').value=N;
+  data={};['A','B','C'].forEach(k=>{data[k]=p.m[k]?p.m[k].map(r=>[...r]):zeros(N);});
+  buildTypes();buildInputs();clearOutput();
+  document.querySelectorAll('.preset-pill').forEach((b,j)=>b.classList.toggle('active',j===i));
+}
+function zeros(n){const M=[];for(let i=0;i<n;i++)M.push(new Array(n).fill('0'));return M;}
+function resize(){syncData();N=parseInt(document.getElementById('selN').value);['A','B','C'].forEach(k=>{data[k]=fit(data[k]||[],N);});buildInputs();clearOutput();document.querySelectorAll('.preset-pill').forEach(b=>b.classList.remove('active'));}
+function fit(M,n){const R=[];for(let i=0;i<n;i++){const row=[];for(let j=0;j<n;j++)row.push((M[i]&&M[i][j]!==undefined)?M[i][j]:'0');R.push(row);}return R;}
+function gridHTML(id,d){let h='';for(let i=0;i<N;i++)for(let j=0;j<N;j++)h+=`<input type="text" id="${id}_${i}_${j}" value="${(d[i][j]||'').replace(/"/g,'&quot;')}" onfocus="this.select()">`;return h;}
+function buildInputs(){
+  document.getElementById('eqShow').textContent=TYPES[curType].eq+'  (resolver para X)';
+  const knowns=TYPES[curType].knowns;
+  let h='';
+  knowns.forEach(k=>{
+    if(!data[k])data[k]=zeros(N);else data[k]=fit(data[k],N);
+    h+=`<div class="mat-block"><span class="mlabel">Matriz ${k}</span><div class="mat-input-wrap"><div class="mat-bk l"></div><div class="mat-grid" id="grid${k}" style="grid-template-columns:repeat(${N},auto);">${gridHTML(k,data[k])}</div><div class="mat-bk r"></div></div></div>`;
+  });
+  document.getElementById('matInputs').innerHTML=h;
+}
+function syncData(){
+  TYPES[curType].knowns.forEach(k=>{
+    if(!data[k])return;
+    for(let i=0;i<N;i++)for(let j=0;j<N;j++){const e=document.getElementById(`${k}_${i}_${j}`);if(e)data[k][i][j]=e.value;}
+  });
+}
+function clearAll(){TYPES[curType].knowns.forEach(k=>data[k]=zeros(N));buildInputs();clearOutput();document.querySelectorAll('.preset-pill').forEach(b=>b.classList.remove('active'));}
+function clearOutput(){document.getElementById('outputArea').innerHTML='';document.getElementById('errBox').innerHTML='';}
+function readMat(k){const M=[];for(let i=0;i<N;i++){const row=[];for(let j=0;j<N;j++){const f=parseFrac(data[k][i][j]);if(f===null)throw new Error(`Entrada inválida en ${k}[${i+1},${j+1}].`);row.push(f);}M.push(row);}return M;}
+
+// ---- SOLVE ----
+function solve(){
+  syncData();clearOutput();
+  const T=TYPES[curType];
+  let M={};
+  try{T.knowns.forEach(k=>{M[k]=readMat(k);});}catch(err){
+    document.getElementById('errBox').innerHTML=`<div class="result-box no" style="margin-top:0.5rem;"><div class="result-title no">⚠ Error</div><div class="result-body mono">${err.message}</div></div>`;return;
+  }
+  const r=T.solve(M);
+  let html='';
+  if(r.err){
+    html+=`<div class="result-box no"><div class="result-title no">✗ No se puede despejar X</div><div class="result-body">${r.err} El despeje requiere multiplicar por la inversa, que no existe en este caso. Recuerda que solo las matrices invertibles permiten "cancelar" en una ecuación matricial.</div></div>`;
+    document.getElementById('outputArea').innerHTML=html;return;
+  }
+
+  // 1) estrategia
+  html+=`<div class="step-card"><div class="step-head"><span class="snum" style="background:var(--navy);">1</span>Estrategia de despeje</div><div class="step-body"><div class="strat">Ecuación: <b>${T.eq}</b><br>${T.strat()}<br><br>Fórmula: <b>${T.formula}</b></div></div></div>`;
+
+  // 2) inversas necesarias
+  if(r.inv&&r.inv.length){
+    let body='<div class="eqline" style="gap:1.2rem;">';
+    r.inv.forEach(([lbl,Mi])=>{body+=labeled(lbl,Mi);});
+    body+='</div>';
+    html+=`<div class="step-card"><div class="step-head"><span class="snum" style="background:var(--gmitblue);">2</span>Cálculo de las inversas necesarias</div><div class="step-body">${body}</div></div>`;
+  }
+  // pre-operaciones (ej. C−B)
+  if(r.pre&&r.pre.length){
+    let body='<div class="eqline" style="gap:1.2rem;">';
+    r.pre.forEach(([lbl,Mi])=>{body+=labeled(lbl,Mi);});
+    body+='</div>';
+    html+=`<div class="step-card"><div class="step-head"><span class="snum" style="background:var(--gmitblue);">2b</span>Operaciones previas</div><div class="step-body">${body}</div></div>`;
+  }
+
+  // 3) producto final
+  html+=`<div class="step-card"><div class="step-head"><span class="snum" style="background:var(--forest);">3</span>Cálculo de X = ${T.formula.replace('X = ','')}</div><div class="step-body"><div class="eqline">${labeled('X',r.X)}</div></div></div>`;
+
+  // 4) resultado + verificación
+  const ok=r.check(r.X);
+  html+=`<div class="result-box ${ok?'ok':'no'}"><div class="result-title ${ok?'ok':'no'}">Solución</div><div class="result-body"><div class="eqline">X =${labeled('',r.X)}</div><div class="mono" style="margin-top:0.3rem;">Comprobación: ${r.checkTxt} ${ok?'✓ se cumple':'✗ no se cumple'}</div></div></div>`;
+
+  html+=`<div class="teo-note"><strong>Idea clave (libro):</strong> como el producto de matrices no es conmutativo, al despejar X importa <em>de qué lado</em> se multiplica por la inversa. Si la matriz conocida está a la izquierda de X, se multiplica por su inversa por la izquierda; si está a la derecha, por la derecha. Para ecuaciones con transpuestas se usan además (Dᵗ)ᵗ = D y (AB)ᵗ = BᵗAᵗ.</div>`;
+
+  document.getElementById('outputArea').innerHTML=html;
+  document.getElementById('outputArea').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function labeled(label,M){
+  const lbl=label?`<span class="smat-lbl">${label}</span>`:'';
+  return `<span style="display:inline-flex;flex-direction:column;align-items:center;">${lbl}${matSVG(M)}</span>`;
+}
+function matSVG(M){
+  const r=M.length,c=M[0].length;
+  let h='<span class="smat"><span class="smat-bk left"></span>';
+  h+=`<span class="smat-grid" style="grid-template-columns:repeat(${c},1fr);">`;
+  for(let i=0;i<r;i++)for(let j=0;j<c;j++)h+=`<span class="smat-cell">${fStr(M[i][j])}</span>`;
+  h+='</span><span class="smat-bk right"></span></span>';
+  return h;
+}
+</script>
+</body>
+</html>
