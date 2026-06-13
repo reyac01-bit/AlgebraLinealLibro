@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verificador de Inversa — Álgebra Lineal</title>
+<style>
+  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#888;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
+  .lab-header{background:linear-gradient(135deg,var(--navy) 0%,var(--gmitblue) 100%);color:#fff;padding:0.7rem 1.5rem;position:relative;overflow:hidden;}
+  .lab-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none;}
+  .lab-header-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:0.8rem;position:relative;z-index:1;}
+  .lab-icon{width:38px;height:38px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+  .lab-header h1{font-family:var(--font-display);font-size:clamp(0.9rem,2vw,1.25rem);font-weight:700;line-height:1.2;}
+  .lab-subtitle{font-size:0.72rem;opacity:0.75;}
+  .lab-badge{display:inline-block;background:var(--brick);color:#fff;font-size:0.6rem;font-weight:700;padding:0.15em 0.5em;border-radius:3px;letter-spacing:0.05em;text-transform:uppercase;margin-right:0.35rem;vertical-align:middle;}
+  .main{max-width:960px;margin:0 auto;padding:0.6rem 0.8rem 1.5rem;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:0.7rem;}
+  .panel-head{padding:0.5rem 0.9rem;font-family:var(--font-display);font-size:0.85rem;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.4rem;background:var(--surface-alt);flex-wrap:wrap;}
+  .panel-body{padding:0.7rem 0.9rem;}
+  .context-box{background:linear-gradient(135deg,var(--gmitblue-pale),rgba(90,138,168,0.04));border-left:3px solid var(--gmitblue);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:0.5rem 0.7rem;font-size:0.74rem;line-height:1.5;color:var(--text-secondary);margin-bottom:0.5rem;}.context-box strong{color:var(--navy);}
+  .preset-scroll{display:flex;gap:0.25rem;flex-wrap:wrap;margin-bottom:0.5rem;}
+  .preset-pill{padding:0.22rem 0.5rem;border:1px solid var(--border);border-radius:20px;background:var(--surface);cursor:pointer;transition:var(--transition);font-size:0.67rem;font-weight:600;white-space:nowrap;}
+  .preset-pill:hover{border-color:var(--navy);background:var(--gmitblue-pale);}
+  .preset-pill.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .size-row{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;font-size:0.8rem;}
+  .size-row label{font-weight:600;color:var(--text-secondary);}
+  .size-row select{padding:0.25rem 0.4rem;border:1px solid var(--border);border-radius:4px;font-family:var(--font-mono);font-size:0.82rem;background:#fff;}
+  .mat-pair{display:flex;gap:1.4rem;flex-wrap:wrap;}
+  .mat-block{display:flex;flex-direction:column;gap:0.3rem;}
+  .mat-block .mlabel{font-family:var(--font-mono);font-weight:700;font-size:0.85rem;color:var(--navy);}
+  .mat-input-wrap{display:flex;align-items:stretch;}
+  .mat-bk{width:7px;border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);}
+  .mat-bk.l{border-left:2px solid var(--navy);border-radius:4px 0 0 4px;}
+  .mat-bk.r{border-right:2px solid var(--navy);border-radius:0 4px 4px 0;}
+  .mat-grid{display:grid;gap:4px;padding:5px 6px;}
+  .mat-grid input{width:54px;padding:0.32rem 0.2rem;border:1px solid var(--border);border-radius:3px;font-family:var(--font-mono);font-size:0.82rem;text-align:center;background:#fff;transition:var(--transition);}
+  .mat-grid input:focus{outline:none;border-color:var(--gmitblue);box-shadow:0 0 0 2px rgba(90,138,168,0.15);}
+  .btn{display:inline-flex;align-items:center;gap:0.3rem;padding:0.4rem 0.75rem;border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.78rem;font-weight:600;cursor:pointer;transition:var(--transition);}
+  .btn-primary{background:var(--forest);color:#fff;}.btn-secondary{background:var(--gmitblue-pale);color:var(--gmitblue);border:1px solid rgba(90,138,168,0.3);}
+  .btn-accent{background:var(--brick);color:#fff;}
+  .btn-row{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.5rem;}
+  /* Result */
+  .result-box{border:2px solid;border-radius:var(--radius);padding:0.7rem 0.9rem;margin-bottom:0.7rem;}
+  .result-box.ok{border-color:var(--forest);background:rgba(34,139,34,0.04);}
+  .result-box.no{border-color:var(--brick);background:rgba(178,34,34,0.04);}
+  .result-title{font-family:var(--font-display);font-size:1.05rem;font-weight:700;margin-bottom:0.3rem;}
+  .result-box.ok .result-title{color:var(--forest);}.result-box.no .result-title{color:var(--brick);}
+  .result-body{font-size:0.8rem;line-height:1.7;}
+  .result-body .mono{font-family:var(--font-mono);}
+  .check-grid{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.4rem;}
+  .check-chip{font-size:0.72rem;font-weight:600;padding:0.25rem 0.55rem;border-radius:20px;border:1px solid;}
+  .check-chip.ok{color:var(--forest);border-color:var(--forest);background:rgba(34,139,34,0.07);}
+  .check-chip.bad{color:var(--brick);border-color:var(--brick);background:rgba(178,34,34,0.07);}
+  .teo-note{font-size:0.73rem;color:var(--text-secondary);border:1px dashed var(--gmitblue);border-radius:var(--radius-sm);padding:0.45rem 0.6rem;margin-top:0.5rem;line-height:1.55;background:rgba(90,138,168,0.04);}
+  .teo-note strong{color:var(--navy);}
+  /* product step */
+  @keyframes stepIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .prod-card{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:0.55rem;animation:stepIn 0.25s ease;}
+  .prod-head{display:flex;align-items:center;gap:0.4rem;padding:0.4rem 0.7rem;background:var(--surface-alt);border-bottom:1px solid var(--border);font-size:0.8rem;font-weight:700;color:var(--navy);}
+  .prod-body{padding:0.6rem 0.7rem;overflow-x:auto;}
+  .eqline{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;}
+  .op{font-family:var(--font-mono);font-size:1.1rem;color:var(--text-muted);font-weight:700;}
+  /* matriz visual con corchetes */
+  .smat{display:inline-flex;align-items:stretch;vertical-align:middle;}
+  .smat-bk{display:flex;flex-direction:column;justify-content:center;}
+  .smat-bk.left{border-left:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);border-radius:3px 0 0 3px;width:5px;}
+  .smat-bk.right{border-right:2px solid var(--navy);border-top:2px solid var(--navy);border-bottom:2px solid var(--navy);border-radius:0 3px 3px 0;width:5px;}
+  .smat-grid{display:inline-grid;gap:2px 6px;padding:4px 3px;}
+  .smat-cell{font-family:var(--font-mono);font-size:0.82rem;text-align:center;padding:2px 4px;min-width:34px;border-radius:2px;}
+  .smat-cell.diagok{background:rgba(34,139,34,0.13);font-weight:700;}
+  .smat-cell.offbad{background:rgba(178,34,34,0.13);font-weight:700;color:var(--brick);}
+  .smat-cell.detail{font-size:0.7rem;color:var(--text-secondary);min-width:64px;}
+  .detail-toggle{font-size:0.72rem;font-weight:700;color:var(--navy);cursor:pointer;margin-top:0.3rem;display:inline-block;}
+  .lab-footer{max-width:960px;margin:0 auto;padding:0.5rem 1rem;text-align:center;font-size:0.68rem;color:var(--text-muted);}
+  @media(max-width:600px){.main{padding:0.4rem;}.mat-grid input{width:46px;}}
+</style>
+</head>
+<body>
+<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">🔁</div><div><h1><span class="lab-badge">Cap 2</span>Verificador de Inversa</h1><div class="lab-subtitle">Verificador Interactivo · Matrices</div></div></div></header>
+<div class="main">
+  <div class="panel">
+    <div class="panel-head">📝 Ingresa A y la candidata B</div>
+    <div class="panel-body">
+      <div class="context-box">Por la definición del libro, <strong>B = A⁻¹</strong> si y solo si <strong>AB = BA = Iₙ</strong> (ambos productos dan la identidad). Ingresa A y tu candidata B; el verificador calcula los dos productos <strong>entrada por entrada</strong> con fracciones exactas y resalta en verde las entradas que coinciden con la identidad y en rojo las que no. Acepta enteros, decimales y fracciones como <strong>1/2, -3/4</strong>. Trae precargado el ejemplo del libro: A = (2 1; 3 2), B = (2 −1; −3 2).</div>
+      <div class="preset-scroll" id="presets"></div>
+      <div class="size-row">
+        <label>Tamaño n:</label>
+        <select id="selN" onchange="resize()"><option>2</option><option>3</option><option>4</option></select>
+        <span style="font-size:0.7rem;color:var(--text-muted);">Solo matrices cuadradas n×n pueden tener inversa.</span>
+      </div>
+      <div class="mat-pair">
+        <div class="mat-block"><span class="mlabel">Matriz A</span><div class="mat-input-wrap"><div class="mat-bk l"></div><div class="mat-grid" id="gridA"></div><div class="mat-bk r"></div></div></div>
+        <div class="mat-block"><span class="mlabel">Candidata B</span><div class="mat-input-wrap"><div class="mat-bk l"></div><div class="mat-grid" id="gridB"></div><div class="mat-bk r"></div></div></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="verify()">▶ Verificar si B = A⁻¹</button>
+        <button class="btn btn-secondary" onclick="swapAB()">⇄ Intercambiar A y B</button>
+        <button class="btn btn-accent" onclick="clearAll()">Limpiar</button>
+      </div>
+      <div id="errBox"></div>
+    </div>
+  </div>
+  <div id="outputArea"></div>
+</div>
+<footer class="lab-footer">Álgebra Lineal con Abordaje Tecnológico · Verificador 2.4 · Matriz Inversa</footer>
+
+<script>
+// ---- FRACTION ARITHMETIC ----
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a||1;}
+function fr(n,d){if(!d)d=1;if(!n)return{n:0,d:1};const g=gcd(Math.abs(n),Math.abs(d));n/=g;d/=g;if(d<0){n=-n;d=-d;}return{n,d};}
+function frN(x){if(Number.isInteger(x))return fr(x,1);for(let d=1;d<=1000;d++){const n=Math.round(x*d);if(Math.abs(n/d-x)<1e-10)return fr(n,d);}return fr(Math.round(x*10000),10000);}
+function fAdd(a,b){return fr(a.n*b.d+b.n*a.d,a.d*b.d);}
+function fMul(a,b){return fr(a.n*b.n,a.d*b.d);}
+function fIsZ(a){return a.n===0;}
+function fIsOne(a){return a.n===a.d;}
+function fStr(f){return f.d===1?''+f.n:f.n+'/'+f.d;}
+function fEq(a,b){return a.n===b.n&&a.d===b.d;}
+function sub(n){const s='₀₁₂₃₄₅₆₇₈₉';return(''+n).split('').map(c=>s[parseInt(c)]||c).join('');}
+
+function parseFrac(s){
+  s=(s||'').toString().trim().replace(/,/g,'.');
+  if(s===''||s==='-')return null;
+  let m=s.match(/^(-?\d+)\s*\/\s*(-?\d+)$/);
+  if(m){const d=parseInt(m[2],10);if(d===0)return null;return fr(parseInt(m[1],10),d);}
+  if(/^-?\d+$/.test(s))return fr(parseInt(s,10),1);
+  if(/^-?\d*\.\d+$/.test(s)){const dec=s.split('.')[1].length;const den=Math.pow(10,dec);return fr(Math.round(parseFloat(s)*den),den);}
+  return null;
+}
+
+// ---- ESTADO ----
+let N=2;
+let dataA=[],dataB=[];
+const PRESETS=[
+  {name:'Libro: A=(2 1;3 2), B=(2 −1;−3 2) → SÍ',n:2,a:[['2','1'],['3','2']],b:[['2','-1'],['-3','2']]},
+  {name:'Falso: misma A, B=(2 1;3 2) → NO',n:2,a:[['2','1'],['3','2']],b:[['2','1'],['3','2']]},
+  {name:'A=(1 2;3 4), B=(−2 1;3/2 −1/2) → SÍ',n:2,a:[['1','2'],['3','4']],b:[['-2','1'],['3/2','-1/2']]},
+  {name:'Con fracciones 3×3 → SÍ',n:3,a:[['2','0','0'],['0','1','0'],['0','0','4']],b:[['1/2','0','0'],['0','1','0'],['0','0','1/4']]},
+  {name:'Singular A=(1 1;0 0) no tiene inversa → NO',n:2,a:[['1','1'],['0','0']],b:[['1','0'],['0','1']]},
+  {name:'Identidad I·I = I → SÍ',n:3,a:[['1','0','0'],['0','1','0'],['0','0','1']],b:[['1','0','0'],['0','1','0'],['0','0','1']]},
+];
+
+window.addEventListener('DOMContentLoaded',()=>{buildPresets();dataA=[['2','1'],['3','2']];dataB=[['2','-1'],['-3','2']];buildGrids();});
+function buildPresets(){const g=document.getElementById('presets');PRESETS.forEach((p,i)=>{const b=document.createElement('button');b.className='preset-pill';b.textContent=p.name;b.onclick=()=>loadPreset(i);g.appendChild(b);});}
+function loadPreset(i){const p=PRESETS[i];N=p.n;document.getElementById('selN').value=N;dataA=p.a.map(r=>[...r]);dataB=p.b.map(r=>[...r]);buildGrids();clearOutput();document.querySelectorAll('.preset-pill').forEach((b,j)=>b.classList.toggle('active',j===i));}
+function resize(){
+  sync();
+  const old=N;N=parseInt(document.getElementById('selN').value);
+  dataA=fitMat(dataA,N);dataB=fitMat(dataB,N);
+  buildGrids();clearOutput();
+  document.querySelectorAll('.preset-pill').forEach(b=>b.classList.remove('active'));
+}
+function fitMat(M,n){
+  const R=[];
+  for(let i=0;i<n;i++){const row=[];for(let j=0;j<n;j++)row.push((M[i]&&M[i][j]!==undefined)?M[i][j]:(i===j?'1':'0'));R.push(row);}
+  return R;
+}
+function gridHTML(id,data){
+  let h='';
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++)h+=`<input type="text" id="${id}_${i}_${j}" value="${(data[i][j]||'').replace(/"/g,'&quot;')}" inputmode="text" onfocus="this.select()">`;
+  return h;
+}
+function buildGrids(){
+  ['gridA','gridB'].forEach((gid,k)=>{
+    const el=document.getElementById(gid);
+    el.style.gridTemplateColumns=`repeat(${N},auto)`;
+    el.innerHTML=gridHTML(k?'B':'A',k?dataB:dataA);
+  });
+}
+function sync(){
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++){
+    const a=document.getElementById(`A_${i}_${j}`),b=document.getElementById(`B_${i}_${j}`);
+    if(a)dataA[i][j]=a.value;if(b)dataB[i][j]=b.value;
+  }
+}
+function swapAB(){sync();[dataA,dataB]=[dataB,dataA];buildGrids();clearOutput();}
+function clearAll(){dataA=fitMat([],N).map((r,i)=>r.map((c,j)=>'0'));dataB=fitMat([],N).map((r,i)=>r.map((c,j)=>'0'));buildGrids();clearOutput();document.querySelectorAll('.preset-pill').forEach(b=>b.classList.remove('active'));}
+function clearOutput(){document.getElementById('outputArea').innerHTML='';document.getElementById('errBox').innerHTML='';}
+
+// ---- PARSEO ----
+function readMat(id){
+  const M=[];
+  for(let i=0;i<N;i++){const row=[];for(let j=0;j<N;j++){
+    const f=parseFrac((id==='A'?dataA:dataB)[i][j]);
+    if(f===null)throw new Error(`Entrada inválida en ${id}[${i+1},${j+1}]. Usa enteros, decimales o fracciones como 2/3.`);
+    row.push(f);
+  }M.push(row);}
+  return M;
+}
+// producto con detalle de cada entrada
+function product(P,Q){
+  const C=[],detail=[];
+  for(let i=0;i<N;i++){const cr=[],dr=[];for(let j=0;j<N;j++){
+    let s=fr(0,1);const terms=[];
+    for(let k=0;k<N;k++){const t=fMul(P[i][k],Q[k][j]);s=fAdd(s,t);terms.push(`${fStr(P[i][k])}·${fStr(Q[k][j])}`);}
+    cr.push(s);dr.push(terms.join(' + '));
+  }C.push(cr);detail.push(dr);}
+  return{C,detail};
+}
+function isIdentity(C){
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++){
+    if(i===j){if(!fIsOne(C[i][j]))return false;}
+    else if(!fIsZ(C[i][j]))return false;
+  }
+  return true;
+}
+
+// ---- VERIFY ----
+function verify(){
+  sync();clearOutput();
+  let A,B;
+  try{A=readMat('A');B=readMat('B');}catch(err){
+    document.getElementById('errBox').innerHTML=`<div class="result-box no" style="margin-top:0.5rem;"><div class="result-title no">⚠ Error</div><div class="result-body mono">${err.message}</div></div>`;
+    return;
+  }
+  const ab=product(A,B), ba=product(B,A);
+  const abI=isIdentity(ab.C), baI=isIdentity(ba.C);
+  const esInversa=abI&&baI;
+
+  let html='';
+  html+=`<div class="result-box ${esInversa?'ok':'no'}">`;
+  html+=`<div class="result-title ${esInversa?'ok':'no'}">${esInversa?'✓ SÍ: B es la inversa de A':'✗ NO: B no es la inversa de A'}</div>`;
+  html+=`<div class="result-body">`;
+  if(esInversa){
+    html+=`Se cumple <span class="mono">AB = BA = I${sub(N)}</span>. Por la definición de matriz invertible, <span class="mono">B = A⁻¹</span> (y por unicidad de la inversa, es la única).`;
+  }else{
+    const fall=[];
+    if(!abI)fall.push('AB ≠ I');
+    if(!baI)fall.push('BA ≠ I');
+    html+=`Para que B sea la inversa de A deben cumplirse <strong>ambas</strong> igualdades AB = I y BA = I. Aquí ${fall.join(' y ')}.`;
+    if(abI&&!baI)html+=` <br><em>Nota:</em> aunque AB = I, falla BA = I. En matrices cuadradas reales una implica la otra, así que si una falla, B no es inversa.`;
+  }
+  html+=`</div>`;
+  html+=`<div class="check-grid">`;
+  html+=`<span class="check-chip ${abI?'ok':'bad'}">${abI?'✓':'✗'} AB = I${sub(N)}</span>`;
+  html+=`<span class="check-chip ${baI?'ok':'bad'}">${baI?'✓':'✗'} BA = I${sub(N)}</span>`;
+  html+=`</div></div>`;
+
+  // productos paso a paso
+  html+=prodCard('AB','A','B',A,B,ab);
+  html+=prodCard('BA','B','A',B,A,ba);
+
+  html+=`<div class="teo-note"><strong>Definición (libro):</strong> una matriz cuadrada A ∈ M(n,ℝ) es invertible si existe A⁻¹ tal que AA⁻¹ = A⁻¹A = Iₙ. La inversa, cuando existe, es <strong>única</strong>. Como en el ejemplo del texto, para confirmar que una candidata B es la inversa basta multiplicar y comprobar que ambos productos dan la identidad — sin necesidad de recalcular la inversa desde cero.</div>`;
+
+  document.getElementById('outputArea').innerHTML=html;
+  document.getElementById('outputArea').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+let detailCount=0;
+function prodCard(name,p,q,P,Q,res){
+  const ident=isIdentity(res.C);
+  const did='det_'+(detailCount++);
+  let h=`<div class="prod-card"><div class="prod-head">Producto ${name} = ${p}·${q} ${ident?'<span style="color:var(--forest);margin-left:auto;">= I ✓</span>':'<span style="color:var(--brick);margin-left:auto;">≠ I ✗</span>'}</div><div class="prod-body">`;
+  h+=`<div class="eqline">${matSVG(P)}<span class="op">·</span>${matSVG(Q)}<span class="op">=</span>${matResult(res.C)}</div>`;
+  h+=`<span class="detail-toggle" onclick="document.getElementById('${did}').style.display=(document.getElementById('${did}').style.display==='none'?'block':'none')">▸ Ver el detalle de cada entrada</span>`;
+  h+=`<div id="${did}" style="display:none;margin-top:0.4rem;">${matDetail(res.C,res.detail)}</div>`;
+  h+=`</div></div>`;
+  return h;
+}
+function matSVG(M){
+  let h='<span class="smat"><span class="smat-bk left"></span>';
+  h+=`<span class="smat-grid" style="grid-template-columns:repeat(${N},1fr);">`;
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++)h+=`<span class="smat-cell">${fStr(M[i][j])}</span>`;
+  h+='</span><span class="smat-bk right"></span></span>';
+  return h;
+}
+function matResult(C){
+  let h='<span class="smat"><span class="smat-bk left"></span>';
+  h+=`<span class="smat-grid" style="grid-template-columns:repeat(${N},1fr);">`;
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++){
+    const want=(i===j)?fr(1,1):fr(0,1);
+    const good=fEq(C[i][j],want);
+    const cls=good?'diagok':'offbad';
+    h+=`<span class="smat-cell ${cls}">${fStr(C[i][j])}</span>`;
+  }
+  h+='</span><span class="smat-bk right"></span></span>';
+  return h;
+}
+function matDetail(C,D){
+  let h='<span class="smat"><span class="smat-bk left"></span>';
+  h+=`<span class="smat-grid" style="grid-template-columns:repeat(${N},1fr);">`;
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++){
+    h+=`<span class="smat-cell detail">${D[i][j]}<br>= ${fStr(C[i][j])}</span>`;
+  }
+  h+='</span><span class="smat-bk right"></span></span>';
+  return h;
+}
+</script>
+</body>
+</html>
