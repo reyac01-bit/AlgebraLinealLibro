@@ -733,7 +733,7 @@ function expToStr(e,names){
     const abs=frac(Math.abs(f.n),f.d);
     const coef=(abs.n===1&&abs.d===1)?'':fToStr(abs);
     const term=coef?`${coef}·${names[i]}`:names[i];
-    parts.push((parts.length===0)?(neg?'−'+term:term):(neg?'− '+term:'+ '+term));
+    parts.push((parts.length===0)?(neg?'-'+term:term):(neg?'- '+term:'+ '+term));
   });
   if(parts.length===0) return '0';
   return parts.join(' ');
