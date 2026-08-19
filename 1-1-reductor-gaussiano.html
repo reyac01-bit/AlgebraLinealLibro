@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reductor Gaussiano Paso a Paso — Álgebra Lineal</title>
+<title>Material 1.1 — Reductor Gaussiano Paso a Paso | Álgebra Lineal: Teoría, ejemplos y materiales interactivos</title>
 <style>
   /* ============================================================
-     DESIGN SYSTEM — Álgebra Lineal con Abordaje Tecnológico
+     DESIGN SYSTEM — Álgebra Lineal: Teoría, ejemplos y materiales interactivos
      ============================================================ */
   :root {
     --brick: #B22222;
@@ -24,7 +24,7 @@
     --surface-alt: #F9F7F4;
     --text: #1E1E1E;
     --text-secondary: #555;
-    --text-muted: #888;
+    --text-muted: #6B6B6B;
     --border: #D6D0C6;
     --shadow: 0 2px 16px rgba(0,0,0,0.07);
     --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
@@ -32,16 +32,21 @@
     --radius-sm: 6px;
     --transition: 0.25s cubic-bezier(.4,0,.2,1);
 
-    --font-display: 'Playfair Display', Georgia, serif;
-    --font-body: 'Source Sans 3', 'Segoe UI', sans-serif;
-    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    /* Tipografía local: el material debe funcionar sin conexión (sin CDN ni Google Fonts) */
+    --font-display: Georgia, 'Times New Roman', 'Liberation Serif', serif;
+    --font-body: 'Segoe UI', Roboto, 'Helvetica Neue', 'DejaVu Sans', Arial, sans-serif;
+    --font-mono: 'Fira Code', 'DejaVu Sans Mono', Consolas, 'Courier New', monospace;
 
     --pivot-color: #FF8C00;
     --zero-color: rgba(34,139,34,0.15);
     --highlight-row: rgba(90,138,168,0.12);
   }
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
   *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  /* Foco visible para navegación por teclado */
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 3px solid var(--navy);
+    outline-offset: 2px;
+  }
   body {
     font-family: var(--font-body);
     background: var(--bg);
@@ -113,6 +118,9 @@
     font-family:var(--font-mono); font-size:0.88rem; text-align:center; transition:var(--transition); background:#fff;
   }
   .matrix-grid input:focus { outline:none; border-color:var(--gmitblue); box-shadow:0 0 0 3px rgba(90,138,168,0.15); }
+  .matrix-grid input.invalid { border-color:var(--brick); box-shadow:0 0 0 3px rgba(178,34,34,0.12); background:rgba(178,34,34,0.03); }
+  .frac-hint { font-size:0.72rem; color:var(--text-muted); margin-top:0.25rem; padding:0.3rem 0.5rem; background:var(--surface-alt); border-radius:4px; border:1px dashed var(--border); line-height:1.5; }
+  .frac-hint code { font-family:var(--font-mono); background:rgba(90,138,168,0.1); padding:0.1em 0.3em; border-radius:3px; font-size:0.75rem; }
 
   /* ---------- STEP DISPLAY ---------- */
   .steps-container { display:flex; flex-direction:column; gap:1rem; }
@@ -159,7 +167,11 @@
     padding:3px 5px; border-radius:3px; transition:background 0.3s, color 0.3s;
     min-width:42px;
   }
-  .smat-cell.pivot { background:var(--pivot-color); color:#fff; font-weight:700; border-radius:4px; }
+  /* El pivote se marca con color y además con un borde, para no depender solo del color */
+  .solution-box.pending { border-color:var(--gmitblue); background:var(--gmitblue-pale); }
+  .solution-title.pending { color:var(--gmitblue); }
+  .smat-cell.pivot { background:var(--pivot-color); color:#1E1E1E; font-weight:800; border-radius:4px;
+           box-shadow: inset 0 0 0 2px #7A3B00; }
   .smat-cell.zeroed { background:var(--zero-color); font-weight:600; }
   .smat-cell.highlight-row { background:var(--highlight-row); }
 
@@ -194,7 +206,8 @@
     font-family:var(--font-mono); font-size:0.85rem; background:#fff;
   }
   .op-panel select:focus, .op-panel input:focus { outline:none; border-color:var(--gmitblue); box-shadow:0 0 0 3px rgba(90,138,168,0.15); }
-  .op-panel input[type="number"] { width:60px; text-align:center; }
+  .op-panel input[type="text"] { width:60px; text-align:center; }
+  .op-panel input.invalid { border-color:var(--brick); box-shadow:0 0 0 3px rgba(178,34,34,0.12); }
   .op-panel .op-label { font-size:0.82rem; font-weight:600; color:var(--text-secondary); }
 
   /* Tabs */
@@ -232,7 +245,7 @@
         <span class="lab-badge">Cap 1</span>
         Reductor Gaussiano Paso a Paso
       </h1>
-      <div class="lab-subtitle">Laboratorio Interactivo · Sistemas de Ecuaciones Lineales</div>
+      <div class="lab-subtitle">Material interactivo · Sistemas de ecuaciones lineales</div>
     </div>
   </div>
 </header>
@@ -252,9 +265,12 @@
     <div class="panel-body">
 
       <div class="context-box">
-        Ingresa la <strong>matriz aumentada</strong> del sistema de ecuaciones lineales.
-        Las columnas de la izquierda corresponden a los coeficientes y la última columna al vector
-        de términos independientes <strong>b</strong>. Puedes usar los ejemplos del libro o ingresar tu propio sistema.
+        Ingrese la <strong>matriz aumentada</strong> <em>(A|B)</em> del sistema de ecuaciones lineales.
+        Las columnas de la izquierda corresponden a los coeficientes y la última columna a los
+        términos independientes. Puede partir de uno de los sistemas propuestos o escribir el suyo.
+      </div>
+      <div class="frac-hint">
+        Acepta fracciones: <code>1/2</code> <code>-3/4</code> <code>7/3</code> y decimales: <code>0.5</code> <code>-2.3</code>
       </div>
 
       <!-- Presets -->
@@ -295,9 +311,10 @@
     <div class="panel-head">✋ Operación Manual</div>
     <div class="panel-body">
       <div class="context-box">
-        Selecciona una <strong>operación elemental de fila</strong> y aplícala.
-        Las tres operaciones válidas son: intercambiar filas, multiplicar una fila por un escalar (≠ 0),
-        y sumar un múltiplo de una fila a otra.
+        Seleccione una <strong>operación elemental de fila</strong> y aplíquela.
+        Las tres operaciones válidas son: intercambiar dos filas, multiplicar una fila por un
+        escalar <em>k</em> ≠ 0, y sumar a una fila <em>k</em> veces <strong>otra</strong> fila.
+        La solución aparecerá cuando la matriz llegue a una forma escalonada.
       </div>
 
       <!-- Op 1: Swap -->
@@ -318,7 +335,7 @@
           <span class="op-label">f</span>
           <select id="scaleI" class="op-sel"></select>
           <span class="op-label">→</span>
-          <input type="number" id="scaleK" value="1" step="any">
+          <input type="text" id="scaleK" value="1">
           <span class="op-label">· f</span>
           <select id="scaleI2" class="op-sel"></select>
           <button class="btn btn-sm btn-secondary" onclick="manualScale()" style="border-color:var(--forest);color:var(--forest);">Aplicar</button>
@@ -331,7 +348,7 @@
           <span class="op-label">f</span>
           <select id="elimI" class="op-sel"></select>
           <span class="op-label">→</span>
-          <input type="number" id="elimK" value="-1" step="any">
+          <input type="text" id="elimK" value="-1">
           <span class="op-label">· f</span>
           <select id="elimJ" class="op-sel"></select>
           <span class="op-label">+ f</span>
@@ -361,8 +378,9 @@
 </div>
 
 <footer class="lab-footer">
-  Álgebra Lineal con Abordaje Tecnológico · Laboratorio 1.1 · Reductor Gaussiano<br>
-  <span style="opacity:0.7;">Actividad interactiva complementaria al Capítulo 1: Sistemas de Ecuaciones Lineales</span>
+  <strong>Álgebra Lineal: Teoría, ejemplos y materiales interactivos</strong><br>
+  Material 1.1 · Reductor Gaussiano Paso a Paso<br>
+  <span style="opacity:0.8;">Capítulo 1: Sistemas de ecuaciones lineales</span>
 </footer>
 
 <!-- ============================================================
@@ -370,6 +388,23 @@
      ============================================================ -->
 <script>
 // ---- FRACTION ARITHMETIC (exact) ----
+// Parse user input: "1/2", "-3/4", "7/3", "2", "0.5", etc. → frac object
+function parseFracStr(str) {
+  if (str == null) return frac(0,1);
+  str = String(str).trim().replace(/\s/g, '').replace(/−/g, '-');
+  if (str === '' || str === '-') return frac(0,1);
+  // fraction pattern: e.g. "1/2", "-3/4", "7/3"
+  const m = str.match(/^(-?\d+)\/(-?\d+)$/);
+  if (m) {
+    const num = parseInt(m[1], 10);
+    const den = parseInt(m[2], 10);
+    if (den === 0) return null; // invalid
+    return frac(num, den);
+  }
+  const v = parseFloat(str);
+  if (isNaN(v)) return null; // invalid
+  return fracFromNum(v);
+}
 function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a;}
 function frac(n,d){
   if(d===undefined)d=1;
@@ -410,40 +445,46 @@ let manualHistory=[];
 
 const PRESETS = [
   {
-    label:'Ejemplo 1 (Libro §1.1)',
-    desc:'3x+2y=1, x−y=2 → S={(1,−1)}',
+    label:'Sistema 2×2 con solución única',
+    desc:'3x+2y=1, x−y=2',
     m:2, n:2,
     data:[[3,2,1],[1,-1,2]]
   },
   {
-    label:'Ejemplo 2 (Libro §1.1)',
-    desc:'3x+y=26, −x−3y=−14 → S={(8,2)}',
+    label:'Sistema 2×2 con coeficientes negativos',
+    desc:'3x+y=26, −x−3y=−14',
     m:2, n:2,
     data:[[3,1,26],[-1,-3,-14]]
   },
   {
-    label:'Ejemplo 3 (Libro §1.1)',
+    label:'Sistema 3×3 con fracciones',
     desc:'2x−3y+z=4, 4x+y−2z=7, 6x+2y−z=7',
     m:3, n:3,
     data:[[2,-3,1,4],[4,1,-2,7],[6,2,-1,7]]
   },
   {
-    label:'Ejemplo 4 (Libro §1.1)',
+    label:'Sistema 3×3 con solución entera',
     desc:'−x+y−z=−14, 2x−y+z=21, 3x+2y+z=19',
     m:3, n:3,
     data:[[-1,1,-1,-14],[2,-1,1,21],[3,2,1,19]]
   },
   {
     label:'Sistema inconsistente',
-    desc:'x+y=1, x+y=3 (sin solución)',
+    desc:'x+y=1, x+y=3',
     m:2, n:2,
     data:[[1,1,1],[1,1,3]]
   },
   {
-    label:'Infinitas soluciones',
-    desc:'x+y+z=1, 2x+2y+2z=2, x+y+z=1',
-    m:3, n:3,
-    data:[[1,1,1,1],[2,2,2,2],[1,1,1,1]]
+    label:'Infinitas soluciones (un parámetro)',
+    desc:'x+z=1, 8y−4z=2',
+    m:2, n:3,
+    data:[[1,0,1,1],[0,8,-4,2]]
+  },
+  {
+    label:'Infinitas soluciones (dos parámetros)',
+    desc:'x+y−3z−2w=0, 2x−y+z+4w=0',
+    m:2, n:4,
+    data:[[1,1,-3,-2,0],[2,-1,1,4,0]]
   },
 ];
 
@@ -492,7 +533,7 @@ function rebuildMatrix(){
   html+=`<div class="matrix-grid" style="grid-template-columns:repeat(${cols},1fr);">`;
   for(let i=0;i<rows;i++){
     for(let j=0;j<cols;j++){
-      html+=`<input type="number" id="m_${i}_${j}" value="0" step="any" onfocus="this.select()">`;
+      html+=`<input type="text" id="m_${i}_${j}" value="0" onfocus="this.select()" oninput="validateMatrixInput(this)">`;
     }
   }
   html+='</div>';
@@ -500,7 +541,7 @@ function rebuildMatrix(){
   // Augmented column
   html+=`<div class="matrix-grid" style="grid-template-columns:1fr;">`;
   for(let i=0;i<rows;i++){
-    html+=`<input type="number" id="m_${i}_${cols}" value="0" step="any" onfocus="this.select()">`;
+    html+=`<input type="text" id="m_${i}_${cols}" value="0" onfocus="this.select()" oninput="validateMatrixInput(this)">`;
   }
   html+='</div>';
   html+='<div class="matrix-bracket right"></div>';
@@ -515,12 +556,18 @@ function readMatrix(){
   for(let i=0;i<rows;i++){
     const row=[];
     for(let j=0;j<=cols;j++){
-      const v=parseFloat(document.getElementById(`m_${i}_${j}`).value)||0;
-      row.push(fracFromNum(v));
+      const inp=document.getElementById(`m_${i}_${j}`);
+      const f=parseFracStr(inp.value);
+      row.push(f || frac(0,1));
     }
     M.push(row);
   }
   return M;
+}
+
+function validateMatrixInput(el){
+  const f=parseFracStr(el.value);
+  el.classList.toggle('invalid', f===null && el.value.trim()!=='' && el.value.trim()!=='-');
 }
 
 function cloneMatrix(M){return M.map(r=>r.map(f=>({...f})));}
@@ -556,24 +603,24 @@ function solveAutomatic(mode='gauss'){
   let pivotRow=0;
 
   for(let col=0;col<n && pivotRow<m;col++){
-    // Find pivot (partial pivoting)
-    let maxIdx=-1, maxVal=0;
+    // Se busca la PRIMERA fila (de arriba hacia abajo) con entrada no nula en la columna.
+    // Solo se intercambia si el pivote actual es cero, tal como se procede en el capítulo.
+    let sel=-1;
     for(let i=pivotRow;i<m;i++){
-      const v=Math.abs(fToNum(M[i][col]));
-      if(v>maxVal){maxVal=v;maxIdx=i;}
+      if(!fIsZero(M[i][col])){sel=i;break;}
     }
-    if(maxVal<1e-12) continue; // Skip column
+    if(sel===-1) continue; // columna sin pivote: se pasa a la siguiente
 
-    // Swap if needed
-    if(maxIdx!==pivotRow){
-      [M[pivotRow],M[maxIdx]]=[M[maxIdx],M[pivotRow]];
-      steps.push({type:'swap',i:pivotRow,j:maxIdx,desc:`f₁↔f₂`.replace('₁',sub(pivotRow+1)).replace('₂',sub(maxIdx+1)),matrix:cloneMatrix(M),pivotRC:[pivotRow,col]});
+    if(sel!==pivotRow){
+      [M[pivotRow],M[sel]]=[M[sel],M[pivotRow]];
+      steps.push({type:'swap',i:pivotRow,j:sel,
+        desc:`f${sub(pivotRow+1)} ↔ f${sub(sel+1)}`,
+        matrix:cloneMatrix(M),pivotRC:[pivotRow,col]});
     }
 
-    // Scale pivot to 1
+    // Se lleva el pivote a 1
     const pv=M[pivotRow][col];
     if(!fEq(pv,1)){
-      const factor=frac(1,1);
       const inv=fDiv(frac(1,1),pv);
       for(let j=0;j<=n;j++) M[pivotRow][j]=fMul(M[pivotRow][j],inv);
       steps.push({type:'scale',i:pivotRow,k:fToStr(inv),desc:`f${sub(pivotRow+1)} → ${fToStr(inv)}·f${sub(pivotRow+1)}`,matrix:cloneMatrix(M),pivotRC:[pivotRow,col]});
@@ -661,84 +708,168 @@ function renderStepMatrix(M, step){
   return html;
 }
 
+// ---- NOMBRES DE VARIABLES Y PARÁMETROS ----
+const VAR_NAMES=['x','y','z','w'];
+function varName(j){ return j<VAR_NAMES.length ? VAR_NAMES[j] : `x${sub(j+1)}`; }
+// Un parámetro: t.  Dos: s y t (como en el capítulo).  Tres o más: t₁, t₂, …
+function paramNames(k){
+  if(k===1) return ['t'];
+  if(k===2) return ['s','t'];
+  return Array.from({length:k},(_,i)=>`t${sub(i+1)}`);
+}
+
+// ---- EXPRESIONES AFINES  c + Σ pᵢ·(parámetro i) ----
+function expConst(f,k){ return {c:{...f}, p:Array.from({length:k},()=>frac(0,1))}; }
+function expParam(idx,k){ const e=expConst(frac(0,1),k); e.p[idx]=frac(1,1); return e; }
+function expSub(a,b){ return {c:fSub(a.c,b.c), p:a.p.map((v,i)=>fSub(v,b.p[i]))}; }
+function expScale(a,f){ return {c:fMul(a.c,f), p:a.p.map(v=>fMul(v,f))}; }
+function expMulFrac(f,a){ return expScale(a,f); }
+function expToStr(e,names){
+  const parts=[];
+  if(!fIsZero(e.c)) parts.push(fToStr(e.c));
+  e.p.forEach((f,i)=>{
+    if(fIsZero(f)) return;
+    const neg=f.n<0;
+    const abs=frac(Math.abs(f.n),f.d);
+    const coef=(abs.n===1&&abs.d===1)?'':fToStr(abs);
+    const term=coef?`${coef}·${names[i]}`:names[i];
+    parts.push((parts.length===0)?(neg?'−'+term:term):(neg?'− '+term:'+ '+term));
+  });
+  if(parts.length===0) return '0';
+  return parts.join(' ');
+}
+
+// ---- FORMA ESCALONADA: ¿permite leer la solución? ----
+// Devuelve {ok, pivots:[{row,col}], unitPivots}
+function echelonInfo(M,n){
+  const m=M.length;
+  const pivots=[];
+  let lastCol=-1, seenNullRow=false, ok=true, unitPivots=true;
+  for(let i=0;i<m;i++){
+    let col=-1;
+    for(let j=0;j<n;j++) if(!fIsZero(M[i][j])){col=j;break;}
+    if(col===-1){ seenNullRow=true; continue; }
+    if(seenNullRow) ok=false;              // fila no nula por debajo de una nula
+    if(col<=lastCol) ok=false;             // no avanza hacia la derecha
+    if(!fEq(M[i][col],1)) unitPivots=false;
+    lastCol=col;
+    pivots.push({row:i,col});
+  }
+  return {ok,pivots,unitPivots};
+}
+
+function hasContradiction(M,n){
+  for(let i=0;i<M.length;i++){
+    let allZero=true;
+    for(let j=0;j<n;j++) if(!fIsZero(M[i][j])){allZero=false;break;}
+    if(allZero && !fIsZero(M[i][n])) return true;
+  }
+  return false;
+}
+
 function displaySolution(M, mode){
   const wrap=document.getElementById('solutionWrap');
   const m=M.length, n=M[0].length-1;
-  const varNames=['x','y','z','w','t'];
 
-  // Find pivots
-  const pivotCols=[];
-  for(let i=0;i<m;i++){
-    for(let j=0;j<n;j++){
-      if(!fIsZero(M[i][j])){
-        pivotCols.push({row:i,col:j});
-        break;
-      }
-    }
-  }
-
-  // Check inconsistency: row with all coeff=0 but b≠0
-  let inconsistent=false;
-  for(let i=0;i<m;i++){
-    let allZero=true;
-    for(let j=0;j<n;j++) if(!fIsZero(M[i][j])){allZero=false;break;}
-    if(allZero && !fIsZero(M[i][n])){inconsistent=true;break;}
-  }
-
-  if(inconsistent){
+  // La contradicción 0 = b (b ≠ 0) se detecta en cualquier momento
+  if(hasContradiction(M,n)){
+    const info=echelonInfo(M,n);
+    const rA=info.pivots.length;
     wrap.innerHTML=`
       <div class="solution-box inconsistent">
-        <div class="solution-title inconsistent">✗ Sistema Inconsistente</div>
+        <div class="solution-title inconsistent">✗ Sistema inconsistente</div>
         <div class="solution-body">
-          El sistema <strong>no tiene solución</strong>. Se encontró una fila de la forma
-          [0  0  ...  0 | b] con b ≠ 0, lo cual es una contradicción.
+          Aparece una fila de la forma <span style="font-family:var(--font-mono)">[0 &nbsp;0 &nbsp;… &nbsp;0 | b]</span>
+          con b ≠ 0, que corresponde a la ecuación 0 = b. Ningún valor de las incógnitas la satisface.<br>
+          Se cumple Ran(A) = ${rA} &lt; Ran(A|B) = ${rA+1}, de modo que
+          <strong>el sistema no tiene solución</strong>: &nbsp;<span style="font-family:var(--font-mono)">S = ∅</span>
         </div>
       </div>`;
     return;
   }
 
-  const rank=pivotCols.length;
-  const freeVars=n-rank;
+  const info=echelonInfo(M,n);
 
-  if(freeVars>0){
-    // Infinite solutions
-    const pivotColSet=new Set(pivotCols.map(p=>p.col));
-    const freeColIdxs=[];
-    for(let j=0;j<n;j++) if(!pivotColSet.has(j)) freeColIdxs.push(j);
-
-    let solText='El sistema tiene <strong>infinitas soluciones</strong>.<br>';
-    solText+=`Rango = ${rank}, Variables = ${n}, Variables libres = ${freeVars}<br><br>`;
-    solText+='Variables libres: ';
-    solText+=freeColIdxs.map(j=>(j<varNames.length?varNames[j]:`x${sub(j+1)}`)).join(', ');
-
+  // Sin forma escalonada no se puede leer la solución: no se muestra ninguna.
+  if(!info.ok){
     wrap.innerHTML=`
-      <div class="solution-box infinite">
-        <div class="solution-title infinite">∞ Infinitas Soluciones</div>
-        <div class="solution-body">${solText}</div>
+      <div class="solution-box pending">
+        <div class="solution-title pending">⋯ Reducción en curso</div>
+        <div class="solution-body">
+          La matriz todavía no está en forma escalonada, de modo que aún no es posible
+          leer el conjunto solución. Continúe aplicando operaciones elementales hasta que
+          el primer elemento no nulo de cada fila quede a la derecha del de la fila anterior
+          y las filas nulas queden al final.
+        </div>
       </div>`;
     return;
   }
 
-  // Unique solution — back substitution if Gauss mode
-  const sol=new Array(n).fill(null).map(()=>frac(0,1));
-  // Work from bottom pivot up
-  for(let p=pivotCols.length-1;p>=0;p--){
-    const {row,col}=pivotCols[p];
-    let val={...M[row][n]};
+  const pivots=info.pivots;
+  const rank=pivots.length;
+  const nParams=n-rank;
+  const pivotColSet=new Set(pivots.map(p=>p.col));
+  const freeCols=[];
+  for(let j=0;j<n;j++) if(!pivotColSet.has(j)) freeCols.push(j);
+
+  // Sustitución hacia atrás con expresiones afines en los parámetros
+  const names=paramNames(nParams);
+  const val=new Array(n).fill(null);
+  freeCols.forEach((j,idx)=>{ val[j]=expParam(idx,nParams); });
+  for(let p=pivots.length-1;p>=0;p--){
+    const {row,col}=pivots[p];
+    let acc=expConst(M[row][n],nParams);
     for(let j=col+1;j<n;j++){
-      val=fSub(val,fMul(M[row][j],sol[j]));
+      if(fIsZero(M[row][j])) continue;
+      acc=expSub(acc, expMulFrac(M[row][j], val[j]));
     }
-    sol[col]=fDiv(val,M[row][col]);
+    val[col]=expScale(acc, fDiv(frac(1,1),M[row][col]));
   }
 
-  let solText='S = { (';
-  solText+=sol.map((f,j)=>`<span style="color:var(--navy);font-weight:700">${j<varNames.length?varNames[j]:`x${sub(j+1)}`} = ${fToStr(f)}</span>`).join(', &nbsp;');
-  solText+=') }';
+  const hint = info.unitPivots ? '' :
+    `<div style="margin-top:0.5rem;font-size:0.75rem;color:var(--text-secondary);">
+       Nota: algunos pivotes todavía no son 1, de modo que la matriz aún no es escalonada
+       según la definición del capítulo, aunque ya permite la sustitución hacia atrás.
+     </div>`;
 
+  if(nParams===0){
+    const tupla=val.map(e=>fToStr(e.c)).join(', ');
+    wrap.innerHTML=`
+      <div class="solution-box">
+        <div class="solution-title unique">✓ Solución única</div>
+        <div class="solution-body">
+          Ran(A) = Ran(A|B) = n = ${n}, de modo que el sistema tiene solución única.
+          <div style="margin-top:0.5rem;font-family:var(--font-mono);font-size:1rem;color:var(--navy);font-weight:700;">
+            S = {(${tupla})}
+          </div>
+          <div style="margin-top:0.4rem;font-size:0.8rem;">
+            ${val.map((e,j)=>`${varName(j)} = ${fToStr(e.c)}`).join(' &nbsp;·&nbsp; ')}
+          </div>
+          ${hint}
+        </div>
+      </div>`;
+    return;
+  }
+
+  // Infinitas soluciones: se entrega el conjunto solución en forma paramétrica
+  const asign=freeCols.map((j,idx)=>`${varName(j)} = ${names[idx]}`).join(', ');
+  const tupla=val.map(e=>expToStr(e,names)).join(', ');
+  const cuantif=names.map(nm=>nm).join(', ')+` ∈ ℝ`;
   wrap.innerHTML=`
-    <div class="solution-box">
-      <div class="solution-title unique">✓ Solución Única</div>
-      <div class="solution-body">${solText}</div>
+    <div class="solution-box infinite">
+      <div class="solution-title infinite">∞ Infinitas soluciones</div>
+      <div class="solution-body">
+        Ran(A) = Ran(A|B) = ${rank} &lt; n = ${n}, de modo que hay infinitas soluciones que
+        dependen de n − Ran(A) = <strong>${nParams} parámetro${nParams===1?'':'s'}</strong>.
+        <div style="margin-top:0.4rem;font-size:0.8rem;">Haciendo ${asign}, con ${cuantif}:</div>
+        <div style="margin-top:0.4rem;font-size:0.8rem;">
+          ${val.map((e,j)=>`${varName(j)} = ${expToStr(e,names)}`).join('<br>')}
+        </div>
+        <div style="margin-top:0.5rem;font-family:var(--font-mono);font-size:0.95rem;color:var(--navy);font-weight:700;">
+          S = {(${tupla}) : ${cuantif}}
+        </div>
+        ${hint}
+      </div>
     </div>`;
 }
 
@@ -762,9 +893,12 @@ function rebuildOpSelectors(){
   });
   // Set sensible defaults
   const s=document.getElementById('swapJ'); if(s&&s.options.length>1) s.value=1;
+  // Por omisión: f₂ → k·f₁ + f₂  (fila fuente ≠ fila destino, y destino coherente)
   const e=document.getElementById('elimJ'); if(e) e.value=0;
+  const eI=document.getElementById('elimI'); if(eI&&eI.options.length>1) eI.value=1;
   const e2=document.getElementById('elimI2');
   if(e2&&e2.options.length>1) e2.value=1;
+  const s1=document.getElementById('scaleI'); if(s1) s1.value=0;
   const s2=document.getElementById('scaleI2'); if(s2) s2.value=0;
 }
 
@@ -780,9 +914,10 @@ function manualSwap(){
 
 function manualScale(){
   const i=parseInt(document.getElementById('scaleI').value);
-  const k=parseFloat(document.getElementById('scaleK').value);
-  if(k===0){alert('El escalar no puede ser 0.');return;}
-  const kf=fracFromNum(k);
+  const i2=parseInt(document.getElementById('scaleI2').value);
+  const kf=parseFracStr(document.getElementById('scaleK').value);
+  if(!kf||fIsZero(kf)){alert('El escalar debe ser distinto de 0 y estar bien escrito. Formato: 1/2, -3, 0.5');return;}
+  if(i!==i2){alert('En esta operación la fila debe ser la misma en ambos selectores: f\u1D62 → k·f\u1D62.');return;}
   for(let j=0;j<=cols;j++) manualMatrix[i][j]=fMul(manualMatrix[i][j],kf);
   manualSteps.push({type:'scale',i,k:fToStr(kf),desc:`f${sub(i+1)} → ${fToStr(kf)}·f${sub(i+1)}`,matrix:cloneMatrix(manualMatrix),pivotRC:null});
   manualHistory.push(cloneMatrix(manualMatrix));
@@ -793,9 +928,10 @@ function manualElim(){
   const i=parseInt(document.getElementById('elimI').value);
   const j=parseInt(document.getElementById('elimJ').value);
   const i2=parseInt(document.getElementById('elimI2').value);
-  const k=parseFloat(document.getElementById('elimK').value);
+  const kf=parseFracStr(document.getElementById('elimK').value);
+  if(!kf||fIsZero(kf)){alert('El escalar debe ser distinto de 0 y estar bien escrito. Formato: 1/2, -3, 0.5');return;}
   if(i!==i2){alert('La fila destino debe ser la misma en ambos selectores.');return;}
-  const kf=fracFromNum(k);
+  if(i===j){alert('Debe sumarse un múltiplo de OTRA fila: la fila fuente y la fila destino tienen que ser distintas.');return;}
   for(let c=0;c<=cols;c++) manualMatrix[i][c]=fAdd(manualMatrix[i][c],fMul(kf,manualMatrix[j][c]));
   manualSteps.push({type:'elim',i,j,k:fToStr(kf),
     desc:`f${sub(i+1)} → ${fToStr(kf)}·f${sub(j+1)} + f${sub(i+1)}`,
