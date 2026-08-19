@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Visualizador Geométrico de Sistemas 2×2 — Álgebra Lineal</title>
+<title>Material 1.4 — Visualizador Geométrico de Sistemas 2×2 | Álgebra Lineal: Teoría, ejemplos y materiales interactivos</title>
 <style>
-  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#888;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;--line1:#2980B9;--line2:#E67E22;--point:#228B22;}
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#6B6B6B;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:Georgia,'Times New Roman','Liberation Serif',serif;--font-body:'Segoe UI',Roboto,'Helvetica Neue','DejaVu Sans',Arial,sans-serif;--font-mono:'Fira Code','DejaVu Sans Mono',Consolas,'Courier New',monospace;--line1:#2980B9;--line2:#E67E22;--point:#228B22;}
   *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  /* Foco visible para navegación por teclado */
+  a:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--navy);outline-offset:2px;}
   body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
   .lab-header{background:linear-gradient(135deg,var(--navy) 0%,var(--gmitblue) 100%);color:#fff;padding:0.7rem 1.5rem;position:relative;overflow:hidden;}
   .lab-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none;}
@@ -56,12 +57,26 @@
   .formula-card .flabel{font-weight:700;font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.05rem;}
   .context-box{background:linear-gradient(135deg,var(--gmitblue-pale),rgba(90,138,168,0.04));border-left:3px solid var(--gmitblue);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:0.5rem 0.7rem;font-size:0.74rem;line-height:1.5;color:var(--text-secondary);margin-bottom:0.5rem;}
   .context-box strong{color:var(--navy);}
+  /* Matrices con fracciones exactas */
+  .smat{display:inline-flex;align-items:stretch;gap:2px;margin:0.2rem 0;}
+  .smat-bk{width:6px;border:1.5px solid var(--navy);}
+  .smat-bk.left{border-right:none;border-radius:3px 0 0 3px;}
+  .smat-bk.right{border-left:none;border-radius:0 3px 3px 0;}
+  .smat-grid{display:grid;gap:1px 5px;padding:2px 4px;}
+  .smat-cell{font-family:var(--font-mono);font-size:0.76rem;text-align:center;padding:1px 3px;min-width:28px;}
+  .smat-cell.aug{border-left:1.5px solid var(--gmitblue);padding-left:7px;}
+  /* Pasos de la reducción */
+  .redsteps{margin-top:0.35rem;font-size:0.73rem;}
+  .redsteps summary{cursor:pointer;font-weight:700;color:var(--navy);padding:0.2rem 0;}
+  .step-card{border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.3rem 0.5rem;margin:0.25rem 0;background:var(--surface-alt);}
+  .step-head{display:flex;align-items:center;gap:0.35rem;font-family:var(--font-mono);font-size:0.72rem;font-weight:700;color:var(--text-secondary);margin-bottom:0.15rem;}
+  .snum{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--navy);color:#fff;font-size:0.62rem;flex-shrink:0;}
   .lab-footer{max-width:1400px;margin:0 auto;padding:0.5rem 1rem;text-align:center;font-size:0.68rem;color:var(--text-muted);}
   @media(max-width:600px){.main{padding:0.4rem;}.canvas-wrap{height:280px;}.controls{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
-<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">✖️</div><div><h1><span class="lab-badge">Cap 1</span>Visualizador Geométrico de Sistemas 2×2</h1><div class="lab-subtitle">Laboratorio Interactivo · Sistemas de Ecuaciones Lineales</div></div></div></header>
+<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">✖️</div><div><h1><span class="lab-badge">Cap 1</span>Visualizador Geométrico de Sistemas 2×2</h1><div class="lab-subtitle">Material interactivo · Sistemas de ecuaciones lineales</div></div></div></header>
 <div class="main">
   <div class="panel canvas-panel">
     <div class="eq-display" id="eqDisplay"></div>
@@ -92,13 +107,16 @@
     </div>
     <!-- Presets + Analysis -->
     <div class="panel">
-      <div class="panel-head">📚 Ejemplos</div>
+      <div class="panel-head">📚 Sistemas propuestos</div>
       <div class="panel-body">
         <div class="context-box">
-          Cada ecuación lineal en dos variables representa una <strong>recta</strong> en ℝ².
-          Un sistema 2×2 se interpreta como la intersección de dos rectas:
-          se cruzan (solución única), son paralelas (sin solución),
-          o coinciden (infinitas soluciones).
+          Cada ecuación lineal en dos variables representa una <strong>recta</strong> en ℝ²,
+          de modo que un sistema 2×2 se lee como la intersección de dos rectas: se cortan
+          (solución única), son paralelas distintas (sin solución) o coinciden (infinitas
+          soluciones). Mueva los coeficientes y compare esa lectura geométrica con la
+          clasificación algebraica que da el <strong>Teorema del rango</strong>: el panel de
+          análisis reduce la matriz aumentada con <strong>fracciones exactas</strong> y compara
+          Ran(A), Ran(A|B) y el número de incógnitas.
         </div>
         <div class="preset-scroll" id="presets"></div>
       </div>
@@ -110,43 +128,111 @@
     </div>
   </div>
 </div>
-<footer class="lab-footer">Álgebra Lineal con Abordaje Tecnológico · Laboratorio 1.4 · Visualizador Geométrico 2×2</footer>
+<footer class="lab-footer">
+  <strong>Álgebra Lineal: Teoría, ejemplos y materiales interactivos</strong><br>
+  Material 1.4 · Visualizador Geométrico de Sistemas 2×2<br>
+  <span style="opacity:0.8;">Capítulo 1: Sistemas de ecuaciones lineales</span>
+</footer>
 
 <script>
+// ============================================================
+//  Material 1.4 · Visualizador Geométrico de Sistemas 2×2
+//  Álgebra Lineal: Teoría, ejemplos y materiales interactivos
+//  Clasificación por el Teorema del rango, con fracciones exactas.
+// ============================================================
+
 let canvas,ctx,W,H,sc=45,ox,oy;
 
-// ---- FRACTION SUPPORT ----
-function parseFrac(str){if(str==null)return 0;str=String(str).trim().replace(/\s/g,'').replace(/−/g,'-');if(str===''||str==='-')return 0;const m=str.match(/^(-?\d+)\/(-?\d+)$/);if(m){const n=parseInt(m[1],10),d=parseInt(m[2],10);if(d===0)return NaN;return n/d;}const v=parseFloat(str);return isNaN(v)?NaN:v;}
+// Colores del lienzo. El contexto 2D no interpreta variables CSS,
+// de modo que deben escribirse como valores literales.
+const COL={
+  line1:'#2980B9', line2:'#E67E22',
+  point:'#1A6B1A', pointFill:'#228B22',
+  grid:'rgba(0,0,0,0.05)', axis:'rgba(0,0,0,0.22)', tick:'#555'
+};
+
+// ---- ARITMÉTICA EXACTA CON FRACCIONES ----
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a||1;}
+function fr(n,d){if(!d)d=1;if(!n)return{n:0,d:1};const g=gcd(Math.abs(n),Math.abs(d));n/=g;d/=g;if(d<0){n=-n;d=-d;}return{n,d};}
+function frN(x){
+  if(!isFinite(x))return fr(0,1);
+  if(Number.isInteger(x))return fr(x,1);
+  for(let d=1;d<=10000;d++){const n=Math.round(x*d);if(Math.abs(n/d-x)<1e-9)return fr(n,d);}
+  return fr(Math.round(x*10000),10000);
+}
+function fAdd(a,b){return fr(a.n*b.d+b.n*a.d,a.d*b.d);}
+function fSub(a,b){return fr(a.n*b.d-b.n*a.d,a.d*b.d);}
+function fMul(a,b){return fr(a.n*b.n,a.d*b.d);}
+function fDiv(a,b){return fr(a.n*b.d,a.d*b.n);}
+function fIsZ(a){return a.n===0;}
+function fStr(f){return f.d===1?''+f.n:f.n+'/'+f.d;}
+function fNum(f){return f.n/f.d;}
+function sub(n){const s='₀₁₂₃₄₅₆₇₈₉';return(''+n).split('').map(c=>s[parseInt(c)]||c).join('');}
+
+// ---- ENTRADA ----
+function parseFrac(str){
+  if(str==null)return 0;
+  str=String(str).trim().replace(/\s/g,'').replace(/−/g,'-');
+  if(str===''||str==='-')return 0;
+  const m=str.match(/^(-?\d+)\/(-?\d+)$/);
+  if(m){const n=parseInt(m[1],10),d=parseInt(m[2],10);if(d===0)return NaN;return n/d;}
+  const v=parseFloat(str);
+  return isNaN(v)?NaN:v;
+}
 function _gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a;}
-function fmtNum(val){if(val==null||isNaN(val))return'0';if(Number.isInteger(val))return String(val);for(let d=2;d<=12;d++){const n=val*d;if(Math.abs(n-Math.round(n))<1e-9){const num=Math.round(n),g=_gcd(Math.abs(num),d),rn=num/g,rd=d/g;if(rd===1)return String(rn);return`${rn}/${rd}`;}}return val.toFixed(2).replace(/0+$/,'').replace(/\.$/,'');}
-function fmtInput(val){if(val==null||isNaN(val))return'0';if(Number.isInteger(val))return String(val);for(let d=2;d<=12;d++){const n=val*d;if(Math.abs(n-Math.round(n))<1e-9){const num=Math.round(n),g=_gcd(Math.abs(num),d),rn=num/g,rd=d/g;if(rd===1)return String(rn);return`${rn}/${rd}`;}}return String(parseFloat(val.toFixed(4)));}
+function fmtNum(val){
+  if(val==null||isNaN(val))return'0';
+  if(Number.isInteger(val))return String(val);
+  for(let d=2;d<=12;d++){const n=val*d;if(Math.abs(n-Math.round(n))<1e-9){const num=Math.round(n),g=_gcd(Math.abs(num),d),rn=num/g,rd=d/g;if(rd===1)return String(rn);return`${rn}/${rd}`;}}
+  return val.toFixed(2).replace(/0+$/,'').replace(/\.$/,'');
+}
+const fmtInput=fmtNum;
 
 const SLIDER_IDS=['a1','b1','c1','a2','b2','c2'];
 const VAL_IDS=['va1','vb1','vc1','va2','vb2','vc2'];
 
+// ---- SISTEMAS PROPUESTOS (propios del material, sin citar el libro) ----
 const PRESETS=[
-  {name:'Libro §1.1: 3x+2y=1, x-y=2',a1:3,b1:2,c1:1,a2:1,b2:-1,c2:2,desc:'S={(1,-1)}'},
-  {name:'Libro §1.1: 3x+y=26, -x-3y=-14',a1:3,b1:1,c1:26,a2:-1,b2:-3,c2:-14,desc:'S={(8,2)}'},
-  {name:'Libro: 2x+3y=1, 4x+y=2',a1:2,b1:3,c1:1,a2:4,b2:1,c2:2,desc:'Solución única'},
-  {name:'Paralelas: x+y=1, x+y=3',a1:1,b1:1,c1:1,a2:1,b2:1,c2:3,desc:'Sin solución'},
-  {name:'Coincidentes: x+y=2, 2x+2y=4',a1:1,b1:1,c1:2,a2:2,b2:2,c2:4,desc:'Infinitas'},
-  {name:'Perpendiculares: x-y=0, x+y=2',a1:1,b1:-1,c1:0,a2:1,b2:1,c2:2,desc:'S={(1,1)}'},
-  {name:'Ejes: x=3, y=-1',a1:1,b1:0,c1:3,a2:0,b2:1,c2:-1,desc:'S={(3,-1)}'},
-  {name:'Casi paralelas: 2x+y=1, 2x+y.1=3',a1:2,b1:1,c1:1,a2:2,b2:1.1,c2:3,desc:'Intersección lejana'},
+  {name:'Secantes: 3x+2y=1, x−y=2',a1:3,b1:2,c1:1,a2:1,b2:-1,c2:2},
+  {name:'Secantes: 3x+y=26, −x−3y=−14',a1:3,b1:1,c1:26,a2:-1,b2:-3,c2:-14},
+  {name:'Perpendiculares: x−y=0, x+y=2',a1:1,b1:-1,c1:0,a2:1,b2:1,c2:2},
+  {name:'Paralelas: x+y=1, x+y=3',a1:1,b1:1,c1:1,a2:1,b2:1,c2:3},
+  {name:'Coincidentes: x+y=2, 2x+2y=4',a1:1,b1:1,c1:2,a2:2,b2:2,c2:4},
+  {name:'Rectas de los ejes: x=3, y=−1',a1:1,b1:0,c1:3,a2:0,b2:1,c2:-1},
+  {name:'Casi paralelas: 2x+y=1, 2x+11/10y=3',a1:2,b1:1,c1:1,a2:2,b2:1.1,c2:3},
+  {name:'Una ecuación trivial: 0=0, x+y=2',a1:0,b1:0,c1:0,a2:1,b2:1,c2:2},
+  {name:'Ecuación imposible: 0=5, x+y=2',a1:0,b1:0,c1:5,a2:1,b2:1,c2:2},
 ];
 
-window.addEventListener('DOMContentLoaded',()=>{canvas=document.getElementById('cv');ctx=canvas.getContext('2d');buildPresets();resize();upd();initEvents();});
+window.addEventListener('DOMContentLoaded',()=>{
+  canvas=document.getElementById('cv');ctx=canvas.getContext('2d');
+  buildPresets();resize();upd();initEvents();
+});
 window.addEventListener('resize',()=>{if(canvas){resize();draw();}});
 
-function resize(){const w=document.getElementById('canvasWrap'),r=w.getBoundingClientRect();W=r.width;H=r.height;canvas.width=W*devicePixelRatio;canvas.height=H*devicePixelRatio;canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);ox=W/2;oy=H/2;}
+function resize(){
+  const w=document.getElementById('canvasWrap'),r=w.getBoundingClientRect();
+  W=r.width;H=r.height;
+  canvas.width=W*devicePixelRatio;canvas.height=H*devicePixelRatio;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  ox=W/2;oy=H/2;
+}
 
-function buildPresets(){const g=document.getElementById('presets');PRESETS.forEach((p,i)=>{const b=document.createElement('button');b.className='preset-pill';b.textContent=p.name;b.onclick=()=>loadPreset(i);g.appendChild(b);});}
-
-function loadPreset(i){const p=PRESETS[i];
+function buildPresets(){
+  const g=document.getElementById('presets');
+  PRESETS.forEach((p,i)=>{
+    const b=document.createElement('button');
+    b.className='preset-pill';b.textContent=p.name;b.onclick=()=>loadPreset(i);
+    g.appendChild(b);
+  });
+}
+function loadPreset(i){
+  const p=PRESETS[i];
   [['a1',p.a1],['b1',p.b1],['c1',p.c1],['a2',p.a2],['b2',p.b2],['c2',p.c2]].forEach(([id,v])=>{
     document.getElementById(id).value=v;
-    document.getElementById('v'+id).value=fmtInput(v);
-    document.getElementById('v'+id).classList.remove('invalid');
+    const el=document.getElementById('v'+id);
+    el.value=fmtInput(v);el.classList.remove('invalid');
   });
   document.querySelectorAll('.preset-pill').forEach((b,j)=>b.classList.toggle('active',j===i));
   draw();
@@ -154,23 +240,19 @@ function loadPreset(i){const p=PRESETS[i];
 
 function gv(id){
   const idx=SLIDER_IDS.indexOf(id);
-  const valEl=document.getElementById(VAL_IDS[idx]);
-  const v=parseFrac(valEl.value);
+  const v=parseFrac(document.getElementById(VAL_IDS[idx]).value);
   return isNaN(v)?0:v;
 }
-function r2(x){return fmtNum(x);}
 function toS(x,y){return[ox+x*sc,oy-y*sc];}
 
 function upd(){
   SLIDER_IDS.forEach((id,i)=>{
     const val=parseFloat(document.getElementById(id).value);
     const el=document.getElementById(VAL_IDS[i]);
-    el.value=fmtInput(val);
-    el.classList.remove('invalid');
+    el.value=fmtInput(val);el.classList.remove('invalid');
   });
   draw();
 }
-
 function onSvInput(sliderId,valId){
   const el=document.getElementById(valId);
   const v=parseFrac(el.value);
@@ -183,45 +265,95 @@ function onSvInput(sliderId,valId){
   draw();
 }
 
-// ---- SOLVE ----
+// ---- REDUCCIÓN DE GAUSS-JORDAN CON FRACCIONES EXACTAS ----
+// Se reduce la matriz aumentada completa, de modo que la última columna
+// también puede contener un pivote: eso es lo que distingue Ran(A) de Ran(A|B).
+function gaussReduce(rows){
+  const m=rows.length,n=rows[0].length;
+  const M=rows.map(r=>r.map(f=>({...f})));
+  const steps=[];let pivotRow=0;const pivotCols=[];
+  for(let col=0;col<n&&pivotRow<m;col++){
+    let sel=-1;
+    for(let i=pivotRow;i<m;i++){if(!fIsZ(M[i][col])){sel=i;break;}}
+    if(sel===-1)continue;
+    if(sel!==pivotRow){
+      [M[pivotRow],M[sel]]=[M[sel],M[pivotRow]];
+      steps.push({op:`f${sub(pivotRow+1)} ↔ f${sub(sel+1)}`,mat:M.map(r=>r.map(f=>({...f})))});
+    }
+    const pv=M[pivotRow][col];
+    if(pv.n!==pv.d){
+      const inv=fDiv(fr(1,1),pv);
+      for(let j=0;j<n;j++)M[pivotRow][j]=fMul(M[pivotRow][j],inv);
+      steps.push({op:`f${sub(pivotRow+1)} → ${fStr(inv)}·f${sub(pivotRow+1)}`,mat:M.map(r=>r.map(f=>({...f})))});
+    }
+    for(let i=0;i<m;i++){
+      if(i===pivotRow||fIsZ(M[i][col]))continue;
+      const factor=fMul(fr(-1,1),M[i][col]);
+      for(let j=0;j<n;j++)M[i][j]=fAdd(M[i][j],fMul(factor,M[pivotRow][j]));
+      steps.push({op:`f${sub(i+1)} → ${fStr(factor)}·f${sub(pivotRow+1)} + f${sub(i+1)}`,mat:M.map(r=>r.map(f=>({...f})))});
+    }
+    pivotCols.push(col);pivotRow++;
+  }
+  return{steps,rref:M,rank:pivotRow,pivotCols};
+}
+
+// ---- CLASIFICACIÓN POR EL TEOREMA DEL RANGO ----
 function solve(){
   const a1=gv('a1'),b1=gv('b1'),c1=gv('c1');
   const a2=gv('a2'),b2=gv('b2'),c2=gv('c2');
-  const det=a1*b2-a2*b1;
-  // Check if proportional: a1/a2 = b1/b2
-  const parallel=Math.abs(det)<1e-10;
-  let coincident=false;
-  if(parallel){
-    // Check if c1/c2 matches too
-    if(Math.abs(a2)>0.01) coincident=Math.abs(a1*c2-a2*c1)<0.01&&Math.abs(b1*c2-b2*c1)<0.01;
-    else if(Math.abs(b2)>0.01) coincident=Math.abs(b1*c2-b2*c1)<0.01&&Math.abs(a1*c2-a2*c1)<0.01;
-    else coincident=(Math.abs(c1)<0.01&&Math.abs(c2)<0.01);
+  const aug=[[frN(a1),frN(b1),frN(c1)],[frN(a2),frN(b2),frN(c2)]];
+  const res=gaussReduce(aug);
+  const n=2;
+  const rAB=res.rank;
+  const rA=res.pivotCols.filter(c=>c<n).length;
+
+  // ¿Cada ecuación representa realmente una recta?
+  const esRecta=[!(a1===0&&b1===0), !(a2===0&&b2===0)];
+
+  let tipo,x=null,y=null,param=null;
+  if(rA<rAB){
+    tipo='none';
+  }else if(rA===n){
+    tipo='unique';
+    const sol=[fr(0,1),fr(0,1)];
+    res.pivotCols.forEach((c,i)=>{if(c<n)sol[c]=res.rref[i][n];});
+    x=sol[0];y=sol[1];
+  }else{
+    tipo='infinite';
+    // rA = rAB < 2 : el conjunto solución depende de 2 − rA parámetros
+    param={nParams:n-rA};
+    if(rA===1){
+      // una sola condición: el conjunto solución es una recta
+      const i=0,c=res.pivotCols[0];
+      const libre=(c===0)?1:0;
+      // x_c = rref[0][2] − rref[0][libre]·t   ,   x_libre = t
+      param.pivotVar=c;param.freeVar=libre;
+      param.const=res.rref[i][n];
+      param.coef=fMul(fr(-1,1),res.rref[i][libre]);
+    }
   }
-  let x=null,y=null;
-  if(!parallel){x=(c1*b2-c2*b1)/det;y=(a1*c2-a2*c1)/det;}
-  let type,cls;
-  if(parallel&&coincident){type='Infinitas soluciones (rectas coincidentes)';cls='infinite';}
-  else if(parallel){type='Sin solución (rectas paralelas)';cls='none';}
-  else{type='Solución única (rectas secantes)';cls='unique';}
-  return{a1,b1,c1,a2,b2,c2,det,x,y,type,cls,parallel,coincident};
+  return{a1,b1,c1,a2,b2,c2,aug,res,rA,rAB,n,tipo,x,y,param,esRecta};
 }
 
-// ---- DRAW ----
+// ---- DIBUJO ----
 function draw(){
   ctx.clearRect(0,0,W,H);
   const s=solve();
 
-  // Adaptive scale
-  if(s.x!==null){
-    const maxC=Math.max(Math.abs(s.x),Math.abs(s.y),2);
+  if(s.tipo==='unique'){
+    const xv=fNum(s.x),yv=fNum(s.y);
+    const maxC=Math.max(Math.abs(xv),Math.abs(yv),2);
     const target=Math.min(W,H)/(maxC*2+4);
     sc+=(Math.max(15,Math.min(80,target))-sc)*0.15;
   }
 
   drawGrid();
-  drawLine(s.a1,s.b1,s.c1,'var(--line1)',2.5,'L₁');
-  drawLine(s.a2,s.b2,s.c2,'var(--line2)',2.5,'L₂');
-  if(s.x!==null) drawPoint(s.x,s.y);
+  if(s.esRecta[0]) drawLine(s.a1,s.b1,s.c1,COL.line1,2.5,'L₁',false);
+  // Si las dos rectas coinciden, la segunda se traza punteada para que ambas se vean
+  const coinciden=(s.tipo==='infinite'&&s.rA===1&&s.esRecta[0]&&s.esRecta[1]);
+  if(s.esRecta[1]) drawLine(s.a2,s.b2,s.c2,COL.line2,2.5,'L₂',coinciden);
+  if(s.tipo==='unique') drawPoint(fNum(s.x),fNum(s.y));
+
   updateEqDisplay(s);
   updateClassBadge(s);
   updateInfo(s);
@@ -229,46 +361,40 @@ function draw(){
 }
 
 function drawGrid(){
-  ctx.save();ctx.strokeStyle='rgba(0,0,0,0.04)';ctx.lineWidth=1;
+  ctx.save();
+  ctx.strokeStyle=COL.grid;ctx.lineWidth=1;
   const N=Math.ceil(Math.max(W,H)/sc/2)+2;
   for(let i=-N;i<=N;i++){const x=ox+i*sc;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
   for(let j=-N;j<=N;j++){const y=oy+j*sc;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
-  ctx.strokeStyle='rgba(0,0,0,0.18)';
+  ctx.strokeStyle=COL.axis;
   ctx.beginPath();ctx.moveTo(0,oy);ctx.lineTo(W,oy);ctx.stroke();
   ctx.beginPath();ctx.moveTo(ox,0);ctx.lineTo(ox,H);ctx.stroke();
-  ctx.fillStyle='rgba(0,0,0,0.22)';ctx.font='500 9px "JetBrains Mono",monospace';ctx.textAlign='center';
+  ctx.fillStyle=COL.tick;ctx.font="500 10px 'Fira Code','DejaVu Sans Mono',monospace";ctx.textAlign='center';
   for(let i=-N;i<=N;i++){if(!i)continue;ctx.fillText(i,ox+i*sc,oy+12);}
-  ctx.textAlign='right';for(let j=-N;j<=N;j++){if(!j)continue;ctx.fillText(j,ox-4,oy-j*sc+4);}
+  ctx.textAlign='right';
+  for(let j=-N;j<=N;j++){if(!j)continue;ctx.fillText(j,ox-4,oy-j*sc+4);}
   ctx.restore();
 }
 
-function drawLine(a,b,c,color,width,label){
-  // ax + by = c → y = (c - ax)/b or x = (c - by)/a
-  ctx.save();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';
+function drawLine(a,b,c,color,width,label,dashed){
+  ctx.save();
+  ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';
+  if(dashed)ctx.setLineDash([9,6]);
   const pts=[];
-  const xMin=(0-ox)/sc-1, xMax=(W-ox)/sc+1;
-  const yMin=(oy-H)/sc-1, yMax=(oy)/sc+1;
-  if(Math.abs(b)>0.001){
-    // Sweep x
-    for(let px=0;px<=W;px+=2){
-      const x=(px-ox)/sc;
-      const y=(c-a*x)/b;
-      pts.push(toS(x,y));
-    }
-  } else if(Math.abs(a)>0.001){
-    // Vertical line x = c/a
-    const x=c/a;
-    pts.push(toS(x,-50));pts.push(toS(x,50));
+  if(Math.abs(b)>1e-12){
+    for(let px=0;px<=W;px+=2){const x=(px-ox)/sc;pts.push(toS(x,(c-a*x)/b));}
+  }else if(Math.abs(a)>1e-12){
+    const x=c/a;pts.push(toS(x,-1000));pts.push(toS(x,1000));
   }
   if(pts.length>=2){
     ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);
     for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);
     ctx.stroke();
   }
-  // Label
+  ctx.setLineDash([]);
   if(pts.length>10){
     const lp=pts[Math.floor(pts.length*0.15)];
-    if(lp){ctx.fillStyle=color;ctx.font='700 13px "Source Sans 3",sans-serif';ctx.textAlign='left';ctx.fillText(label,lp[0]+6,lp[1]-8);}
+    if(lp){ctx.fillStyle=color;ctx.font="700 13px 'Segoe UI',Arial,sans-serif";ctx.textAlign='left';ctx.fillText(label,lp[0]+6,lp[1]-8);}
   }
   ctx.restore();
 }
@@ -276,89 +402,157 @@ function drawLine(a,b,c,color,width,label){
 function drawPoint(x,y){
   const[sx,sy]=toS(x,y);
   ctx.save();
-  // Glow
-  ctx.fillStyle='rgba(34,139,34,0.15)';ctx.beginPath();ctx.arc(sx,sy,16,0,Math.PI*2);ctx.fill();
-  // Point
-  ctx.fillStyle='var(--point)';ctx.strokeStyle='#fff';ctx.lineWidth=2;
+  ctx.fillStyle='rgba(34,139,34,0.18)';ctx.beginPath();ctx.arc(sx,sy,16,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=COL.pointFill;ctx.strokeStyle='#fff';ctx.lineWidth=2;
   ctx.beginPath();ctx.arc(sx,sy,6,0,Math.PI*2);ctx.fill();ctx.stroke();
-  // Label
-  ctx.fillStyle='var(--point)';ctx.font='700 12px "Source Sans 3",sans-serif';ctx.textAlign='left';
-  ctx.fillText(`(${r2(x)}, ${r2(y)})`,sx+12,sy-10);
+  ctx.fillStyle=COL.point;ctx.font="700 12px 'Segoe UI',Arial,sans-serif";ctx.textAlign='left';
+  ctx.fillText(`(${fmtNum(x)}, ${fmtNum(y)})`,sx+12,sy-10);
   ctx.restore();
 }
 
-// ---- UI UPDATES ----
+// ---- PANELES ----
 function fmtCoef(v,varName,first){
-  if(Math.abs(v)<0.01)return'';
+  if(Math.abs(v)<1e-12)return'';
   const sign=v>0?(first?'':' + '):' - ';
   const av=Math.abs(v);
-  const coef=Math.abs(av-1)<0.01?'':r2(av);
+  const coef=Math.abs(av-1)<1e-12?'':fmtNum(av);
   return sign+coef+varName;
 }
-
+function eqTexto(a,b,c){
+  let eq=fmtCoef(a,'x',true);
+  eq+=fmtCoef(b,'y',eq==='');
+  if(!eq)eq='0';
+  return eq+' = '+fmtNum(c);
+}
 function updateEqDisplay(s){
-  const fmt=(a,b,c,color)=>{
-    let eq=fmtCoef(a,'x',true)+fmtCoef(b,'y',!fmtCoef(a,'x',true));
-    if(!eq)eq='0';
-    return`<div class="eq-line"><span class="eq-dot" style="background:${color};"></span><span>${eq} = ${r2(c)}</span></div>`;
-  };
-  document.getElementById('eqDisplay').innerHTML=fmt(s.a1,s.b1,s.c1,'var(--line1)')+fmt(s.a2,s.b2,s.c2,'var(--line2)');
+  const fmt=(a,b,c,color)=>`<div class="eq-line"><span class="eq-dot" style="background:${color};"></span><span>${eqTexto(a,b,c)}</span></div>`;
+  document.getElementById('eqDisplay').innerHTML=
+    fmt(s.a1,s.b1,s.c1,COL.line1)+fmt(s.a2,s.b2,s.c2,COL.line2);
 }
-
 function updateClassBadge(s){
-  document.getElementById('classBadge').innerHTML=`<span class="class-badge ${s.cls}">${s.cls==='unique'?'Solución única':s.cls==='infinite'?'∞ Infinitas':'Sin solución'}</span>`;
+  const txt=s.tipo==='unique'?'Solución única':s.tipo==='infinite'?'∞ Infinitas soluciones':'Sin solución (S = ∅)';
+  document.getElementById('classBadge').innerHTML=`<span class="class-badge ${s.tipo}">${txt}</span>`;
 }
-
+function pendiente(a,b){
+  if(Math.abs(b)>1e-12)return fmtNum(-a/b);
+  if(Math.abs(a)>1e-12)return'indefinida';
+  return'—';
+}
 function updateInfo(s){
   document.getElementById('infoBar').innerHTML=`
-    <div class="info-item"><span class="il">det(A)=</span><span class="iv">${r2(s.det)}</span></div>
-    <div class="info-item"><span class="il">Tipo:</span><span class="iv">${s.cls==='unique'?'Secantes':s.cls==='infinite'?'Coincidentes':'Paralelas'}</span></div>
-    ${s.x!==null?`<div class="info-item"><span class="il">x=</span><span class="iv" style="color:var(--point)">${r2(s.x)}</span></div>
-    <div class="info-item"><span class="il">y=</span><span class="iv" style="color:var(--point)">${r2(s.y)}</span></div>`:''}
-    <div class="info-item"><span class="il">m₁=</span><span class="iv" style="color:var(--line1)">${Math.abs(s.b1)>0.01?r2(-s.a1/s.b1):'∞'}</span></div>
-    <div class="info-item"><span class="il">m₂=</span><span class="iv" style="color:var(--line2)">${Math.abs(s.b2)>0.01?r2(-s.a2/s.b2):'∞'}</span></div>
+    <div class="info-item"><span class="il">Ran(A)=</span><span class="iv">${s.rA}</span></div>
+    <div class="info-item"><span class="il">Ran(A|B)=</span><span class="iv">${s.rAB}</span></div>
+    <div class="info-item"><span class="il">n=</span><span class="iv">2</span></div>
+    ${s.tipo==='unique'?`<div class="info-item"><span class="il">x=</span><span class="iv" style="color:${COL.point}">${fStr(s.x)}</span></div>
+    <div class="info-item"><span class="il">y=</span><span class="iv" style="color:${COL.point}">${fStr(s.y)}</span></div>`:''}
+    <div class="info-item"><span class="il">m₁=</span><span class="iv" style="color:${COL.line1}">${pendiente(s.a1,s.b1)}</span></div>
+    <div class="info-item"><span class="il">m₂=</span><span class="iv" style="color:${COL.line2}">${pendiente(s.a2,s.b2)}</span></div>
   `;
 }
 
-function updateAnalysis(s){
-  const m1=Math.abs(s.b1)>0.01?r2(-s.a1/s.b1):'indefinida';
-  const m2=Math.abs(s.b2)>0.01?r2(-s.a2/s.b2):'indefinida';
-  let html=`
-    <div class="formula-card"><div class="flabel">Matriz de coeficientes A</div>
-      <div>A = [${r2(s.a1)}, ${r2(s.b1)}; ${r2(s.a2)}, ${r2(s.b2)}]</div></div>
-    <div class="formula-card"><div class="flabel">Determinante</div>
-      <div>det(A) = (${r2(s.a1)})(${r2(s.b2)}) - (${r2(s.b1)})(${r2(s.a2)})</div>
-      <div style="padding-left:2.5rem;">= ${r2(s.a1*s.b2)} - ${r2(s.b1*s.a2)} = <strong>${r2(s.det)}</strong></div></div>
-    <div class="formula-card"><div class="flabel">Pendientes</div>
-      <div style="color:var(--line1);">L₁: m₁ = -a₁/b₁ = ${m1}</div>
-      <div style="color:var(--line2);">L₂: m₂ = -a₂/b₂ = ${m2}</div>
-      <div style="color:var(--text-muted);font-size:0.7rem;margin-top:0.15rem;">`;
-  if(m1===m2||m1==='indefinida'&&m2==='indefinida') html+='m₁ = m₂ → rectas paralelas o coincidentes';
-  else html+='m₁ ≠ m₂ → las rectas se cruzan';
-  html+=`</div></div>`;
-
-  if(s.cls==='unique'){
-    html+=`<div class="formula-card"><div class="flabel">Solución (Regla de Cramer)</div>
-      <div>x = (c₁b₂ - c₂b₁) / det(A) = (${r2(s.c1*s.b2)} - ${r2(s.c2*s.b1)}) / ${r2(s.det)} = <strong style="color:var(--point)">${r2(s.x)}</strong></div>
-      <div>y = (a₁c₂ - a₂c₁) / det(A) = (${r2(s.a1*s.c2)} - ${r2(s.a2*s.c1)}) / ${r2(s.det)} = <strong style="color:var(--point)">${r2(s.y)}</strong></div>
-      <div style="margin-top:0.2rem;"><strong style="color:var(--point);">S = {(${r2(s.x)}, ${r2(s.y)})}</strong></div></div>`;
-  } else if(s.cls==='none'){
-    html+=`<div class="formula-card" style="border-color:var(--brick);"><div class="flabel" style="color:var(--brick);">Sin solución</div>
-      <div>det(A) = 0 y las rectas tienen distinta ordenada al origen.</div>
-      <div>Las rectas son paralelas y nunca se cruzan.</div>
-      <div><strong style="color:var(--brick);">S = ∅</strong></div></div>`;
-  } else {
-    html+=`<div class="formula-card" style="border-color:var(--gmitblue);"><div class="flabel" style="color:var(--gmitblue);">Infinitas soluciones</div>
-      <div>det(A) = 0 y las ecuaciones son proporcionales.</div>
-      <div>Las rectas coinciden: todo punto de una es punto de la otra.</div>
-      <div><strong style="color:var(--gmitblue);">S = {(x,y) : ${r2(s.a1)}x + ${r2(s.b1)}y = ${r2(s.c1)}}</strong></div></div>`;
+function renderMat(M,augCol){
+  const m=M.length,n=M[0].length;
+  let h='<div class="smat"><div class="smat-bk left"></div>';
+  h+=`<div class="smat-grid" style="grid-template-columns:repeat(${n},1fr);">`;
+  for(let i=0;i<m;i++)for(let j=0;j<n;j++){
+    const cls=['smat-cell'];if(j===augCol)cls.push('aug');
+    h+=`<span class="${cls.join(' ')}">${fStr(M[i][j])}</span>`;
   }
-  document.getElementById('analysisBox').innerHTML=html;
+  h+='</div><div class="smat-bk right"></div></div>';
+  return h;
 }
 
-// ---- MOUSE ----
+function lecturaGeometrica(s){
+  const dosRectas=s.esRecta[0]&&s.esRecta[1];
+  const cuantasRectas=(s.esRecta[0]?1:0)+(s.esRecta[1]?1:0);
+  if(s.tipo==='unique')
+    return'Las dos rectas se cortan en un único punto.';
+  if(s.tipo==='infinite'){
+    if(s.rA===0)
+      return'Ninguna de las dos ecuaciones impone condición alguna: el conjunto solución es todo el plano.';
+    if(dosRectas)
+      return'Las dos ecuaciones representan la misma recta: los puntos de una son exactamente los de la otra.';
+    if(cuantasRectas===1)
+      return'Una de las ecuaciones se reduce a 0 = 0 y no impone condición: el conjunto solución es la recta que define la otra ecuación.';
+    return'El conjunto solución es la recta determinada por la única condición no trivial.';
+  }
+  // sin solución
+  if(dosRectas)
+    return'Las rectas tienen la misma dirección pero distinta posición: son paralelas y no se cortan.';
+  return'Alguna ecuación se reduce a 0 = c con c ≠ 0, que ningún punto del plano satisface.';
+}
+
+function conjuntoSolucion(s){
+  if(s.tipo==='unique')
+    return`S = {(${fStr(s.x)}, ${fStr(s.y)})}`;
+  if(s.tipo==='none')
+    return'S = ∅';
+  if(s.rA===0)
+    return'S = ℝ² &nbsp;(todo el plano)';
+  const p=s.param;
+  const nombres=['x','y'];
+  const val=[null,null];
+  val[p.freeVar]='t';
+  const coefStr=fIsZ(p.coef)?'':(()=>{
+    const neg=p.coef.n<0,abs=fr(Math.abs(p.coef.n),p.coef.d);
+    const c=(abs.n===1&&abs.d===1)?'':fStr(abs);
+    return (neg?' - ':' + ')+(c?c+'·t':'t');
+  })();
+  const cte=fIsZ(p.const)?(coefStr?coefStr.replace(/^ \+ /,'').replace(/^ - /,'-'):'0'):fStr(p.const)+coefStr;
+  val[p.pivotVar]=cte;
+  return`S = {(${val[0]}, ${val[1]}) : t ∈ ℝ}`;
+}
+
+function updateAnalysis(s){
+  const criterio=
+    s.tipo==='none' ? `Ran(A) = ${s.rA} &lt; Ran(A|B) = ${s.rAB}` :
+    s.tipo==='unique' ? `Ran(A) = Ran(A|B) = n = 2` :
+    `Ran(A) = Ran(A|B) = ${s.rA} &lt; n = 2`;
+
+  const avisos=[];
+  if(!s.esRecta[0])avisos.push('La ecuación 1 tiene sus dos coeficientes iguales a 0, de modo que no representa una recta.');
+  if(!s.esRecta[1])avisos.push('La ecuación 2 tiene sus dos coeficientes iguales a 0, de modo que no representa una recta.');
+
+  let h='';
+  h+=`<div class="formula-card"><div class="flabel">Matriz aumentada (A|B)</div>${renderMat(s.aug,2)}</div>`;
+  h+=`<div class="formula-card"><div class="flabel">Forma escalonada reducida</div>${renderMat(s.res.rref,2)}</div>`;
+  h+=`<div class="formula-card"><div class="flabel">Teorema del rango</div>
+        <div>Ran(A) = ${s.rA} &nbsp;·&nbsp; Ran(A|B) = ${s.rAB} &nbsp;·&nbsp; n = 2</div>
+        <div>${criterio}</div>
+        ${s.tipo==='infinite'&&s.rA>0?`<div>n − Ran(A) = ${s.n-s.rA} parámetro${s.n-s.rA===1?'':'s'}</div>`:''}
+      </div>`;
+  h+=`<div class="formula-card" style="border-color:${s.tipo==='unique'?'#228B22':s.tipo==='infinite'?'#5A8AA8':'#B22222'};">
+        <div class="flabel">Conjunto solución</div>
+        <div style="font-weight:700;color:var(--navy);">${conjuntoSolucion(s)}</div>
+      </div>`;
+  h+=`<div class="formula-card" style="font-family:var(--font-body);line-height:1.5;">
+        <div class="flabel">Lectura geométrica</div>
+        <div>${lecturaGeometrica(s)}</div>
+      </div>`;
+  if(avisos.length){
+    h+=`<div class="formula-card" style="font-family:var(--font-body);line-height:1.5;border-color:#B22222;">
+          <div class="flabel" style="color:#B22222;">Atención</div>
+          <div>${avisos.join(' ')}</div>
+        </div>`;
+  }
+  h+=`<details class="redsteps"><summary>Ver la reducción completa (${s.res.steps.length} operacion${s.res.steps.length===1?'':'es'})</summary>`;
+  h+=`<div class="step-card"><div class="step-head"><span class="snum">0</span>Matriz aumentada (A|B)</div>${renderMat(s.aug,2)}</div>`;
+  s.res.steps.forEach((st,i)=>{
+    h+=`<div class="step-card"><div class="step-head"><span class="snum">${i+1}</span>${st.op}</div>${renderMat(st.mat,2)}</div>`;
+  });
+  if(s.res.steps.length===0)h+=`<div style="font-size:0.72rem;color:var(--text-secondary);padding:0.3rem;">La matriz aumentada ya está en forma escalonada reducida.</div>`;
+  h+=`</details>`;
+  document.getElementById('analysisBox').innerHTML=h;
+}
+
+// ---- PUNTERO ----
 function initEvents(){
-  canvas.addEventListener('mousemove',e=>{const r=canvas.getBoundingClientRect();const wx=(e.clientX-r.left-ox)/sc,wy=(oy-(e.clientY-r.top))/sc;document.getElementById('coordDisp').textContent=`(${wx.toFixed(1)}, ${wy.toFixed(1)})`;});
+  canvas.addEventListener('mousemove',e=>{
+    const r=canvas.getBoundingClientRect();
+    const wx=(e.clientX-r.left-ox)/sc,wy=(oy-(e.clientY-r.top))/sc;
+    document.getElementById('coordDisp').textContent=`(${wx.toFixed(1)}, ${wy.toFixed(1)})`;
+  });
+  canvas.addEventListener('mouseleave',()=>{document.getElementById('coordDisp').textContent='';});
 }
 </script>
 </body>
