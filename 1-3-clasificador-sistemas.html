@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clasificador de Sistemas — Álgebra Lineal</title>
+<title>Material 1.3 — Clasificador de Sistemas de Ecuaciones | Álgebra Lineal: Teoría, ejemplos y materiales interactivos</title>
 <style>
-  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#888;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono','Fira Code',monospace;}
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  :root{--brick:#B22222;--navy:#000080;--forest:#228B22;--gmitblue:#5A8AA8;--gmitblue-pale:rgba(90,138,168,0.12);--bg:#F4F1EC;--surface:#FFFFFF;--surface-alt:#F9F7F4;--text:#1E1E1E;--text-secondary:#555;--text-muted:#6B6B6B;--border:#D6D0C6;--shadow:0 2px 16px rgba(0,0,0,0.07);--radius:10px;--radius-sm:6px;--transition:0.25s cubic-bezier(.4,0,.2,1);--font-display:Georgia,'Times New Roman','Liberation Serif',serif;--font-body:'Segoe UI',Roboto,'Helvetica Neue','DejaVu Sans',Arial,sans-serif;--font-mono:'Fira Code','DejaVu Sans Mono',Consolas,'Courier New',monospace;}
   *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  /* Foco visible para navegación por teclado */
+  a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--navy);outline-offset:2px;}
   body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;}
   .lab-header{background:linear-gradient(135deg,var(--navy) 0%,var(--gmitblue) 100%);color:#fff;padding:0.7rem 1.5rem;position:relative;overflow:hidden;}
   .lab-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 50%,rgba(255,255,255,0.08) 0%,transparent 50%);pointer-events:none;}
@@ -64,7 +65,8 @@
   .smat-grid{display:inline-grid;gap:1px 5px;padding:3px 2px;}
   .smat-cell{font-family:var(--font-mono);font-size:0.78rem;text-align:center;padding:2px 3px;min-width:30px;border-radius:2px;}
   .smat-cell.aug{border-left:1.5px solid var(--gmitblue);padding-left:8px;}
-  .smat-cell.pivot{background:#FF8C00;color:#fff;font-weight:700;border-radius:3px;}
+  /* El pivote se marca con color y además con un borde, para no depender solo del color */
+  .smat-cell.pivot{background:#FF8C00;color:#1E1E1E;font-weight:800;border-radius:3px;box-shadow:inset 0 0 0 2px #7A3B00;}
   .btn{display:inline-flex;align-items:center;gap:0.3rem;padding:0.4rem 0.75rem;border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.78rem;font-weight:600;cursor:pointer;transition:var(--transition);}
   .btn-primary{background:var(--forest);color:#fff;}
   .btn-secondary{background:var(--gmitblue-pale);color:var(--gmitblue);border:1px solid rgba(90,138,168,0.3);}
@@ -80,12 +82,12 @@
 </style>
 </head>
 <body>
-<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">🧮</div><div><h1><span class="lab-badge">Cap 1</span>Clasificador de Sistemas de Ecuaciones</h1><div class="lab-subtitle">Quiz Interactivo · Sistemas de Ecuaciones Lineales</div></div></div></header>
+<header class="lab-header"><div class="lab-header-inner"><div class="lab-icon">🧮</div><div><h1><span class="lab-badge">Cap 1</span>Clasificador de Sistemas de Ecuaciones</h1><div class="lab-subtitle">Material interactivo · Sistemas de ecuaciones lineales</div></div></div></header>
 <div class="main">
   <div class="panel">
     <div class="panel-head">🎯 Clasifica cada sistema<span style="margin-left:auto;font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);" id="roundTag"></span></div>
     <div class="panel-body">
-      <div class="context-box">Para cada sistema, decide si tiene <strong>solución única</strong>, <strong>infinitas soluciones</strong> o si es <strong>inconsistente</strong> (sin solución). La retroalimentación aplica el <strong>Teorema del Rango</strong> del libro: si R(A) = R(A|B) = n hay solución única; si R(A) = R(A|B) &lt; n hay infinitas soluciones con n − R(A) parámetros; si R(A) &lt; R(A|B) el sistema es inconsistente y S = ∅. Incluye dos ejemplos resueltos del libro. 10 preguntas por ronda, dificultad progresiva.</div>
+      <div class="context-box">Para cada sistema, decida si tiene <strong>solución única</strong>, <strong>infinitas soluciones</strong> o si es <strong>inconsistente</strong> (sin solución). La retroalimentación aplica el <strong>Teorema del rango</strong>: si Ran(A) = Ran(A|B) = n hay solución única; si Ran(A) = Ran(A|B) &lt; n hay infinitas soluciones que dependen de n − Ran(A) parámetros; si Ran(A) &lt; Ran(A|B) el sistema es inconsistente y S = ∅. Cada ronda consta de 10 preguntas de dificultad progresiva.</div>
       <div class="hud">
         <span class="hud-chip" id="qChip">Pregunta 1/10</span>
         <span class="hud-chip good" id="scoreChip">Aciertos: 0</span>
@@ -96,7 +98,11 @@
     </div>
   </div>
 </div>
-<footer class="lab-footer">Álgebra Lineal con Abordaje Tecnológico · Quiz 1.3 · Clasificación de Sistemas de Ecuaciones Lineales</footer>
+<footer class="lab-footer">
+  <strong>Álgebra Lineal: Teoría, ejemplos y materiales interactivos</strong><br>
+  Material 1.3 · Clasificador de Sistemas de Ecuaciones<br>
+  <span style="opacity:0.8;">Capítulo 1: Sistemas de ecuaciones lineales</span>
+</footer>
 
 <script>
 // ---- FRACTION ARITHMETIC ----
@@ -116,12 +122,14 @@ function gaussReduce(rows){
   const M=rows.map(r=>r.map(v=>frN(v)));
   const steps=[];let pivotRow=0;const pivotCols=[];
   for(let col=0;col<n&&pivotRow<m;col++){
-    let maxIdx=-1,maxVal=0;
-    for(let i=pivotRow;i<m;i++){const v=Math.abs(M[i][col].n/M[i][col].d);if(v>maxVal){maxVal=v;maxIdx=i;}}
-    if(maxVal<1e-12)continue;
-    if(maxIdx!==pivotRow){
-      [M[pivotRow],M[maxIdx]]=[M[maxIdx],M[pivotRow]];
-      steps.push({op:`f${sub(pivotRow+1)} ↔ f${sub(maxIdx+1)}`,type:'swap',mat:M.map(r=>r.map(f=>({...f}))),piv:[pivotRow,col]});
+    // Se toma la PRIMERA fila con entrada no nula y solo se intercambia si hace falta,
+    // tal como se procede en el capítulo (sin pivoteo parcial: la aritmética es exacta).
+    let sel=-1;
+    for(let i=pivotRow;i<m;i++){if(!fIsZ(M[i][col])){sel=i;break;}}
+    if(sel===-1)continue;
+    if(sel!==pivotRow){
+      [M[pivotRow],M[sel]]=[M[sel],M[pivotRow]];
+      steps.push({op:`f${sub(pivotRow+1)} ↔ f${sub(sel+1)}`,type:'swap',mat:M.map(r=>r.map(f=>({...f}))),piv:[pivotRow,col]});
     }
     const pv=M[pivotRow][col];
     if(pv.n!==pv.d){
@@ -139,6 +147,52 @@ function gaussReduce(rows){
     pivotRow++;
   }
   return{steps,rref:M,rank:pivotRow,pivotCols};
+}
+
+// ---- EXPRESIONES AFINES  c + Σ pᵢ·(parámetro i) ----
+function fSub2(a,b){return fr(a.n*b.d-b.n*a.d,a.d*b.d);}
+function expConst(f,k){return{c:{...f},p:Array.from({length:k},()=>fr(0,1))};}
+function expParam(i,k){const e=expConst(fr(0,1),k);e.p[i]=fr(1,1);return e;}
+function expSub(a,b){return{c:fSub2(a.c,b.c),p:a.p.map((v,i)=>fSub2(v,b.p[i]))};}
+function expScale(a,f){return{c:fMul(a.c,f),p:a.p.map(v=>fMul(v,f))};}
+// Un parámetro: t.  Dos: s y t (como en el capítulo).  Tres o más: t₁, t₂, …
+function paramNames(k){
+  if(k===1)return['t'];
+  if(k===2)return['s','t'];
+  return Array.from({length:k},(_,i)=>`t${sub(i+1)}`);
+}
+function expToStr(e,names){
+  const parts=[];
+  if(!fIsZ(e.c))parts.push(fStr(e.c));
+  e.p.forEach((f,i)=>{
+    if(fIsZ(f))return;
+    const neg=f.n<0,abs=fr(Math.abs(f.n),f.d);
+    const coef=(abs.n===1&&abs.d===1)?'':fStr(abs);
+    const term=coef?`${coef}·${names[i]}`:names[i];
+    parts.push(parts.length===0?(neg?'-'+term:term):(neg?'- '+term:'+ '+term));
+  });
+  return parts.length?parts.join(' '):'0';
+}
+// A partir de la forma escalonada reducida devuelve la parametrización completa
+function solucionParametrica(res,n){
+  const k=n-res.pivotCols.filter(c=>c<n).length;
+  const names=paramNames(k);
+  const pivotSet=new Set(res.pivotCols.filter(c=>c<n));
+  const free=[];for(let j=0;j<n;j++)if(!pivotSet.has(j))free.push(j);
+  const val=new Array(n).fill(null);
+  free.forEach((j,i)=>{val[j]=expParam(i,k);});
+  res.pivotCols.forEach((c,i)=>{
+    if(c>=n)return;
+    let acc=expConst(res.rref[i][n],k);
+    for(const j of free){
+      if(fIsZ(res.rref[i][j]))continue;
+      acc=expSub(acc,expScale(val[j],res.rref[i][j]));
+    }
+    val[c]=acc;
+  });
+  return{names,free,val,
+    tupla:val.map(e=>expToStr(e,names)).join(', '),
+    cuantif:names.join(', ')+' ∈ ℝ'};
 }
 
 // ---- CLASIFICACIÓN (teorema del rango) ----
@@ -277,19 +331,21 @@ function renderFrMat(M,piv,augCol){
   return h;
 }
 
-// ---- BANCO DE PREGUNTAS (ejemplos y ejercicios del libro) ----
-const LIBRO=[
-  {aug:[[1,0,1,1],[0,8,-4,2]],tag:'Ejemplo del libro'},                              // infinitas, 1 parámetro
-  {aug:[[0,2,3,4],[2,-6,7,15],[1,-2,5,10]],tag:'Ejemplo del libro'},                 // inconsistente (0 = −1)
-  {aug:[[-2,6,-4,-28],[-1,3,-1,-8],[5,-15,10,70],[1,3,0,2]],tag:'Ejercicio 6 del libro'}, // única (2,0,6) pese a 4 ecuaciones
+// ---- BANCO FIJO DE APERTURA ----
+// Sistemas propios del material, verificados, congruentes con el capítulo.
+// No se citan ejemplos ni ejercicios concretos del libro.
+const BANCO=[
+  {aug:[[1,1,1,6],[2,-1,1,3]]},                                    // infinitas, 1 parámetro
+  {aug:[[1,-1,2,3],[2,1,-1,1],[3,0,1,7]]},                         // inconsistente
+  {aug:[[1,1,1,6],[2,-1,1,3],[1,2,-1,2],[3,1,2,11]]},              // sobredeterminado 4×3, solución única
 ];
 function buildRound(){
-  // plan: 10 preguntas — 4 únicas, 3 infinitas, 3 inconsistentes (3 fijas del libro + 7 generadas)
+  // plan: 10 preguntas — 3 fijas del banco propio + 7 generadas al azar
   const qs=[];
-  // 2 del libro fijas para abrir
-  qs.push({aug:LIBRO[0].aug.map(r=>[...r]),tag:LIBRO[0].tag});
-  qs.push({aug:LIBRO[1].aug.map(r=>[...r]),tag:LIBRO[1].tag});
-  // generadas + el sobredeterminado del libro, mezcladas
+  // dos sistemas fijos para abrir la ronda de forma suave
+  qs.push({aug:BANCO[0].aug.map(r=>[...r])});
+  qs.push({aug:BANCO[1].aug.map(r=>[...r])});
+  // generados, más el sobredeterminado del banco, mezclados
   qs.push({aug:genSystem('unica',2,2)});
   qs.push({aug:genSystem('inconsistente',2,2)});
   qs.push({aug:genSystem('infinitas',2,2,1)});
@@ -297,8 +353,8 @@ function buildRound(){
   qs.push({aug:genSystem('inconsistente',3,3)});
   qs.push({aug:genSystem('infinitas',3,3,1)});
   qs.push({aug:genSystem('unica',3,3)});
-  qs.push({aug:LIBRO[2].aug.map(r=>[...r]),tag:LIBRO[2].tag});
-  // barajar 3..10 (las dos del libro quedan en posiciones 1–2 para abrir suave)
+  qs.push({aug:BANCO[2].aug.map(r=>[...r])});
+  // barajar 3..10 (los dos fijos quedan en las posiciones 1–2)
   for(let i=qs.length-1;i>2;i--){
     const j=2+Math.floor(rnd()*(i-1));
     [qs[i],qs[j]]=[qs[j],qs[i]];
@@ -327,13 +383,13 @@ function showQuestion(){
   const q=round[qi];
   const n=q.aug[0].length-1;
   let h='';
-  h+=`<div style="font-size:0.78rem;color:var(--text-secondary);">Sistema de ${q.aug.length} ecuaciones con ${n} incógnitas (${VARSN.slice(0,n).join(', ')})${q.tag?`<span class="sys-tag">📖 ${q.tag}</span>`:''}</div>`;
+  h+=`<div style="font-size:0.78rem;color:var(--text-secondary);">Sistema de ${q.aug.length} ecuaciones con ${n} incógnitas (${VARSN.slice(0,n).join(', ')})</div>`;
   h+=sysHTML(q.aug);
   h+=`<div style="font-size:0.8rem;font-weight:600;color:var(--navy);">¿Cómo se clasifica este sistema?</div>`;
   h+=`<div class="opt-grid">`;
-  h+=`<button class="opt-btn" onclick="answer('unica')">✅ Solución única<span class="sub">R(A) = R(A|B) = n</span></button>`;
-  h+=`<button class="opt-btn" onclick="answer('infinitas')">♾️ Infinitas soluciones<span class="sub">R(A) = R(A|B) &lt; n</span></button>`;
-  h+=`<button class="opt-btn" onclick="answer('inconsistente')">🚫 Inconsistente<span class="sub">R(A) &lt; R(A|B)</span></button>`;
+  h+=`<button class="opt-btn" onclick="answer('unica')">✅ Solución única<span class="sub">Ran(A) = Ran(A|B) = n</span></button>`;
+  h+=`<button class="opt-btn" onclick="answer('infinitas')">♾️ Infinitas soluciones<span class="sub">Ran(A) = Ran(A|B) &lt; n</span></button>`;
+  h+=`<button class="opt-btn" onclick="answer('inconsistente')">🚫 Inconsistente<span class="sub">Ran(A) &lt; Ran(A|B)</span></button>`;
   h+=`</div>`;
   h+=`<div id="fbArea"></div>`;
   document.getElementById('quizArea').innerHTML=h;
@@ -357,13 +413,16 @@ function answer(elegida){
   let fb=`<div class="fb-box ${ok?'ok':'bad'}">`;
   fb+=`<div class="fb-title">${ok?'✓ ¡Correcto!':'✗ Incorrecto'} — ${TIPOLBL[c.tipo]}</div>`;
   fb+=`<div class="fb-body">`;
-  fb+=`<div class="mono">R(A) = ${c.rA} &nbsp;|&nbsp; R(A|B) = ${c.rAB} &nbsp;|&nbsp; n = ${n} incógnitas</div>`;
+  fb+=`<div class="mono">Ran(A) = ${c.rA} &nbsp;|&nbsp; Ran(A|B) = ${c.rAB} &nbsp;|&nbsp; n = ${n} incógnitas</div>`;
   if(c.tipo==='inconsistente'){
-    fb+=`Como R(A) = ${c.rA} &lt; R(A|B) = ${c.rAB}, en la forma escalonada aparece una fila del tipo <span class="mono">0 = c</span> con c ≠ 0. No existe ningún valor que la satisfaga: el sistema es inconsistente y <span class="mono">S = ∅</span>.`;
+    fb+=`Como Ran(A) = ${c.rA} &lt; Ran(A|B) = ${c.rAB}, en la forma escalonada aparece una fila del tipo <span class="mono">0 = c</span> con c ≠ 0. No existe ningún valor que la satisfaga: el sistema es inconsistente y <span class="mono">S = ∅</span>.`;
   }else if(c.tipo==='unica'){
-    fb+=`Como R(A) = R(A|B) = n = ${n}, el sistema tiene solución única: <span class="mono">S = {(${c.sol.map(fStr).join(', ')})}</span>.`;
+    fb+=`Como Ran(A) = Ran(A|B) = n = ${n}, el sistema tiene solución única: <span class="mono">S = {(${c.sol.map(fStr).join(', ')})}</span>.`;
   }else{
-    fb+=`Como R(A) = R(A|B) = ${c.rA} &lt; n = ${n}, hay infinitas soluciones que dependen de <strong>n − R(A) = ${c.params} parámetro${c.params===1?'':'s'}</strong>.`;
+    const par=solucionParametrica(c.res,n);
+    fb+=`Como Ran(A) = Ran(A|B) = ${c.rA} &lt; n = ${n}, hay infinitas soluciones que dependen de <strong>n − Ran(A) = ${c.params} parámetro${c.params===1?'':'s'}</strong>.`;
+    fb+=`<div style="margin-top:0.35rem;">Haciendo ${par.free.map((j,i)=>`${VARSN[j]} = ${par.names[i]}`).join(', ')}, con ${par.cuantif}:</div>`;
+    fb+=`<div class="mono" style="margin-top:0.3rem;color:var(--navy);font-weight:700;">S = {(${par.tupla}) : ${par.cuantif}}</div>`;
   }
   fb+=`<br>Forma escalonada reducida de (A|B): &nbsp;${renderFrMat(c.res.rref,null,n)}`;
   fb+=`</div>`;
@@ -391,8 +450,8 @@ function showFinal(){
   let msg;
   if(score===10)msg='¡Perfecto! Dominas el Teorema del Rango. 🏆';
   else if(score>=8)msg='Excelente clasificación. Revisa los casos fallados en la retroalimentación.';
-  else if(score>=6)msg='Buen trabajo. Repasa la relación entre R(A), R(A|B) y n.';
-  else msg='Sigue practicando: la clave está en comparar R(A), R(A|B) y el número de incógnitas n.';
+  else if(score>=6)msg='Buen trabajo. Repase la relación entre Ran(A), Ran(A|B) y n.';
+  else msg='Siga practicando: la clave está en comparar Ran(A), Ran(A|B) y el número de incógnitas n.';
   let dots='';
   results.forEach((r,i)=>{dots+=`<span class="final-dot" style="background:${r?'var(--forest)':'var(--brick)'}" title="Pregunta ${i+1}">${i+1}</span>`;});
   document.getElementById('quizArea').innerHTML=`
@@ -402,7 +461,7 @@ function showFinal(){
       <div class="final-bar">${dots}</div>
       <button class="btn btn-primary" onclick="startRound()">🔄 Jugar otra ronda (sistemas nuevos)</button>
     </div>
-    <div class="teo-note"><strong>Teorema del Rango (resumen del libro):</strong> sea AX = B un sistema con n incógnitas. Si R(A) &lt; R(A|B), el sistema es inconsistente (S = ∅). Si R(A) = R(A|B) = n, tiene solución única. Si R(A) = R(A|B) &lt; n, tiene infinitas soluciones que dependen de n − R(A) parámetros. El teorema no dice cuál es el conjunto solución: solo clasifica; para hallar S se despeja desde la forma escalonada reducida.</div>`;
+    <div class="teo-note"><strong>Teorema del rango:</strong> sea AX = B un sistema con n incógnitas. Si Ran(A) &lt; Ran(A|B), el sistema es inconsistente (S = ∅). Si Ran(A) = Ran(A|B) = n, tiene solución única. Si Ran(A) = Ran(A|B) &lt; n, tiene infinitas soluciones que dependen de n − Ran(A) parámetros. El teorema no dice cuál es el conjunto solución: solo clasifica; para hallar S se despeja desde la forma escalonada reducida.</div>`;
 }
 </script>
 </body>
